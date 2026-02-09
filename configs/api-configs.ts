@@ -5,4 +5,8 @@ export const API_BASE =
 export const API_ENDPOINTS = {
   // ===== AUTH =====
   
+
+   // ===== ADMIN PRODUCTS =====
+  ADMIN_PRODUCTS: `${API_BASE}/api/admin/products`,
+
 };

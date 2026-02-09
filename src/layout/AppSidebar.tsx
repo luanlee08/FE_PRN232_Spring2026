@@ -72,10 +72,10 @@ const navItems: NavItem[] = [
     ],
   },
   {
-    name: "Quản lý sản phẩm",
+    name: "Quản lý loại sản phẩm",
     icon: <Package size={18} />,
     subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
+      { name: "Quản lý sản phẩm", path: "/admin/products", pro: false },
       { name: "404 Error", path: "/error-404", pro: false },
     ],
   },
