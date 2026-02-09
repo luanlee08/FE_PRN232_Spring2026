@@ -1,14 +1,63 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useLogin } from '@/hooks/useLogin';
+import { useAuth } from '@/lib/auth/auth-context';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const { login, isLoading } = useLogin();
+  const { refreshUser } = useAuth();
+  
   const [authMethod, setAuthMethod] = useState<'email' | 'google'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({}); // Clear previous errors
+
+    const result = await login({ email, password });
+
+    if (result.success) {
+      refreshUser();
+      
+      setTimeout(() => {
+        router.push('/');
+      }, 1000);
+    } else if (result.errors) {
+      const backendErrors: { [key: string]: string } = {};
+      
+      Object.keys(result.errors).forEach((key) => {
+        const fieldName = key.toLowerCase();
+        const errorMessages = result.errors[key];
+        
+        if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+          backendErrors[fieldName] = errorMessages[0]; 
+        }
+      });
+      
+      setErrors(backendErrors);
+      
+      // Không reset field để tránh giảm trải nghiệm người dùng
+    } else if (result.message) {
+      const errorMessage = result.message;
+      
+      if (errorMessage.toLowerCase().includes('email')) {
+        setErrors({ email: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('mật khẩu') || errorMessage.toLowerCase().includes('password')) {
+        setErrors({ password: errorMessage });
+      } else {
+        setErrors({ email: errorMessage });
+      }
+    }
+  };
 
   return (
     <div className="flex min-h-screen">
@@ -92,7 +141,7 @@ export default function LoginPage() {
 
           {/* Email Form */}
           {authMethod === 'email' && (
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+            <form className="space-y-4" onSubmit={handleSubmit} noValidate>
               <div>
                 <label className="block text-sm font-medium text-[#222] mb-2">Email</label>
                 <div className="relative">
@@ -100,11 +149,21 @@ export default function LoginPage() {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
                     placeholder="you@example.com"
-                    className="w-full pl-10 pr-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.email
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                 </div>
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                )}
               </div>
 
               <div>
@@ -114,28 +173,36 @@ export default function LoginPage() {
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setErrors((prev) => ({ ...prev, password: undefined }));
+                    }}
                     placeholder="••••••••"
-                    className="w-full pl-10 pr-12 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.password
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-3.5 text-gray-400 hover:text-gray-600 transition"
                   >
-                    {showPassword ? (
-                      <EyeOff className="w-5 h-5" />
-                    ) : (
-                      <Eye className="w-5 h-5" />
-                    )}
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                )}
               </div>
 
               <div className="flex items-center justify-between pt-2">
                 <label className="flex items-center gap-2 text-sm">
                   <input
                     type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
                     className="w-4 h-4 rounded border-[#E8E8E8] text-[#FF6B35] focus:ring-[#FF6B35] cursor-pointer"
                   />
                   <span className="text-gray-600">Ghi nhớ tôi</span>
@@ -145,8 +212,12 @@ export default function LoginPage() {
                 </a>
               </div>
 
-              <button className="w-full py-3 bg-[#FF6B35] hover:bg-[#E55A24] text-white font-semibold rounded-lg transition transform hover:scale-105 mt-6">
-                Đăng Nhập
+              <button 
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-3 bg-[#FF6B35] hover:bg-[#E55A24] text-white font-semibold rounded-lg transition transform hover:scale-105 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? 'Đang đăng nhập...' : 'Đăng Nhập'}
               </button>
             </form>
           )}

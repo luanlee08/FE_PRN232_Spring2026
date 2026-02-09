@@ -3,9 +3,20 @@
 import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { useAuth } from "@/lib/auth/auth-context";
 
 export function Header() {
   const [openMenu, setOpenMenu] = useState(false);
+  const { user, isAuthenticated, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    toast.success("Đăng xuất thành công");
+    router.push("/login");
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full bg-[#FF6B35] text-white shadow-md">
@@ -57,6 +68,38 @@ export function Header() {
                 0
               </span>
             </div>
+
+            <div className="hidden lg:flex items-center gap-3 ml-2">
+              {isAuthenticated ? (
+                <>
+                  <span className="text-sm">
+                    Xin chào,{' '}
+                    <span className="font-semibold">{user?.accountName}</span>
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="text-sm font-medium hover:opacity-80 transition"
+                  >
+                    Đăng xuất
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="text-sm font-medium hover:opacity-80 transition"
+                  >
+                    Đăng nhập
+                  </Link>
+                  <Link
+                    href="/register"
+                    className="text-sm font-medium hover:opacity-80 transition"
+                  >
+                    Đăng ký
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -88,6 +131,42 @@ export function Header() {
               <Link href="/products" onClick={() => setOpenMenu(false)}>Sản phẩm</Link>
               <Link href="/blog" onClick={() => setOpenMenu(false)}>Blog</Link>
               <Link href="/promotions" onClick={() => setOpenMenu(false)}>Khuyến mãi</Link>
+              
+              <div className="border-t pt-4 mt-4">
+                {isAuthenticated ? (
+                  <>
+                    <div className="text-gray-600 mb-2">
+                      Xin chào, <span className="font-semibold text-[#FF6B35]">{user?.accountName}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setOpenMenu(false);
+                        handleLogout();
+                      }}
+                      className="text-red-500 font-medium"
+                    >
+                      Đăng xuất
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      href="/login"
+                      onClick={() => setOpenMenu(false)}
+                      className="block text-[#FF6B35] font-medium mb-2"
+                    >
+                      Đăng nhập
+                    </Link>
+                    <Link
+                      href="/register"
+                      onClick={() => setOpenMenu(false)}
+                      className="block text-[#FF6B35] font-medium"
+                    >
+                      Đăng ký
+                    </Link>
+                  </>
+                )}
+              </div>
             </nav>
           </div>
         </div>
