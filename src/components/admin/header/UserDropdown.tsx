@@ -22,9 +22,8 @@ export default function UserDropdown() {
   }
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/admin/login');
     closeDropdown();
+    await logout();
   };
 
   return (

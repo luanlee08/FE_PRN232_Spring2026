@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { authService } from '@/lib/auth/auth-service';
 import { LoginRequest } from '@/types/auth';
 import toast from 'react-hot-toast';
-import Cookies from 'js-cookie';
 
 export const useAdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -18,20 +17,14 @@ export const useAdminLogin = () => {
         const userRole = response.data?.user?.roleName;
         
         if (!userRole || !allowedRoles.includes(userRole)) {
-          // Clear cookies nhưng KHÔNG gọi logout() để tránh trigger side effects
-          // Làm thủ công để tránh AuthContext update gây unmount/remount
-          Cookies.remove('accessToken');
-          Cookies.remove('refreshToken');
-          Cookies.remove('user');
+          toast.error('Tài khoản này không có quyền truy cập hệ thống quản trị');
           
-          // Trả về lỗi để frontend hiển thị
           return { 
             success: false, 
             message: 'Tài khoản này không có quyền truy cập hệ thống quản trị'
           };
         }
-        
-        toast.success(response.message);
+                authService.saveLoginData(response.data);        toast.success(response.message);
         return { success: true };
       } else {
         // Không hiện toast - để page tự xử lý hiển thị lỗi dưới textbox

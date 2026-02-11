@@ -9,4 +9,7 @@ export const API_ENDPOINTS = {
    // ===== ADMIN PRODUCTS =====
   ADMIN_PRODUCTS: `${API_BASE}/api/admin/products`,
 
+  // ===== ADMIN ACCOUNTS =====
+  ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
+
 };

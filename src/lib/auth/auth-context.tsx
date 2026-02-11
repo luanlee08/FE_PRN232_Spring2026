@@ -33,6 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     await authService.logout();
     setUser(null);
+    
+    const isAdminRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/admin');
+    if (typeof window !== 'undefined') {
+      window.location.href = isAdminRoute ? '/admin/login' : '/login';
+    }
   };
 
   return (

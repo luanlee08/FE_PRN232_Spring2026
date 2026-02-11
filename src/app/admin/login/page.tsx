@@ -6,7 +6,6 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAdminLogin } from '@/hooks/admin/useAdminLogin';
 import { useAuth } from '@/lib/auth/auth-context';
-import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -63,12 +62,6 @@ export default function AdminLoginPage() {
       });
       
       setErrors(backendErrors);
-      
-      // Hiển thị toast thông báo có lỗi validation
-      const firstError = Object.values(backendErrors)[0];
-      if (firstError) {
-        toast.error(firstError);
-      }
     } else if (result.message) {
       const errorMessage = result.message;
       
@@ -77,12 +70,8 @@ export default function AdminLoginPage() {
       if (errorMessage.toLowerCase().includes('email') && !errorMessage.toLowerCase().includes('mật khẩu') && !errorMessage.toLowerCase().includes('password')) {
         setErrors({ email: errorMessage });
       } else {
-        // Mặc định hiển thị ở password (bao gồm "Email hoặc mật khẩu không chính xác")
         setErrors({ password: errorMessage });
       }
-      
-      // Hiển thị toast cho user
-      toast.error(errorMessage);
     }
   };
 
@@ -113,7 +102,7 @@ export default function AdminLoginPage() {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
@@ -125,7 +114,10 @@ export default function AdminLoginPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((prev) => ({ ...prev, email: undefined }));
+                  }}
                   className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                     errors.email
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
@@ -150,7 +142,10 @@ export default function AdminLoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: undefined }));
+                  }}
                   className={`w-full pl-11 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
                     errors.password
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'

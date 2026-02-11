@@ -20,10 +20,8 @@ export const authService = {
     const response = await axiosInstance.post('/auth/verify-otp', data);
     
     if (response.data.status === 201 && response.data.data) {
-      // Lưu tokens vào cookies (auto login sau khi đăng ký)
-      Cookies.set('accessToken', response.data.data.accessToken, { expires: 1 });
-      Cookies.set('refreshToken', response.data.data.refreshToken, { expires: 7 });
-      Cookies.set('user', JSON.stringify(response.data.data.user), { expires: 7 });
+      // Tự động login sau khi verify OTP thành công
+      authService.saveLoginData(response.data.data);
     }
     
     return response.data;
@@ -32,27 +30,26 @@ export const authService = {
   // Đăng nhập
   login: async (data: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
     const response = await axiosInstance.post('/auth/login', data);
-    
-    if (response.data.status === 200 && response.data.data) {
-      // Lưu tokens vào cookies
-      Cookies.set('accessToken', response.data.data.accessToken, { expires: 1 });
-      Cookies.set('refreshToken', response.data.data.refreshToken, { expires: 7 });
-      Cookies.set('user', JSON.stringify(response.data.data.user), { expires: 7 });
-    }
-    
     return response.data;
+  },
+
+  // Lưu thông tin đăng nhập (gọi từ hook sau khi check role)
+  saveLoginData: (loginResponse: LoginResponse): void => {
+    Cookies.set('accessToken', loginResponse.accessToken, { expires: 1 });
+    Cookies.set('refreshToken', loginResponse.refreshToken, { expires: 7 });
+    Cookies.set('user', JSON.stringify(loginResponse.user), { expires: 7 });
   },
 
   // Đăng xuất
   logout: async (): Promise<void> => {
+    Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
+    Cookies.remove('user');
+    
     try {
       await axiosInstance.post('/auth/logout');
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
-      Cookies.remove('accessToken');
-      Cookies.remove('refreshToken');
-      Cookies.remove('user');
     }
   },
 
