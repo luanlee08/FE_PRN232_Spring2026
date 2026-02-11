@@ -2,20 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { ProductFormData } from "@/types/products";
+import { LookupItem } from "../../../../services/admin_services/admin.lookup.service";
 
 interface ProductFormProps {
   submitText?: string;
   product?: ProductFormData | null;
+
+  categories: LookupItem[];
+  brands: LookupItem[];
+  materials: LookupItem[];
+  origins: LookupItem[];
+  ages: LookupItem[];
+  sexes: LookupItem[];
+
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
+
 export default function ProductForm({
   submitText = "Lưu sản phẩm",
   product,
+  categories,
+  brands,
+  materials,
+  origins,
+  ages,
+  sexes,
   onSuccess,
   onCancel,
 }: ProductFormProps) {
+
   /* ================= STATE ================= */
   const [form, setForm] = useState<ProductFormData>({
     name: "",
@@ -159,9 +176,13 @@ export default function ProductForm({
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn danh mục --</option>
-            <option value="1">Son môi</option>
-            <option value="2">Mỹ phẩm thiên nhiên</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
+
         </div>
 
         <div>
@@ -176,47 +197,64 @@ export default function ProductForm({
             }
             className="w-full rounded-lg border px-3 py-2"
           >
-            <option value="">-- Chọn brand --</option>
-            <option value="1">Glowpurea</option>
+            <option value="">-- Chọn thương hiệu --</option>
+            {brands.map((b) => (
+              <option key={b.id} value={b.id}>
+                {b.name}
+              </option>
+            ))}
           </select>
+
         </div>
 
         <div>
-          <label className="mb-1 block font-medium">Chất liệu</label>
-          <input
-            value={form.material}
-            onChange={(e) =>
-              updateField("material", e.target.value)
-            }
+          <select
+            value={form.material ?? ""}
+            onChange={(e) => updateField("material", e.target.value)}
             className="w-full rounded-lg border px-3 py-2"
-          />
+          >
+            <option value="">-- Chọn chất liệu --</option>
+            {materials.map((m) => (
+              <option key={m.id} value={m.name}>
+                {m.name}
+              </option>
+            ))}
+          </select>
+
         </div>
 
         <div>
           <label className="mb-1 block font-medium">Xuất xứ</label>
-          <input
-            value={form.origin}
-            onChange={(e) =>
-              updateField("origin", e.target.value)
-            }
+          <select
+            value={form.origin ?? ""}
+            onChange={(e) => updateField("origin", e.target.value)}
             className="w-full rounded-lg border px-3 py-2"
-          />
+          >
+            <option value="">-- Chọn xuất xứ --</option>
+            {origins.map((o) => (
+              <option key={o.id} value={o.name}>
+                {o.name}
+              </option>
+            ))}
+          </select>
+
         </div>
 
         <div>
           <label className="mb-1 block font-medium">Giới tính</label>
           <select
-            value={form.gender}
-            onChange={(e) =>
-              updateField("gender", e.target.value)
-            }
+            value={form.gender ?? ""}
+            onChange={(e) => updateField("gender", e.target.value)}
             className="w-full rounded-lg border px-3 py-2"
           >
-            <option value="">-- Chọn --</option>
-            <option value="NAM">Nam</option>
-            <option value="NU">Nữ</option>
-            <option value="UNISEX">Unisex</option>
+            <option value="">-- Chọn giới tính --</option>
+            {sexes.map((s) => (
+              <option key={s.id} value={s.name}>
+                {s.name}
+              </option>
+            ))}
           </select>
+
         </div>
 
         <div>
