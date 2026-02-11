@@ -7,7 +7,10 @@ import { BrandsMarquee } from '@/components/user/brands-marquee';
 import { ProductCard } from '@/components/user/product-card';
 import { LoadingScreen } from '@/components/user/loading-screen';
 import { Footer } from '@/components/user/footer';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/lib/auth/auth-context';
+import { useRouter } from 'next/navigation';
+import toast from 'react-hot-toast';
 
 const PRODUCTS = [
   {
@@ -117,12 +120,34 @@ const PRODUCTS = [
 ];
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(true);
   const [displayedProducts] = useState(PRODUCTS);
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  // Bảo vệ trang - chỉ cho Customer vào
+  useEffect(() => {
+    if (user && user.roleName !== 'Customer') {
+      toast.error('Tài khoản này không có quyền truy cập trang người dùng');
+      logout();
+      router.push('/login');
+    }
+  }, [user, logout, router]);
+  
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      <LoadingScreen />
-      
       <Header />
 
       {/* Banner */}

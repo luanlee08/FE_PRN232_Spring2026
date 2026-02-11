@@ -1,12 +1,15 @@
 'use client';
 
-import { useState } from "react"
-
-import React from "react"
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, User, Phone, Eye, EyeOff } from 'lucide-react';
+import { useRegister } from '@/hooks/useRegister';
 
-export default function SignupPage() {
+export default function RegisterPage() {
+  const router = useRouter();
+  const { register, isLoading } = useRegister();
+  
   const [authMethod, setAuthMethod] = useState<'email' | 'google'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -17,25 +20,136 @@ export default function SignupPage() {
     confirmPassword: '',
     phone: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    
+    // Clear error for this field
+    setErrors((prev) => ({ ...prev, [name]: undefined }));
+    
+    if (name === 'confirmPassword') {
+      if (value && value !== formData.password) {
+        setErrors((prev) => ({ ...prev, confirmpassword: 'Mật khẩu không khớp' }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmpassword: undefined }));
+      }
+    }
+    
+    if (name === 'password' && formData.confirmPassword) {
+      if (value !== formData.confirmPassword) {
+        setErrors((prev) => ({ ...prev, confirmpassword: 'Mật khẩu không khớp' }));
+      } else {
+        setErrors((prev) => ({ ...prev, confirmpassword: undefined }));
+      }
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (formData.password !== formData.confirmPassword) {
-      alert('Mật khẩu không khớp!');
+    setErrors({}); // Clear previous errors
+    
+    let hasClientError = false;
+    const clientErrors: { [key: string]: string } = {};
+    
+    if (!formData.fullName.trim()) {
+      clientErrors.fullname = 'Tên tài khoản không được để trống';
+      hasClientError = true;
+    }
+    
+    if (!formData.email.trim()) {
+      clientErrors.email = 'Email không được để trống';
+      hasClientError = true;
+    }
+    
+    if (!formData.phone.trim()) {
+      clientErrors.phone = 'Số điện thoại không được để trống';
+      hasClientError = true;
+    }
+    
+    if (!formData.password) {
+      clientErrors.password = 'Mật khẩu không được để trống';
+      hasClientError = true;
+    }
+    
+    if (!formData.confirmPassword) {
+      clientErrors.confirmpassword = 'Xác nhận mật khẩu không được để trống';
+      hasClientError = true;
+    }
+    
+    // Client-side validation: Password match
+    if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
+      clientErrors.confirmpassword = 'Mật khẩu không khớp';
+      hasClientError = true;
+    }
+    
+    // Kiểm tra checkbox điều khoản TRƯỚC KHI gọi API
+    if (!agreedToTerms) {
+      clientErrors.terms = 'Vui lòng đồng ý với Điều khoản dịch vụ';
+      hasClientError = true;
+    }
+    
+    // Nếu có lỗi client-side, hiển thị và dừng
+    if (hasClientError) {
+      setErrors(clientErrors);
       return;
     }
-    setIsLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false);
-      alert('Đăng ký thành công!');
-    }, 1500);
+
+    // Gọi API với provider = "Email"
+    const result = await register({
+      accountName: formData.fullName,
+      email: formData.email,
+      password: formData.password,
+      phoneNumber: formData.phone,
+      provider: 'Email',
+    });
+
+    if (result.success) {
+      // Chuyển đến trang verify OTP với email
+      router.push(`/verify-otp?email=${encodeURIComponent(result.email!)}`);
+    } else if (result.errors) {
+      // Backend trả về object errors
+      const backendErrors: { [key: string]: string } = {};
+      
+      // Convert backend errors format to frontend format
+      Object.keys(result.errors).forEach((key) => {
+        const fieldName = key.toLowerCase();
+        const errorMessages = result.errors[key];
+        
+        if (Array.isArray(errorMessages) && errorMessages.length > 0) {
+          // Map backend field names to frontend field names
+          let mappedFieldName = fieldName;
+          if (fieldName === 'accountname') {
+            mappedFieldName = 'fullname';
+          } else if (fieldName === 'phonenumber') {
+            mappedFieldName = 'phone';
+          }
+          
+          backendErrors[mappedFieldName] = errorMessages[0];
+        }
+      });
+      
+      setErrors(backendErrors);
+      
+      // Không reset field để tránh giảm trải nghiệm người dùng
+    } else if (result.message) {
+      // Fallback: nếu không có errors object, hiển thị message chung
+      const errorMessage = result.message;
+      
+      if (errorMessage.toLowerCase().includes('tên tài khoản') || errorMessage.toLowerCase().includes('accountname')) {
+        setErrors({ fullname: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('email')) {
+        setErrors({ email: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('mật khẩu') || errorMessage.toLowerCase().includes('password')) {
+        setErrors({ password: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('số điện thoại') || errorMessage.toLowerCase().includes('phone')) {
+        setErrors({ phone: errorMessage });
+      } else {
+        setErrors({ email: errorMessage });
+      }
+    }
   };
 
   return (
@@ -128,8 +242,8 @@ export default function SignupPage() {
 
           {/* Form */}
           {authMethod === 'email' ? (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Full Name Input */}
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {/* Full Name */}
               <div>
                 <label className="block text-sm font-medium text-[#222] mb-2">Họ và Tên</label>
                 <div className="relative">
@@ -140,13 +254,19 @@ export default function SignupPage() {
                     placeholder="Nhập họ và tên"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
-                    required
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.fullname
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                 </div>
+                {errors.fullname && (
+                  <p className="mt-1 text-sm text-red-500">{errors.fullname}</p>
+                )}
               </div>
 
-              {/* Email Input */}
+              {/* Email */}
               <div>
                 <label className="block text-sm font-medium text-[#222] mb-2">Email</label>
                 <div className="relative">
@@ -157,13 +277,42 @@ export default function SignupPage() {
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-4 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
-                    required
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.email
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                 </div>
+                {errors.email && (
+                  <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+                )}
               </div>
 
-            {/* Password Input */}
+              {/* Phone */}
+              <div>
+                <label className="block text-sm font-medium text-[#222] mb-2">Số Điện Thoại</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="0123456789"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.phone
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+                )}
+              </div>
+
+              {/* Password */}
               <div>
                 <label className="block text-sm font-medium text-[#222] mb-2">Mật Khẩu</label>
                 <div className="relative">
@@ -174,8 +323,11 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-12 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
-                    required
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.password
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                   <button
                     type="button"
@@ -185,9 +337,12 @@ export default function SignupPage() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {errors.password && (
+                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
+                )}
               </div>
 
-              {/* Confirm Password Input */}
+              {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-medium text-[#222] mb-2">Xác Nhận Mật Khẩu</label>
                 <div className="relative">
@@ -198,8 +353,11 @@ export default function SignupPage() {
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="w-full pl-10 pr-12 py-3 border border-[#E8E8E8] rounded-lg focus:outline-none focus:border-[#FF6B35] focus:ring-1 focus:ring-[#FF6B35] transition"
-                    required
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
+                      errors.confirmpassword
+                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                    }`}
                   />
                   <button
                     type="button"
@@ -209,25 +367,42 @@ export default function SignupPage() {
                     {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
+                {errors.confirmpassword && (
+                  <p className="mt-1 text-sm text-red-500">{errors.confirmpassword}</p>
+                )}
               </div>
 
               {/* Terms */}
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="w-4 h-4 accent-[#FF6B35]" required />
-                <span className="text-sm text-gray-600">
-                  Tôi đồng ý với{' '}
-                  <a href="#" className="text-[#FF6B35] hover:underline font-medium">
-                    Điều khoản dịch vụ
-                  </a>
-                </span>
-              </label>
+              <div>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input 
+                    type="checkbox" 
+                    className="w-4 h-4 accent-[#FF6B35]" 
+                    checked={agreedToTerms}
+                    onChange={(e) => {
+                      setAgreedToTerms(e.target.checked);
+                      setErrors((prev) => ({ ...prev, terms: undefined }));
+                    }}
+                  />
+                  <span className="text-sm text-gray-600">
+                    Tôi đồng ý với{' '}
+                    <a href="#" className="text-[#FF6B35] hover:underline font-medium">
+                      Điều khoản dịch vụ
+                    </a>
+                  </span>
+                </label>
+                {errors.terms && (
+                  <p className="mt-1 text-sm text-red-500">{errors.terms}</p>
+                )}
+              </div>
 
-              {/* Signup Button */}
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full bg-[#FF6B35] hover:bg-[#E55A24] text-white font-semibold rounded-lg transition transform hover:scale-105 mt-6 py-3"
+                disabled={isLoading}
+                className="w-full bg-[#FF6B35] hover:bg-[#E55A24] text-white font-semibold rounded-lg transition transform hover:scale-105 mt-6 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Tạo Tài Khoản
+                {isLoading ? 'Đang xử lý...' : 'Tạo Tài Khoản'}
               </button>
             </form>
           ) : (
