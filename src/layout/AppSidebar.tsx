@@ -78,6 +78,10 @@ const navItems: NavItem[] = [
     icon: <Package size={18} />,
     subItems: [
       { name: "Quản lý sản phẩm", path: "/admin/products", pro: false },
+      { name: "Danh mục tổng", path: "/admin/supercategory", pro: false },
+      { name: "Danh mục", path: "/admin/categories", pro: false },
+      { name: "Thương hiệu", path: "/admin/brands", pro: false },
+      { name: "Chất liệu", path: "/admin/materials", pro: false },
       { name: "404 Error", path: "/error-404", pro: false },
     ],
   },
