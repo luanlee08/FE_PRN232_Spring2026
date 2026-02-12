@@ -1,12 +1,15 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import { Search, Plus } from "lucide-react";
+
 
 import ProductTable from "./ProductTable";
 import ProductForm from "./ProductForm";
 import { Modal } from "../ui/modal";
 import { LookupItem } from "../../../../services/admin_services/admin.lookup.service";
+
 
 import {
   AdminProductService,
@@ -17,6 +20,7 @@ import {
 } from "../../../../services/admin_services/admin.lookup.service";
 import { ProductFormData } from "@/types/products";
 import { mapAdminToFormData } from "@/utils/product.mapper";
+
 
 export default function ProductManagementUI() {
   const [products, setProducts] = useState<ProductAdmin[]>([]);
@@ -35,6 +39,8 @@ export default function ProductManagementUI() {
   const [origins, setOrigins] = useState<LookupItem[]>([]);
   const [ages, setAges] = useState<LookupItem[]>([]);
   const [sexes, setSexes] = useState<LookupItem[]>([]);
+  const [editingProduct, setEditingProduct] = useState<ProductFormData | null>(null);
+
 
   const loadLookups = async () => {
     const [
@@ -53,6 +59,7 @@ export default function ProductManagementUI() {
       AdminLookupService.getSexes(),
     ]);
 
+
     setCategories(categories);
     setBrands(brands);
     setMaterials(materials);
@@ -60,6 +67,7 @@ export default function ProductManagementUI() {
     setAges(ages);
     setSexes(sexes);
   };
+
 
   const loadProducts = async () => {
     setLoading(true);
@@ -70,6 +78,7 @@ export default function ProductManagementUI() {
         keyword: keyword || undefined,
       });
 
+
       setProducts(res.data.items);
       setTotalPages(res.data.totalPages);
       setTotalItems(res.data.totalItems);
@@ -78,13 +87,16 @@ export default function ProductManagementUI() {
     }
   };
 
+
   useEffect(() => {
     loadProducts();
   }, [page, keyword]);
-  
+
+
   useEffect(() => {
     loadLookups();
   }, []);
+
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-md">
@@ -96,6 +108,7 @@ export default function ProductManagementUI() {
             Quản lý danh sách sản phẩm
           </p>
         </div>
+
 
         <div className="flex gap-3">
           <div className="relative">
@@ -111,6 +124,7 @@ export default function ProductManagementUI() {
             />
           </div>
 
+
           <button
             onClick={() => setOpenModal(true)}
             className="flex items-center gap-1.5 rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600"
@@ -120,8 +134,11 @@ export default function ProductManagementUI() {
           </button>
 
 
+
+
         </div>
       </div>
+
 
       {/* TABLE */}
       {loading ? (
@@ -137,7 +154,9 @@ export default function ProductManagementUI() {
           }}
         />
 
+
       )}
+
 
       {/* PAGINATION */}
       <div className="mt-6 flex justify-between text-sm">
@@ -145,6 +164,7 @@ export default function ProductManagementUI() {
           Trang {page} / {totalPages} · Tổng {totalItems} sản
           phẩm
         </div>
+
 
         <div className="flex gap-2">
           <button
@@ -155,6 +175,7 @@ export default function ProductManagementUI() {
             ←
           </button>
 
+
           <button
             disabled={page === totalPages}
             onClick={() => setPage(page + 1)}
@@ -164,6 +185,7 @@ export default function ProductManagementUI() {
           </button>
         </div>
       </div>
+
 
       <Modal
         isOpen={openModal}
@@ -193,8 +215,15 @@ export default function ProductManagementUI() {
           }}
         />
 
+
       </Modal>
+
 
     </div>
   );
 }
+
+
+
+
+

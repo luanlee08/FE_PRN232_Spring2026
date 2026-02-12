@@ -7,9 +7,10 @@ interface Props {
   data: SuperCategoryAdmin[];
   loading: boolean;
   onEdit?: (item: SuperCategoryAdmin) => void;
+  onToggle?: (item: SuperCategoryAdmin) => void;
 }
 
-export default function SuperCategoryTable({ data, loading, onEdit }: Props) {
+export default function SuperCategoryTable({ data, loading, onEdit, onToggle }: Props) {
 
   if (loading) {
     return (
@@ -53,7 +54,7 @@ export default function SuperCategoryTable({ data, loading, onEdit }: Props) {
               <td className="py-5 px-6">
                 {item.isDeleted ? (
                   <span className="rounded-full bg-gray-100 px-4 py-1.5 text-xs font-medium text-gray-600">
-                    Ngừng
+                    Không hoạt động
                   </span>
                 ) : (
                   <span className="rounded-full bg-green-100 px-4 py-1.5 text-xs font-medium text-green-700">
@@ -72,14 +73,18 @@ export default function SuperCategoryTable({ data, loading, onEdit }: Props) {
                   : "-"}
               </td>
 
-              <td className="py-5 px-6 text-right">
+              <td className="py-5 px-6 text-right space-x-2">
+
+                {/* EDIT */}
                 <button
                   onClick={() => onEdit?.(item)}
-                  className="rounded-lg p-2 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition"
+                  className="rounded-lg p-2 text-indigo-500 hover:bg-indigo-50"
                 >
                   <Pencil size={16} />
                 </button>
+
               </td>
+
             </tr>
           ))}
         </tbody>

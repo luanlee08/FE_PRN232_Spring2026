@@ -48,6 +48,7 @@ export const AdminSuperCategoryService = {
 
   async create(data: {
     superCategoryName: string;
+    isDeleted: boolean;
   }) {
     const res = await axios.post<ApiResponse<number>>(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORIES,
@@ -65,10 +66,28 @@ export const AdminSuperCategoryService = {
     }
   ) {
     const res = await axios.put<ApiResponse<boolean>>(
-      `${API_ENDPOINTS.ADMIN_SUPER_CATEGORIES}/${id}`,
+      API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(id),
       data
     );
 
     return res.data;
   },
+
+  async toggleStatus(item: {
+  superCategoryId: number;
+  superCategoryName: string;
+  isDeleted: boolean;
+}) {
+  const res = await axios.put(
+    API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(item.superCategoryId),
+    {
+      superCategoryName: item.superCategoryName,
+      isDeleted: !item.isDeleted,
+    }
+  );
+
+  return res.data;
+}
+
+
 };
