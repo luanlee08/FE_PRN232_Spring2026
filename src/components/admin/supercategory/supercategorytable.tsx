@@ -1,79 +1,89 @@
 "use client";
 
 import { Pencil } from "lucide-react";
+import { SuperCategoryAdmin } from "../../../../services/admin_services/admin.supercategory.service";
 
-export default function SuperCategoryTable() {
+interface Props {
+  data: SuperCategoryAdmin[];
+  loading: boolean;
+  onEdit?: (item: SuperCategoryAdmin) => void;
+}
+
+export default function SuperCategoryTable({ data, loading, onEdit }: Props) {
+
+  if (loading) {
+    return (
+      <div className="py-16 text-center text-gray-400">
+        Đang tải dữ liệu...
+      </div>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto rounded-xl border">
-      <table className="w-full min-w-[1100px] text-sm">
-        {/* ================= HEADER ================= */}
-        <thead className="bg-gray-50">
+    <div className="overflow-x-auto rounded-xl border bg-white">
+      <table className="w-full min-w-[1200px] text-sm">
+
+        {/* HEADER */}
+        <thead>
           <tr className="border-b text-left text-gray-500">
-            <th className="w-16 px-4 py-3">ID</th>
-            <th className="w-60 px-4 py-3">Tên</th>
-            {/* <th className="w-56 px-4 py-3">Slug</th> */}
-            <th className="px-4 py-3">Mô tả</th>
-            <th className="w-32 px-4 py-3">Trạng thái</th>
-            <th className="w-32 px-4 py-3">Ngày tạo</th>
-            <th className="w-32 px-4 py-3">Cập nhật</th>
-            <th className="w-20 px-4 py-3 text-right">Thao tác</th>
+            <th className="py-4 px-6">ID</th>
+            <th className="py-4 px-6">Tên</th>
+            <th className="py-4 px-6">Trạng thái</th>
+            <th className="py-4 px-6">Ngày tạo</th>
+            <th className="py-4 px-6">Ngày cập nhật</th>
+            <th className="py-4 px-6 text-right">Hành động</th>
           </tr>
         </thead>
 
-        {/* ================= BODY ================= */}
+        {/* BODY */}
         <tbody>
-          {/* ===== MOCK ROW ===== */}
-          <tr className="border-b hover:bg-gray-50 transition">
-            <td className="px-4 py-3">1</td>
-
-            <td className="px-4 py-3 font-medium">
-              Đồ chơi giáo dục
-            </td>
-{/* 
-            <td className="px-4 py-3 text-gray-600">
-              do-choi-giao-duc
-            </td> */}
-
-            <td className="px-4 py-3 max-w-[420px] truncate text-gray-600">
-              Danh mục tổng cho các loại đồ chơi hỗ trợ phát triển trí tuệ
-            </td>
-
-            <td className="px-4 py-3">
-              <span className="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-700">
-                Hoạt động
-              </span>
-            </td>
-
-            <td className="px-4 py-3 text-gray-600">
-              02/02/2026
-            </td>
-
-            <td className="px-4 py-3 text-gray-600">
-              05/02/2026
-            </td>
-
-            <td className="px-4 py-3 text-right">
-              <button
-                className="inline-flex items-center justify-center rounded-lg p-2 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700"
-                title="Chỉnh sửa"
-              >
-                <Pencil size={16} />
-              </button>
-            </td>
-          </tr>
-
-          {/* ===== EMPTY STATE ===== */}
-          {/*
-          <tr>
-            <td
-              colSpan={8}
-              className="px-4 py-10 text-center text-gray-500"
+          {data.map((item) => (
+            <tr
+              key={item.superCategoryId}
+              className="border-b hover:bg-gray-50 transition"
             >
-              Chưa có super category nào
-            </td>
-          </tr>
-          */}
+              <td className="py-5 px-6 font-medium text-gray-700">
+                {item.superCategoryId}
+              </td>
+
+              <td className="py-5 px-6 font-semibold text-gray-900">
+                {item.superCategoryName}
+              </td>
+
+              <td className="py-5 px-6">
+                {item.isDeleted ? (
+                  <span className="rounded-full bg-gray-100 px-4 py-1.5 text-xs font-medium text-gray-600">
+                    Ngừng
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-green-100 px-4 py-1.5 text-xs font-medium text-green-700">
+                    Hoạt động
+                  </span>
+                )}
+              </td>
+
+              <td className="py-5 px-6 text-gray-600">
+                {new Date(item.createdAt).toLocaleDateString()}
+              </td>
+
+              <td className="py-5 px-6 text-gray-600">
+                {item.updatedAt
+                  ? new Date(item.updatedAt).toLocaleDateString()
+                  : "-"}
+              </td>
+
+              <td className="py-5 px-6 text-right">
+                <button
+                  onClick={() => onEdit?.(item)}
+                  className="rounded-lg p-2 text-indigo-500 hover:bg-indigo-50 hover:text-indigo-700 transition"
+                >
+                  <Pencil size={16} />
+                </button>
+              </td>
+            </tr>
+          ))}
         </tbody>
+
       </table>
     </div>
   );
