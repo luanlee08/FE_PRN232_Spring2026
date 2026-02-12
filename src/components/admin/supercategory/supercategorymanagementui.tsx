@@ -25,6 +25,14 @@ export default function SuperCategoryManagementUI() {
     useState<SuperCategoryAdmin | null>(null);
 
   const [openModal, setOpenModal] = useState(false);
+const handleToggle = async (item: SuperCategoryAdmin) => {
+  try {
+    await AdminSuperCategoryService.toggleStatus(item);
+    fetchData();
+  } catch (err) {
+    console.error(err);
+  }
+};
 
   // ================= FETCH =================
   const fetchData = async () => {
@@ -98,6 +106,7 @@ export default function SuperCategoryManagementUI() {
           setEditingItem(item);
           setOpenModal(true);
         }}
+        onToggle={handleToggle}
       />
 
 

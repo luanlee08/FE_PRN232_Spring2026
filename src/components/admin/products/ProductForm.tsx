@@ -1,12 +1,17 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import { ProductFormData } from "@/types/products";
 import { LookupItem } from "../../../../services/admin_services/admin.lookup.service";
+import { AdminProductService } from "../../../../services/admin_services/admin.product.service";
+import { CreateProductPayload } from "@/types/products";
+
 
 interface ProductFormProps {
   submitText?: string;
   product?: ProductFormData | null;
+
 
   categories: LookupItem[];
   brands: LookupItem[];
@@ -15,9 +20,12 @@ interface ProductFormProps {
   ages: LookupItem[];
   sexes: LookupItem[];
 
+
   onSuccess?: () => void;
   onCancel?: () => void;
 }
+
+
 
 
 export default function ProductForm({
@@ -33,30 +41,39 @@ export default function ProductForm({
   onCancel,
 }: ProductFormProps) {
 
+
   /* ================= STATE ================= */
-  const [form, setForm] = useState<ProductFormData>({
-    name: "",
-    description: "",
-    price: 0,
-    quantity: 0,
-    status: "ACTIVE",
-    categoryId: undefined,
-    brandId: undefined,
-    material: "",
-    origin: "",
-    gender: "",
-    age: "",
-    isFeatured: false,
-  });
+  const [form, setForm] = useState<ProductFormData>(() => ({
+    id: product?.id,
+    name: product?.name ?? "",
+    description: product?.description ?? "",
+    price: product?.price ?? 0,
+    quantity: product?.quantity ?? 0,
+    status: product?.status ?? "Available",
+    categoryId: product?.categoryId,
+    brandId: product?.brandId,
+    materialId: product?.materialId,
+    originId: product?.originId,
+    sexId: product?.sexId,
+    ageId: product?.ageId,
+  }));
+
+
+
+
+
 
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [subImages, setSubImages] = useState<File[]>([]);
 
-  // /* ================= EDIT MODE ================= */
-  // useEffect(() => {
-  //   if (!product) return;
-  //   setForm(product);
-  // }, [product]);
+
+  /* ================= EDIT MODE ================= */
+  useEffect(() => {
+    if (!product) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setForm(product);
+  }, [product]);
+
 
   /* ================= HANDLERS ================= */
   const updateField = <K extends keyof ProductFormData>(
@@ -69,26 +86,45 @@ export default function ProductForm({
     }));
   };
 
+
   /* ================= SUBMIT ================= */
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload = {
-      ...form,
-      mainImage,
-      subImages,
-    };
 
-    console.log("SUBMIT PRODUCT:", payload);
+    try {
+      const payload: CreateProductPayload = {
+        ...form,
+        mainImage,
+        subImages,
+      };
 
-    // TODO: gọi API create / update ở đây
 
-    onSuccess?.();
+      if (product && product.id) {
+        await AdminProductService.update(product.id, payload);
+      } else {
+        await AdminProductService.create(payload);
+      }
+
+
+      onSuccess?.();
+    } catch (error) {
+      console.error(error);
+      alert("Thao tác thất bại");
+    }
   };
+
+
+
 
   /* ================= UI ================= */
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 text-sm">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-6 text-sm max-h-[75vh] overflow-y-auto pr-2"
+    >
+
+
       {/* ================= BASIC INFO ================= */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -102,6 +138,7 @@ export default function ProductForm({
           />
         </div>
       </div>
+
 
       {/* ================= DESCRIPTION ================= */}
       <div>
@@ -117,6 +154,7 @@ export default function ProductForm({
         />
       </div>
 
+
       {/* ================= PRICE & QUANTITY ================= */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -131,6 +169,7 @@ export default function ProductForm({
           />
         </div>
 
+
         <div>
           <label className="mb-1 block font-medium">Số lượng</label>
           <input
@@ -143,6 +182,7 @@ export default function ProductForm({
           />
         </div>
 
+
         <div>
           <label className="mb-1 block font-medium">Trạng thái</label>
           <select
@@ -150,16 +190,20 @@ export default function ProductForm({
             onChange={(e) =>
               updateField(
                 "status",
-                e.target.value as "ACTIVE" | "INACTIVE"
+                e.target.value as "Available" | "OutOfStock" | "Discontinued"
               )
             }
             className="w-full rounded-lg border px-3 py-2"
           >
-            <option value="ACTIVE">Đang bán</option>
-            <option value="INACTIVE">Ngừng bán</option>
+            <option value="Available">Đang bán</option>
+            <option value="OutOfStock">Hết hàng</option>
+            <option value="Discontinued">Ngừng kinh doanh</option>
+
+
           </select>
         </div>
       </div>
+
 
       {/* ================= ATTRIBUTES ================= */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -183,7 +227,9 @@ export default function ProductForm({
             ))}
           </select>
 
+
         </div>
+
 
         <div>
           <label className="mb-1 block font-medium">Thương hiệu</label>
@@ -205,78 +251,123 @@ export default function ProductForm({
             ))}
           </select>
 
+
         </div>
 
+
         <div>
+          <label className="mb-1 block font-medium">Chất liệu</label>
           <select
-            value={form.material ?? ""}
-            onChange={(e) => updateField("material", e.target.value)}
+            value={form.materialId ?? ""}
+            onChange={(e) =>
+              updateField(
+                "materialId",
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn chất liệu --</option>
             {materials.map((m) => (
-              <option key={m.id} value={m.name}>
+              <option key={m.id} value={m.id}>
                 {m.name}
               </option>
+
+
             ))}
           </select>
 
+
         </div>
+
 
         <div>
           <label className="mb-1 block font-medium">Xuất xứ</label>
           <select
-            value={form.origin ?? ""}
-            onChange={(e) => updateField("origin", e.target.value)}
+            value={form.originId ?? ""}
+            onChange={(e) =>
+              updateField(
+                "originId",
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn xuất xứ --</option>
             {origins.map((o) => (
-              <option key={o.id} value={o.name}>
+              <option key={o.id} value={o.id}>
                 {o.name}
               </option>
             ))}
           </select>
 
+
         </div>
+
 
         <div>
           <label className="mb-1 block font-medium">Giới tính</label>
           <select
-            value={form.gender ?? ""}
-            onChange={(e) => updateField("gender", e.target.value)}
+            value={form.sexId ?? ""}
+            onChange={(e) =>
+              updateField(
+                "sexId",
+                e.target.value ? Number(e.target.value) : undefined
+              )
+            }
+
+
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn giới tính --</option>
             {sexes.map((s) => (
-              <option key={s.id} value={s.name}>
+              <option key={s.id} value={s.id}>
                 {s.name}
               </option>
+
+
             ))}
           </select>
 
+
         </div>
+
 
         <div>
           <label className="mb-1 block font-medium">Độ tuổi</label>
           <select
-            value={form.age}
+            value={form.ageId ?? ""}
             onChange={(e) =>
-              updateField("age", e.target.value)
+              updateField(
+                "ageId",
+                e.target.value ? Number(e.target.value) : undefined
+              )
             }
+
+
             className="w-full rounded-lg border px-3 py-2"
           >
-            <option value="">-- Chọn --</option>
-            <option value="TRE_EM">Trẻ em</option>
-            <option value="NGUOI_LON">Người lớn</option>
+            <option value="">-- Chọn độ tuổi --</option>
+            {ages.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.name}
+              </option>
+
+
+            ))}
           </select>
+
+
         </div>
       </div>
+
 
       {/* ================= IMAGES ================= */}
       <div>
         <label className="mb-2 block font-medium">Ảnh sản phẩm</label>
 
+
+        {/* MAIN IMAGE */}
         <input
           type="file"
           accept="image/*"
@@ -285,6 +376,19 @@ export default function ProductForm({
           }
         />
 
+
+        {mainImage && (
+          <div className="mt-3">
+            <img
+              src={URL.createObjectURL(mainImage)}
+              alt="Preview"
+              className="h-24 w-24 rounded object-cover border"
+            />
+          </div>
+        )}
+
+
+        {/* SUB IMAGES */}
         <input
           type="file"
           accept="image/*"
@@ -294,19 +398,26 @@ export default function ProductForm({
             setSubImages(Array.from(e.target.files ?? []))
           }
         />
+
+
+        {subImages.length > 0 && (
+          <div className="mt-3 flex gap-2 flex-wrap">
+            {subImages.map((file, index) => (
+              <img
+                key={index}
+                src={URL.createObjectURL(file)}
+                alt="Sub Preview"
+                className="h-20 w-20 rounded object-cover border"
+              />
+            ))}
+          </div>
+        )}
+
+
       </div>
 
-      {/* ================= OPTIONS ================= */}
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={form.isFeatured}
-          onChange={(e) =>
-            updateField("isFeatured", e.target.checked)
-          }
-        />
-        Nổi bật
-      </label>
+
+
 
       {/* ================= ACTIONS ================= */}
       <div className="flex justify-end gap-3 border-t pt-4">
@@ -318,13 +429,23 @@ export default function ProductForm({
           Hủy
         </button>
 
+
         <button
           type="submit"
           className="rounded-lg bg-indigo-500 px-4 py-2 text-white hover:bg-indigo-600"
         >
           {submitText}
         </button>
+
+
+
+
       </div>
     </form>
   );
 }
+
+
+
+
+
