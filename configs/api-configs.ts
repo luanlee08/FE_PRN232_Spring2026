@@ -24,5 +24,6 @@ export const API_ENDPOINTS = {
 
   // ===== ADMIN ACCOUNTS =====
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
+  ADMIN_CUSTOMER_ACCOUNTS: `${API_BASE}/api/admin/customer-accounts`,
 
 };
