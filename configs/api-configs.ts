@@ -26,4 +26,24 @@ export const API_ENDPOINTS = {
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
   ADMIN_CUSTOMER_ACCOUNTS: `${API_BASE}/api/admin/customer-accounts`,
 
+  // ===== CUSTOMER CART =====
+  CART: `${API_BASE}/api/cart`,
+  CART_ADD: `${API_BASE}/api/cart/add`,
+  CART_UPDATE: `${API_BASE}/api/cart/update`,
+  CART_INCREMENT: (cartItemId: number) =>
+    `${API_BASE}/api/cart/increment/${cartItemId}`,
+  CART_DECREMENT: (cartItemId: number) =>
+    `${API_BASE}/api/cart/decrement/${cartItemId}`,
+  CART_REMOVE: (cartItemId: number) =>
+    `${API_BASE}/api/cart/remove/${cartItemId}`,
+  CART_CLEAR: `${API_BASE}/api/cart/clear`,
+
+  // ===== CUSTOMER NOTIFICATIONS =====
+  NOTIFICATIONS: `${API_BASE}/api/notifications`,
+  NOTIFICATIONS_UNREAD_COUNT: `${API_BASE}/api/notifications/unread-count`,
+  NOTIFICATION_MARK_READ: (id: number) =>
+    `${API_BASE}/api/notifications/${id}/read`,
+  NOTIFICATIONS_READ_ALL: `${API_BASE}/api/notifications/read-all`,
+  NOTIFICATION_DELETE: (id: number) =>
+    `${API_BASE}/api/notifications/${id}`,
 };
