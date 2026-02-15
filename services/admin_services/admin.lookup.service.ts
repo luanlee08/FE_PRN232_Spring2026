@@ -1,13 +1,10 @@
 import { API_ENDPOINTS } from "../../configs/api-configs";
-
+import axios from "axios";
 
 export interface LookupItem {
   id: number;
   name: string;
 }
-
-
-
 
 const mapLookup = <T extends Record<string, unknown>>(
   data: T[],
@@ -16,58 +13,51 @@ const mapLookup = <T extends Record<string, unknown>>(
 ): LookupItem[] =>
   Array.isArray(data)
     ? data.map((item) => ({
-      id: Number(item[idKey]),
-      name: String(item[nameKey]),
-    }))
+        id: Number(item[idKey]),
+        name: String(item[nameKey]),
+      }))
     : [];
-
-
-
 
 export const AdminLookupService = {
   async getCategories(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_CATEGORIES);
-    const json = await res.json();
-    return mapLookup(json.data, "categoryId", "categoryName");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_CATEGORIES_ACTIVE, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "categoryId", "categoryName");
   },
-
 
   async getBrands(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_BRANDS);
-    const json = await res.json();
-    return mapLookup(json.data, "brandId", "brandName");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_BRANDS, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "brandId", "brandName");
   },
-
 
   async getMaterials(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_MATERIALS);
-    const json = await res.json();
-    return mapLookup(json.data, "materialId", "materialName");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_MATERIALS, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "materialId", "materialName");
   },
-
 
   async getOrigins(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_ORIGINS);
-    const json = await res.json();
-    return mapLookup(json.data, "originId", "originName");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_ORIGINS, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "originId", "originName");
   },
-
 
   async getAges(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_AGES);
-    const json = await res.json();
-    return mapLookup(json.data, "ageId", "ageRange");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_AGES, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "ageId", "ageRange");
   },
-
 
   async getSexes(): Promise<LookupItem[]> {
-    const res = await fetch(API_ENDPOINTS.ADMIN_SEXES);
-    const json = await res.json();
-    return mapLookup(json.data, "sexId", "sexName");
+    const res = await axios.get(API_ENDPOINTS.ADMIN_SEXES, {
+      withCredentials: true,
+    });
+    return mapLookup(res.data.data, "sexId", "sexName");
   },
 };
-
-
-
-
-
