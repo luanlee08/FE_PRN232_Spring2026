@@ -36,7 +36,8 @@ const navItems: NavItem[] = [
     icon: <UserCircleIcon  />,
     name: "Quản lý tài khoản",
     subItems: [
-      { name: "Quản lý nhân viên", path: "/admin/accounts", pro: false }
+      { name: "Quản lý nhân viên", path: "/admin/accounts", pro: false },
+      { name: "Quản lý khách hàng", path: "/admin/customer-accounts", pro: false }
     ],
   },
   // {

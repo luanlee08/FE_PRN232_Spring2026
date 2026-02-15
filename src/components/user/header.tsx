@@ -1,16 +1,37 @@
 "use client";
 
-import { Search, ShoppingCart, Heart, Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Search, ShoppingCart, Heart, Menu, X, Bell } from "lucide-react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/auth-context";
+import { CustomerNotificationService } from "../../../services/customer_services/customer.notification.service";
 
 export function Header() {
   const [openMenu, setOpenMenu] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
+
+  // Fetch unread notification count
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setUnreadCount(0);
+      return;
+    }
+    const fetchUnread = async () => {
+      try {
+        const res = await CustomerNotificationService.getUnreadCount();
+        if (res.status === 200 && res.data !== null) {
+          setUnreadCount(res.data);
+        }
+      } catch {
+        // silently ignore – header should not break if API is down
+      }
+    };
+    fetchUnread();
+  }, [isAuthenticated]);
 
   const handleLogout = async () => {
     await logout();
@@ -62,12 +83,19 @@ export function Header() {
               <Heart size={20} />
             </button>
 
-            <div className="relative">
-              <ShoppingCart size={20} className="cursor-pointer hover:opacity-80" />
+            <Link href="/notification" className="relative hover:opacity-80">
+              <Bell size={20} className="cursor-pointer" />
+              <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF6B35]">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            </Link>
+
+            <Link href="/cart" className="relative hover:opacity-80">
+              <ShoppingCart size={20} className="cursor-pointer" />
               <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF6B35]">
                 0
               </span>
-            </div>
+            </Link>
 
             <div className="hidden lg:flex items-center gap-3 ml-2">
               {isAuthenticated ? (
@@ -131,7 +159,7 @@ export function Header() {
               <Link href="/products" onClick={() => setOpenMenu(false)}>Sản phẩm</Link>
               <Link href="/blog" onClick={() => setOpenMenu(false)}>Blog</Link>
               <Link href="/promotions" onClick={() => setOpenMenu(false)}>Khuyến mãi</Link>
-              
+
               <div className="border-t pt-4 mt-4">
                 {isAuthenticated ? (
                   <>
