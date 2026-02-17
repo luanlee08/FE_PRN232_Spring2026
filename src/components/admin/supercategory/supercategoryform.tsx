@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdminSuperCategoryService } from "../../../../services/admin_services/admin.supercategory.service";
-import { SuperCategoryAdmin } from "../../../../services/admin_services/admin.supercategory.service";
+import { AdminSuperCategoryService } from "@/services/admin_services/admin.supercategory.service";
+import { SuperCategoryAdmin } from "@/services/admin_services/admin.supercategory.service";
 
 interface Props {
   submitText?: string;

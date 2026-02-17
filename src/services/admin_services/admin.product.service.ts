@@ -1,7 +1,7 @@
 // services/admin_services/admin.product.service.ts
 
 
-import { API_BASE, API_ENDPOINTS } from "../../configs/api-configs";
+import { API_BASE, API_ENDPOINTS } from "@/configs/api-configs";
 import { CreateProductPayload } from "@/types/products";
 
 

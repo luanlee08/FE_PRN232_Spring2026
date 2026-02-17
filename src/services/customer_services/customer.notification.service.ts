@@ -1,7 +1,7 @@
 // services/customer_services/customer.notification.service.ts
 
 import axiosInstance from '@/lib/api/axios';
-import { API_ENDPOINTS } from '../../configs/api-configs';
+import { API_ENDPOINTS } from '@/configs/api-configs';
 
 /* ================= TYPES ================= */
 
@@ -20,6 +20,13 @@ export interface NotificationDto {
     createdAt: string;
 }
 
+export interface PagedResult<T> {
+    items: T[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+}
+
 export interface ApiResponse<T> {
     status: number;
     statusMessage: string;
@@ -34,7 +41,7 @@ export const CustomerNotificationService = {
     async getNotifications(
         status?: string,
         limit: number = 50
-    ): Promise<ApiResponse<NotificationDto[]>> {
+    ): Promise<ApiResponse<PagedResult<NotificationDto>>> {
         const params = new URLSearchParams();
         if (status) params.append('status', status);
         params.append('limit', limit.toString());

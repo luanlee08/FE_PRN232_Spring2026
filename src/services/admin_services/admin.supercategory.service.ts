@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_ENDPOINTS } from "../../configs/api-configs";
+import { API_ENDPOINTS } from "@/configs/api-configs";
 
 export interface SuperCategoryAdmin {
   superCategoryId: number;
@@ -74,20 +74,20 @@ export const AdminSuperCategoryService = {
   },
 
   async toggleStatus(item: {
-  superCategoryId: number;
-  superCategoryName: string;
-  isDeleted: boolean;
-}) {
-  const res = await axios.put(
-    API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(item.superCategoryId),
-    {
-      superCategoryName: item.superCategoryName,
-      isDeleted: !item.isDeleted,
-    }
-  );
+    superCategoryId: number;
+    superCategoryName: string;
+    isDeleted: boolean;
+  }) {
+    const res = await axios.put(
+      API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(item.superCategoryId),
+      {
+        superCategoryName: item.superCategoryName,
+        isDeleted: !item.isDeleted,
+      }
+    );
 
-  return res.data;
-}
+    return res.data;
+  }
 
 
 };

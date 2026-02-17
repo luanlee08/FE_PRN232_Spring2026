@@ -7,7 +7,7 @@ import SuperCategoryForm from "./supercategoryform";
 import {
   AdminSuperCategoryService,
   SuperCategoryAdmin
-} from "../../../../services/admin_services/admin.supercategory.service";
+} from "@/services/admin_services/admin.supercategory.service";
 
 import { Modal } from "../ui/modal";
 

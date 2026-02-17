@@ -46,4 +46,10 @@ export const API_ENDPOINTS = {
   NOTIFICATIONS_READ_ALL: `${API_BASE}/api/notifications/read-all`,
   NOTIFICATION_DELETE: (id: number) =>
     `${API_BASE}/api/notifications/${id}`,
+
+  // ===== ADMIN NOTIFICATIONS =====
+  ADMIN_NOTIFICATIONS: `${API_BASE}/api/admin/notifications`,
+  ADMIN_NOTIFICATION_BY_ID: (id: number) =>
+    `${API_BASE}/api/admin/notifications/${id}`,
+  ADMIN_NOTIFICATIONS_STATS: `${API_BASE}/api/admin/notifications/stats`,
 };

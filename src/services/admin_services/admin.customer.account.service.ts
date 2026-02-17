@@ -1,4 +1,4 @@
-import { API_ENDPOINTS } from "../../configs/api-configs";
+import { API_ENDPOINTS } from "@/configs/api-configs";
 
 export interface CustomerAccount {
   accountId: number;

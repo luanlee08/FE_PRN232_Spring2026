@@ -3,8 +3,8 @@
 
 import { useEffect, useState } from "react";
 import { ProductFormData } from "@/types/products";
-import { LookupItem } from "../../../../services/admin_services/admin.lookup.service";
-import { AdminProductService } from "../../../../services/admin_services/admin.product.service";
+import { LookupItem } from "@/services/admin_services/admin.lookup.service";
+import { AdminProductService } from "@/services/admin_services/admin.product.service";
 import { CreateProductPayload } from "@/types/products";
 
 

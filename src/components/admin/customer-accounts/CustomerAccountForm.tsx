@@ -5,7 +5,7 @@ import {
   customerAccountService,
   CustomerAccount,
   UpdateCustomerAccountRequest,
-} from "../../../../services/admin_services/admin.customer.account.service";
+} from "@/services/admin_services/admin.customer.account.service";
 
 interface Props {
   customer: CustomerAccount | null;

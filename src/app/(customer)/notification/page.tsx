@@ -1,17 +1,25 @@
 'use client';
 
-import { Header } from '@/components/user/header';
-import { Footer } from '@/components/user/footer';
-import { Bell, BellOff, Check, CheckCheck, Trash2, ArrowLeft } from 'lucide-react';
+import { Header } from '@/components/customer/header';
+import { Footer } from '@/components/customer/footer';
+import { Bell, BellOff, Check, CheckCheck, Trash2, ArrowLeft, Package, Tag, Wallet, Info } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
 import {
     CustomerNotificationService,
     NotificationDto,
-} from '../../../services/customer_services/customer.notification.service';
+} from '@/services/customer_services/customer.notification.service';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import {
+    NotificationCategory,
+    getCategoryFromTemplate,
+    getCategoryLabel,
+    getCategoryIcon,
+    getCategoryColor,
+    parseNotificationPayload,
+} from '@/types/notification';
 
 type TabKey = 'all' | 'unread' | 'read';
 
@@ -20,6 +28,15 @@ const TABS: { key: TabKey; label: string; status?: string }[] = [
     { key: 'unread', label: 'Chưa đọc', status: 'Unread' },
     { key: 'read', label: 'Đã đọc', status: 'Read' },
 ];
+
+// Category filter options
+const CATEGORY_FILTERS = [
+    { key: 'all', label: 'Tất cả', icon: Bell },
+    { key: NotificationCategory.ORDER, label: 'Đơn hàng', icon: Package },
+    { key: NotificationCategory.PROMOTION, label: 'Khuyến mãi', icon: Tag },
+    { key: NotificationCategory.PAYMENT, label: 'Thanh toán', icon: Wallet },
+    { key: NotificationCategory.SYSTEM, label: 'Hệ thống', icon: Bell },
+] as const;
 
 function timeAgo(dateStr: string): string {
     const now = new Date();
@@ -39,6 +56,7 @@ export default function NotificationPage() {
     const [notifications, setNotifications] = useState<NotificationDto[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<TabKey>('all');
+    const [activeCategory, setActiveCategory] = useState<string>('all');
     const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
     const { isAuthenticated, isLoading: authLoading } = useAuth();
     const router = useRouter();
@@ -59,10 +77,13 @@ export default function NotificationPage() {
                 const status = TABS.find((t) => t.key === tab)?.status;
                 const res = await CustomerNotificationService.getNotifications(status);
                 if (res.status === 200 && res.data) {
-                    setNotifications(res.data);
+                    // Ensure we always set an array
+                    const items = Array.isArray(res.data.items) ? res.data.items : [];
+                    setNotifications(items);
                 }
-            } catch {
-                console.error('Failed to fetch notifications');
+            } catch (error) {
+                console.error('Failed to fetch notifications:', error);
+                setNotifications([]); // Reset to empty array on error
             } finally {
                 setIsLoading(false);
             }
@@ -96,6 +117,45 @@ export default function NotificationPage() {
             }
         } catch {
             toast.error('Không thể đánh dấu đã đọc');
+        }
+    };
+
+    // Handle notification click (mark as read + navigate to link from payload)
+    const handleNotificationClick = async (notif: NotificationDto) => {
+        // Mark as read if unread
+        if (notif.status === 'Unread') {
+            try {
+                await CustomerNotificationService.markAsRead(notif.deliveryId);
+                setNotifications((prev) =>
+                    prev.map((n) =>
+                        n.deliveryId === notif.deliveryId ? { ...n, status: 'Read' } : n
+                    )
+                );
+            } catch (error) {
+                console.error('Failed to mark notification as read:', error);
+            }
+        }
+
+        // Parse payload and navigate to link
+        if (notif.payload) {
+            const payload = parseNotificationPayload(notif.payload);
+            if (payload?.link) {
+                router.push(payload.link);
+            } else if (payload) {
+                // Fallback: Determine default link based on notification category
+                const category = getCategoryFromTemplate(notif.templateCode);
+                if (category === NotificationCategory.ORDER && payload.type === 'order') {
+                    router.push(`/orders/${payload.orderId}`);
+                } else if (category === NotificationCategory.PROMOTION && payload.type === 'promotion' && payload.voucherId) {
+                    router.push(`/vouchers/${payload.voucherId}`);
+                } else if (category === NotificationCategory.PAYMENT && payload.type === 'payment') {
+                    // Payment notifications usually link back to order
+                    const paymentPayload = payload as any;
+                    if (paymentPayload.orderId) {
+                        router.push(`/orders/${paymentPayload.orderId}`);
+                    }
+                }
+            }
         }
     };
 
@@ -134,7 +194,33 @@ export default function NotificationPage() {
         }
     };
 
-    const unreadCount = notifications.filter((n) => n.status === 'Unread').length;
+    const unreadCount = Array.isArray(notifications) 
+        ? notifications.filter((n) => n.status === 'Unread').length 
+        : 0;
+
+    // Filter notifications by category
+    const filteredNotifications = !Array.isArray(notifications)
+        ? []
+        : activeCategory === 'all'
+            ? notifications
+            : notifications.filter(
+                  (n) => getCategoryFromTemplate(n.templateCode) === activeCategory
+              );
+
+    // Get icon component for notification category
+    const getCategoryIconComponent = (category: NotificationCategory) => {
+        const colors = getCategoryColor(category);
+        const IconComponent =
+            category === NotificationCategory.ORDER
+                ? Package
+                : category === NotificationCategory.PROMOTION
+                ? Tag
+                : category === NotificationCategory.PAYMENT
+                ? Wallet
+                : Bell;
+
+        return { IconComponent, colors };
+    };
 
     if (authLoading) return null;
 
@@ -163,7 +249,7 @@ export default function NotificationPage() {
                             </span>
                         )}
                     </h1>
-                    {notifications.some((n) => n.status === 'Unread') && (
+                    {Array.isArray(notifications) && notifications.some((n) => n.status === 'Unread') && (
                         <button
                             onClick={handleMarkAllRead}
                             className="flex items-center gap-1.5 text-sm font-medium text-[#FF6B35] hover:text-[#E55A24] transition"
@@ -188,6 +274,29 @@ export default function NotificationPage() {
                             {tab.label}
                         </button>
                     ))}
+                </div>
+
+                {/* Category Filter Chips */}
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+                    {CATEGORY_FILTERS.map((filter) => {
+                        const Icon = filter.icon;
+                        const isActive = activeCategory === filter.key;
+                        
+                        return (
+                            <button
+                                key={filter.key}
+                                onClick={() => setActiveCategory(filter.key)}
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition shrink-0 ${
+                                    isActive
+                                        ? 'bg-[#FF6B35] text-white shadow-sm'
+                                        : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm border border-gray-200'
+                                }`}
+                            >
+                                <Icon className="w-4 h-4" />
+                                {filter.label}
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Content */}
@@ -227,17 +336,30 @@ export default function NotificationPage() {
                             Quay lại trang chủ
                         </Link>
                     </div>
+                ) : filteredNotifications.length === 0 ? (
+                    /* Empty state for filtered results */
+                    <div className="bg-white rounded-lg p-12 text-center">
+                        <BellOff className="w-20 h-20 text-gray-300 mx-auto mb-4" />
+                        <h2 className="text-xl font-bold text-[#222] mb-2">
+                            Không có thông báo
+                        </h2>
+                        <p className="text-gray-500 mb-6">
+                            Không tìm thấy thông báo {getCategoryLabel(activeCategory as NotificationCategory).toLowerCase()} nào.
+                        </p>
+                    </div>
                 ) : (
                     /* Notification list */
                     <div className="space-y-2">
-                        {notifications.map((notif) => {
+                        {filteredNotifications.map((notif) => {
                             const isUnread = notif.status === 'Unread';
                             const isDeleting = deletingIds.has(notif.deliveryId);
+                            const category = getCategoryFromTemplate(notif.templateCode);
+                            const { IconComponent, colors } = getCategoryIconComponent(category);
 
                             return (
                                 <div
                                     key={notif.deliveryId}
-                                    onClick={() => handleMarkRead(notif)}
+                                    onClick={() => handleNotificationClick(notif)}
                                     className={`bg-white rounded-lg p-4 flex gap-4 cursor-pointer transition group hover:shadow-md ${isUnread
                                             ? 'border-l-4 border-[#FF6B35] bg-orange-50/40'
                                             : 'border-l-4 border-transparent'
@@ -245,12 +367,13 @@ export default function NotificationPage() {
                                 >
                                     {/* Icon */}
                                     <div
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isUnread
-                                                ? 'bg-[#FF6B35]/10 text-[#FF6B35]'
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                                            isUnread
+                                                ? `${colors.bg} ${colors.text}`
                                                 : 'bg-gray-100 text-gray-400'
-                                            }`}
+                                        }`}
                                     >
-                                        <Bell className="w-5 h-5" />
+                                        <IconComponent className="w-5 h-5" />
                                     </div>
 
                                     {/* Content */}

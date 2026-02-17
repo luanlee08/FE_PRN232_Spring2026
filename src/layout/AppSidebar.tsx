@@ -49,7 +49,7 @@ const navItems: NavItem[] = [
   {
     icon: <Bell  />,
     name: "Quản lý thông báo",
-    path: "/admin/calendar",
+    path: "/admin/notifications",
   },
   {
     name: "Quản lý đánh giá",

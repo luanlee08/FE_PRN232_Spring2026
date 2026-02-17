@@ -1,13 +1,13 @@
 'use client';
 
-import { Header } from '@/components/user/header';
-import { Footer } from '@/components/user/footer';
+import { Header } from '@/components/customer/header';
+import { Footer } from '@/components/customer/footer';
 import { Trash2, Minus, Plus, ShoppingBag, ArrowLeft, PackageX } from 'lucide-react';
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';
-import { CustomerCartService, CartDto, CartItemDto } from '../../../services/customer_services/customer.cart.service';
-import { API_BASE } from '../../../configs/api-configs';
+import { CustomerCartService, CartDto, CartItemDto } from '@/services/customer_services/customer.cart.service';
+import { API_BASE } from '@/configs/api-configs';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
 

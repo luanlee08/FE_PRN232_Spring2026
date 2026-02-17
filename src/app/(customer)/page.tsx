@@ -1,12 +1,12 @@
 'use client';
 
-import { Header } from '@/components/user/header';
-import { SidebarCategories } from '@/components/user/sidebar-categories';
-import { CarouselBanner } from '@/components/user/carousel-banner';
-import { BrandsMarquee } from '@/components/user/brands-marquee';
-import { ProductCard } from '@/components/user/product-card';
-import { LoadingScreen } from '@/components/user/loading-screen';
-import { Footer } from '@/components/user/footer';
+import { Header } from '@/components/customer/header';
+import { SidebarCategories } from '@/components/customer/sidebar-categories';
+import { CarouselBanner } from '@/components/customer/carousel-banner';
+import { BrandsMarquee } from '@/components/customer/brands-marquee';
+import { ProductCard } from '@/components/customer/product-card';
+import { LoadingScreen } from '@/components/customer/loading-screen';
+import { Footer } from '@/components/customer/footer';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useRouter } from 'next/navigation';

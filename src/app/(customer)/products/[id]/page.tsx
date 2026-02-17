@@ -1,7 +1,7 @@
 'use client';
 
-import { Header } from '@/components/user/header';
-import { SidebarCategories } from '@/components/user/sidebar-categories';
+import { Header } from '@/components/customer/header';
+import { SidebarCategories } from '@/components/customer/sidebar-categories';
 import { Heart, ShoppingCart, Truck, RotateCcw, Shield } from 'lucide-react';
 import { useState } from 'react';
 
@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-      
+
       <div className="flex">
         <SidebarCategories />
 
@@ -74,9 +74,8 @@ export default function ProductDetailPage() {
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
-                        selectedImage === idx ? 'border-[#FF6B35]' : 'border-[#E8E8E8]'
-                      }`}
+                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition ${selectedImage === idx ? 'border-[#FF6B35]' : 'border-[#E8E8E8]'
+                        }`}
                     >
                       <img src={img || "/placeholder.svg"} alt="Thumb" className="w-full h-full object-cover" />
                     </button>
@@ -180,11 +179,10 @@ export default function ProductDetailPage() {
                 <div className="flex gap-3 mb-6">
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 border-2 ${
-                      isWishlisted
+                    className={`flex-1 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 border-2 ${isWishlisted
                         ? 'bg-[#FFE5E0] border-[#FF6B35] text-[#FF6B35]'
                         : 'bg-white border-[#FF6B35] text-[#FF6B35] hover:bg-[#FFF5F0]'
-                    }`}
+                      }`}
                   >
                     <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
                     {isWishlisted ? 'Đã Thích' : 'Thích'}

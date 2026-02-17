@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_ENDPOINTS } from "../../configs/api-configs";
+import { API_ENDPOINTS } from "@/configs/api-configs";
 
 export interface CategoryAdmin {
   categoryId: number;

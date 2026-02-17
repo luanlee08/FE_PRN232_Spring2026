@@ -6,7 +6,7 @@ import {
   AccountAdmin,
   CreateAccountRequest,
   UpdateAccountRequest,
-} from "../../../../services/admin_services/admin.account.service";
+} from "@/services/admin_services/admin.account.service";
 
 interface Props {
   account?: AccountAdmin | null;

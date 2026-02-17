@@ -1,7 +1,7 @@
 // services/customer_services/customer.cart.service.ts
 
 import axiosInstance from '@/lib/api/axios';
-import { API_ENDPOINTS } from '../../configs/api-configs';
+import { API_ENDPOINTS } from '@/configs/api-configs';
 
 /* ================= TYPES ================= */
 

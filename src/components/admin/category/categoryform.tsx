@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import {
   AdminCategoryService,
   CategoryAdmin,
-} from "../../../../services/admin_services/admin.category.service";
+} from "@/services/admin_services/admin.category.service";
 import {
   AdminSuperCategoryService,
   SuperCategoryAdmin,
-} from "../../../../services/admin_services/admin.supercategory.service";
+} from "@/services/admin_services/admin.supercategory.service";
 
 interface Props {
   submitText?: string;

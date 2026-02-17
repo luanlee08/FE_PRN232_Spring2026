@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/auth-context";
-import { CustomerNotificationService } from "../../../services/customer_services/customer.notification.service";
+import { CustomerNotificationService } from "@/services/customer_services/customer.notification.service";
 
 export function Header() {
   const [openMenu, setOpenMenu] = useState(false);

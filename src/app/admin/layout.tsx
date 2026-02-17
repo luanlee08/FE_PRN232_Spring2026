@@ -32,25 +32,25 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  
+
   // Bảo vệ admin routes - chỉ cho Staff/Warehouse/Admin vào
   useEffect(() => {
     // Cho phép truy cập trang login mà không cần auth
     if (pathname === '/admin/login') {
       return;
     }
-    
+
     // Chờ AuthContext load xong trước khi check auth
     if (isLoading) {
       return;
     }
-    
+
     // Kiểm tra đã đăng nhập chưa
     if (!isAuthenticated) {
       router.push('/admin/login');
       return;
     }
-    
+
     // Kiểm tra role
     const allowedRoles = ['Staff', 'Warehouse', 'Admin'];
     if (user && !allowedRoles.includes(user.roleName)) {
@@ -59,12 +59,12 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       router.push('/admin/login');
     }
   }, [user, isAuthenticated, isLoading, pathname, router, logout]);
-  
+
   // Nếu là trang login thì hiển thị luôn không cần layout admin
   if (pathname === '/admin/login') {
     return <>{children}</>;
   }
-  
+
   // Hiển thị loading khi đang check auth
   if (isLoading) {
     return (
@@ -79,7 +79,7 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
       </div>
     );
   }
-  
+
   // Nếu chưa auth thì không render gì (sẽ redirect)
   if (!isAuthenticated) {
     return null;
@@ -89,26 +89,10 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
-    ? "lg:ml-[290px]"
-    : "lg:ml-[90px]";
+      ? "lg:ml-[290px]"
+      : "lg:ml-[90px]";
 
-  // return (
-  //   <div className="min-h-screen xl:flex dark:bg-gray-900">
-  //     {/* Sidebar and Backdrop */}
-  //     <AppSidebar />
-  //     <Backdrop />
-  //     {/* Main Content Area */}
-  //     <div
-  //       className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
-  //     >
-  //       {/* Header */}
-  //       <AppHeader />
-  //       {/* Page Content */}
-  //       <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
-  //     </div>
-  //   </div>
-  // );
-   return (
+  return (
     <div className="min-h-screen xl:flex overflow-x-hidden">
       <AppSidebar />
       <Backdrop />

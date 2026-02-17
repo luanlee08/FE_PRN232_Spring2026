@@ -9,7 +9,7 @@ import {
   customerAccountService,
   CustomerAccount,
   CustomerAccountQuery,
-} from "../../../../services/admin_services/admin.customer.account.service";
+} from "@/services/admin_services/admin.customer.account.service";
 
 export default function CustomerAccountManagementUI() {
   const [customers, setCustomers] = useState<CustomerAccount[]>([]);

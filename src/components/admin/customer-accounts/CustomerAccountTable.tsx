@@ -1,6 +1,6 @@
 "use client";
 
-import { CustomerAccount } from "../../../../services/admin_services/admin.customer.account.service";
+import { CustomerAccount } from "@/services/admin_services/admin.customer.account.service";
 import { Edit } from "lucide-react";
 
 interface Props {
