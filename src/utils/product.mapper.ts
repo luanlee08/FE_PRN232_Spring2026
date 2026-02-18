@@ -1,4 +1,4 @@
-import { ProductAdmin } from "../../services/admin_services/admin.product.service";
+import { ProductAdmin } from "@/services/admin_services/admin.product.service";
 import { ProductFormData } from "@/types/products";
 
 

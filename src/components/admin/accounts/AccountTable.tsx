@@ -1,6 +1,6 @@
 "use client";
 
-import { AccountAdmin } from "../../../../services/admin_services/admin.account.service";
+import { AccountAdmin } from "@/services/admin_services/admin.account.service";
 import { Edit } from "lucide-react";
 
 interface Props {

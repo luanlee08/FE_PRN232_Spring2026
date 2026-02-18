@@ -8,16 +8,16 @@ import { Search, Plus } from "lucide-react";
 import ProductTable from "./ProductTable";
 import ProductForm from "./ProductForm";
 import { Modal } from "../ui/modal";
-import { LookupItem } from "../../../../services/admin_services/admin.lookup.service";
+import { LookupItem } from "@/services/admin_services/admin.lookup.service";
 
 
 import {
   AdminProductService,
   ProductAdmin,
-} from "../../../../services/admin_services/admin.product.service";
+} from "@/services/admin_services/admin.product.service";
 import {
   AdminLookupService
-} from "../../../../services/admin_services/admin.lookup.service";
+} from "@/services/admin_services/admin.lookup.service";
 import { ProductFormData } from "@/types/products";
 import { mapAdminToFormData } from "@/utils/product.mapper";
 
