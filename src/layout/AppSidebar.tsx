@@ -3,12 +3,12 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/lib/context/SidebarContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
-  GridIcon, 
+  GridIcon,
   HorizontaLDots,
   ListIcon,
   PageIcon,
@@ -18,7 +18,7 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Package, Box, Receipt, TicketPercent, Bell  } from "lucide-react";
+import { Package, Box, Receipt, TicketPercent, Bell } from "lucide-react";
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -33,9 +33,12 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Ecommerce", path: "/admin/", pro: false }],
   },
   {
-    icon: <UserCircleIcon  />,
-    name: "Quản lý người dùng",
-    path: "/admin/calendar",
+    icon: <UserCircleIcon />,
+    name: "Quản lý tài khoản",
+    subItems: [
+      { name: "Quản lý nhân viên", path: "/admin/accounts", pro: false },
+      { name: "Quản lý khách hàng", path: "/admin/customer-accounts", pro: false }
+    ],
   },
   // {
   //   icon: <PageIcon />,
@@ -44,9 +47,9 @@ const navItems: NavItem[] = [
   // },
 
   {
-    icon: <Bell  />,
+    icon: <Bell />,
     name: "Quản lý thông báo",
-    path: "/admin/calendar",
+    path: "/admin/notifications",
   },
   {
     name: "Quản lý đánh giá",
@@ -62,7 +65,7 @@ const navItems: NavItem[] = [
       { name: "Quan lý Reply Comment Blog", path: "/admin/blogs", pro: false }
     ],
   },
-    {
+  {
     name: "Quản lý Khuyến mãi",
     icon: <TicketPercent />,
     subItems: [
@@ -76,6 +79,10 @@ const navItems: NavItem[] = [
     icon: <Package size={18} />,
     subItems: [
       { name: "Quản lý sản phẩm", path: "/admin/products", pro: false },
+      { name: "Danh mục tổng", path: "/admin/supercategory", pro: false },
+      { name: "Danh mục", path: "/admin/categories", pro: false },
+      { name: "Thương hiệu", path: "/admin/brands", pro: false },
+      { name: "Chất liệu", path: "/admin/materials", pro: false },
       { name: "404 Error", path: "/error-404", pro: false },
     ],
   },

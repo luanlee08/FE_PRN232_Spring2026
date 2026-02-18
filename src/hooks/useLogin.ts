@@ -10,43 +10,34 @@ export const useLogin = () => {
     setIsLoading(true);
     try {
       const response = await authService.login(data);
-      
+
       if (response.status === 200) {
-        // Kiểm tra role - chỉ cho phép Customer đăng nhập tại trang user
         if (response.data?.user?.roleName !== 'Customer') {
-          // Logout ngay nếu không phải Customer
-          await authService.logout();
           toast.error('Tài khoản này không có quyền truy cập trang người dùng');
           return { success: false, message: 'Không có quyền truy cập' };
         }
-        
-        toast.success(response.message);
-        return { success: true };
-      } else {
-// Không hiện toast khi có validation errors
-      if (!response.data) {
-          toast.error(response.message || 'Đăng nhập thất bại');
+
+        if (response.data) {
+          authService.saveLoginData(response.data);
+          toast.success(response.message);
+          return { success: true };
         }
-        
-        return { 
-          success: false, 
+        return { success: false, message: 'Đăng nhập thành công nhưng không có dữ liệu trả về' };
+      } else {
+        return {
+          success: false,
           message: response.message,
-          errors: response.data 
+          errors: response.data
         };
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Đăng nhập thất bại';
-      const errors = error.response?.data?.data; 
-      
-      // Chỉ hiện toast nếu không có validation errors
-      if (!errors) {
-        toast.error(message);
-      }
-      
-      return { 
-        success: false, 
+      const errors = error.response?.data?.data;
+
+      return {
+        success: false,
         message,
-        errors 
+        errors
       };
     } finally {
       setIsLoading(false);

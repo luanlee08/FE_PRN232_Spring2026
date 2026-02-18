@@ -1,12 +1,15 @@
 "use client";
 
+
 import { Pencil } from "lucide-react";
-import { ProductAdmin } from "../../../../services/admin_services/admin.product.service";
+import { ProductAdmin } from "@/services/admin_services/admin.product.service";
+
 
 interface Props {
   products: ProductAdmin[];
   onEdit?: (product: ProductAdmin) => void;
 }
+
 
 export default function ProductTable({ products, onEdit }: Props) {
   return (
@@ -28,6 +31,7 @@ export default function ProductTable({ products, onEdit }: Props) {
           </tr>
         </thead>
 
+
         <tbody>
           {products.length === 0 && (
             <tr>
@@ -40,6 +44,7 @@ export default function ProductTable({ products, onEdit }: Props) {
             </tr>
           )}
 
+
           {products.map((p, index) => (
             <tr
               key={p.id}
@@ -49,7 +54,7 @@ export default function ProductTable({ products, onEdit }: Props) {
               <td className="font-mono text-xs">{p.sku}</td>
               <td className="font-medium">{p.name}</td>
 
-              {/* 🔥 ẢNH */}
+
               <td>
                 {p.imageUrl ? (
                   <img
@@ -64,27 +69,42 @@ export default function ProductTable({ products, onEdit }: Props) {
                 )}
               </td>
 
+
               <td>{p.categoryName}</td>
               <td>{p.brandName}</td>
+
 
               <td className="font-medium text-emerald-600">
                 {p.price.toLocaleString()}₫
               </td>
 
+
               <td>
-                {p.status === 1 ? (
+                {p.status === "Available" && (
                   <span className="rounded-full bg-green-100 px-3 py-1 text-xs text-green-700">
                     Đang bán
                   </span>
-                ) : (
+                )}
+
+
+                {p.status === "OutOfStock" && (
+                  <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs text-yellow-700">
+                    Hết hàng
+                  </span>
+                )}
+
+
+                {p.status === "Discontinued" && (
                   <span className="rounded-full bg-gray-100 px-3 py-1 text-xs text-gray-600">
-                    Ngừng bán
+                    Ngừng kinh doanh
                   </span>
                 )}
               </td>
 
+
               <td>{p.createdAt}</td>
               <td>{p.updatedAt ?? "-"}</td>
+
 
               <td className="text-right pr-4">
                 <button
@@ -101,3 +121,8 @@ export default function ProductTable({ products, onEdit }: Props) {
     </div>
   );
 }
+
+
+
+
+

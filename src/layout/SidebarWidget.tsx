@@ -1,6 +1,7 @@
 import React from "react";
 
 export default function SidebarWidget() {
+  return null;
   // return (
   //   <div
   //     className={`

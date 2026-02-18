@@ -6,13 +6,12 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Shield } from 'lucide-react';
 import { useAdminLogin } from '@/hooks/admin/useAdminLogin';
 import { useAuth } from '@/lib/auth/auth-context';
-import toast from 'react-hot-toast';
 
 export default function AdminLoginPage() {
   const router = useRouter();
   const { login, isLoading } = useAdminLogin();
   const { refreshUser } = useAuth();
-  
+
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -24,19 +23,19 @@ export default function AdminLoginPage() {
 
     // Client-side validation
     const validationErrors: { [key: string]: string } = {};
-    
+
     if (!email.trim()) {
       validationErrors.email = 'Vui lòng nhập email';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       validationErrors.email = 'Email không hợp lệ';
     }
-    
+
     if (!password.trim()) {
       validationErrors.password = 'Vui lòng nhập mật khẩu';
     } else if (password.length < 6) {
       validationErrors.password = 'Mật khẩu phải có ít nhất 6 ký tự';
     }
-    
+
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
@@ -46,43 +45,33 @@ export default function AdminLoginPage() {
 
     if (result.success) {
       refreshUser();
-      
+
       setTimeout(() => {
         router.push('/admin');
       }, 1000);
     } else if (result.errors) {
       const backendErrors: { [key: string]: string } = {};
-      
+
       Object.keys(result.errors).forEach((key) => {
         const fieldName = key.toLowerCase();
         const errorMessages = result.errors[key];
-        
+
         if (Array.isArray(errorMessages) && errorMessages.length > 0) {
-          backendErrors[fieldName] = errorMessages[0]; 
+          backendErrors[fieldName] = errorMessages[0];
         }
       });
-      
+
       setErrors(backendErrors);
-      
-      // Hiển thị toast thông báo có lỗi validation
-      const firstError = Object.values(backendErrors)[0];
-      if (firstError) {
-        toast.error(firstError);
-      }
     } else if (result.message) {
       const errorMessage = result.message;
-      
+
       // Hiển thị lỗi ở password field (thường là sai password hơn)
       // Trừ khi message chỉ đề cập email cụ thể
       if (errorMessage.toLowerCase().includes('email') && !errorMessage.toLowerCase().includes('mật khẩu') && !errorMessage.toLowerCase().includes('password')) {
         setErrors({ email: errorMessage });
       } else {
-        // Mặc định hiển thị ở password (bao gồm "Email hoặc mật khẩu không chính xác")
         setErrors({ password: errorMessage });
       }
-      
-      // Hiển thị toast cho user
-      toast.error(errorMessage);
     }
   };
 
@@ -93,7 +82,7 @@ export default function AdminLoginPage() {
         <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
-              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgb(148, 163, 184)" strokeWidth="0.5"/>
+              <path d="M 32 0 L 0 0 0 32" fill="none" stroke="rgb(148, 163, 184)" strokeWidth="0.5" />
             </pattern>
           </defs>
           <rect width="100%" height="100%" fill="url(#grid)" />
@@ -113,7 +102,7 @@ export default function AdminLoginPage() {
 
         {/* Login Form */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} noValidate className="space-y-6">
             {/* Email Field */}
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-700 mb-2">
@@ -125,12 +114,14 @@ export default function AdminLoginPage() {
                   id="email"
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                    errors.email
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((prev) => ({ ...prev, email: "" }));
+                  }}
+                  className={`w-full pl-11 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.email
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                       : 'border-slate-300 focus:ring-indigo-500 focus:border-indigo-500'
-                  }`}
+                    }`}
                   placeholder="Nhập email của bạn"
                 />
               </div>
@@ -150,12 +141,14 @@ export default function AdminLoginPage() {
                   id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className={`w-full pl-11 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                    errors.password
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setErrors((prev) => ({ ...prev, password: "" }));
+                  }}
+                  className={`w-full pl-11 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${errors.password
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                       : 'border-slate-300 focus:ring-indigo-500 focus:border-indigo-500'
-                  }`}
+                    }`}
                   placeholder="Nhập mật khẩu"
                 />
                 <button

@@ -1,18 +1,27 @@
 "use client";
 
+
 import { useEffect, useState } from "react";
 import { Search, Plus } from "lucide-react";
+
 
 import ProductTable from "./ProductTable";
 import ProductForm from "./ProductForm";
 import { Modal } from "../ui/modal";
+import { LookupItem } from "@/services/admin_services/admin.lookup.service";
+
 
 import {
   AdminProductService,
   ProductAdmin,
-} from "../../../../services/admin_services/admin.product.service";
+} from "@/services/admin_services/admin.product.service";
+import {
+  AdminLookupService
+} from "@/services/admin_services/admin.lookup.service";
 import { ProductFormData } from "@/types/products";
 import { mapAdminToFormData } from "@/utils/product.mapper";
+
+
 export default function ProductManagementUI() {
   const [products, setProducts] = useState<ProductAdmin[]>([]);
   const [page, setPage] = useState(1);
@@ -24,6 +33,41 @@ export default function ProductManagementUI() {
   const [openModal, setOpenModal] = useState(false);
   const [selectedProduct, setSelectedProduct] =
     useState<ProductFormData | null>(null);
+  const [categories, setCategories] = useState<LookupItem[]>([]);
+  const [brands, setBrands] = useState<LookupItem[]>([]);
+  const [materials, setMaterials] = useState<LookupItem[]>([]);
+  const [origins, setOrigins] = useState<LookupItem[]>([]);
+  const [ages, setAges] = useState<LookupItem[]>([]);
+  const [sexes, setSexes] = useState<LookupItem[]>([]);
+  const [editingProduct, setEditingProduct] = useState<ProductFormData | null>(null);
+
+
+  const loadLookups = async () => {
+    const [
+      categories,
+      brands,
+      materials,
+      origins,
+      ages,
+      sexes,
+    ] = await Promise.all([
+      AdminLookupService.getCategories(),
+      AdminLookupService.getBrands(),
+      AdminLookupService.getMaterials(),
+      AdminLookupService.getOrigins(),
+      AdminLookupService.getAges(),
+      AdminLookupService.getSexes(),
+    ]);
+
+
+    setCategories(categories);
+    setBrands(brands);
+    setMaterials(materials);
+    setOrigins(origins);
+    setAges(ages);
+    setSexes(sexes);
+  };
+
 
   const loadProducts = async () => {
     setLoading(true);
@@ -34,6 +78,7 @@ export default function ProductManagementUI() {
         keyword: keyword || undefined,
       });
 
+
       setProducts(res.data.items);
       setTotalPages(res.data.totalPages);
       setTotalItems(res.data.totalItems);
@@ -42,12 +87,19 @@ export default function ProductManagementUI() {
     }
   };
 
+
   useEffect(() => {
     loadProducts();
   }, [page, keyword]);
 
+
+  useEffect(() => {
+    loadLookups();
+  }, []);
+
+
   return (
-    <div className="rounded-2xl bg-white p-6 shadow-theme-xl">
+    <div className="rounded-2xl bg-white p-6 shadow-md">
       {/* HEADER */}
       <div className="mb-6 flex justify-between">
         <div>
@@ -56,6 +108,7 @@ export default function ProductManagementUI() {
             Quản lý danh sách sản phẩm
           </p>
         </div>
+
 
         <div className="flex gap-3">
           <div className="relative">
@@ -71,15 +124,21 @@ export default function ProductManagementUI() {
             />
           </div>
 
+
           <button
             onClick={() => setOpenModal(true)}
-            className="flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-white"
+            className="flex items-center gap-1.5 rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white hover:bg-indigo-600"
           >
-            <Plus size={16} />
+            <Plus size={14} />
             Thêm sản phẩm
           </button>
+
+
+
+
         </div>
       </div>
+
 
       {/* TABLE */}
       {loading ? (
@@ -95,7 +154,9 @@ export default function ProductManagementUI() {
           }}
         />
 
+
       )}
+
 
       {/* PAGINATION */}
       <div className="mt-6 flex justify-between text-sm">
@@ -103,6 +164,7 @@ export default function ProductManagementUI() {
           Trang {page} / {totalPages} · Tổng {totalItems} sản
           phẩm
         </div>
+
 
         <div className="flex gap-2">
           <button
@@ -112,6 +174,7 @@ export default function ProductManagementUI() {
           >
             ←
           </button>
+
 
           <button
             disabled={page === totalPages}
@@ -123,25 +186,44 @@ export default function ProductManagementUI() {
         </div>
       </div>
 
+
       <Modal
         isOpen={openModal}
         onClose={() => {
           setOpenModal(false);
           setSelectedProduct(null);
         }}
-        className="max-w-[820px] rounded-xl bg-white"
+        className="max-w-[700px] w-full rounded-xl bg-white p-6"
       >
         <ProductForm
           submitText={selectedProduct ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
           product={selectedProduct}
+          categories={categories}
+          brands={brands}
+          materials={materials}
+          origins={origins}
+          ages={ages}
+          sexes={sexes}
           onSuccess={() => {
             setOpenModal(false);
             setSelectedProduct(null);
             loadProducts();
           }}
+          onCancel={() => {
+            setOpenModal(false);
+            setSelectedProduct(null);
+          }}
         />
+
+
       </Modal>
+
 
     </div>
   );
 }
+
+
+
+
+

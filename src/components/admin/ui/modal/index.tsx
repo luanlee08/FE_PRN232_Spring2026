@@ -1,6 +1,9 @@
 "use client";
 import React, { useRef, useEffect } from "react";
 
+
+
+
 interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -9,6 +12,9 @@ interface ModalProps {
   showCloseButton?: boolean; // New prop to control close button visibility
   isFullscreen?: boolean; // Default to false for backwards compatibility
 }
+
+
+
 
 export const Modal: React.FC<ModalProps> = ({
   isOpen,
@@ -20,6 +26,9 @@ export const Modal: React.FC<ModalProps> = ({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
 
+
+
+
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -27,14 +36,23 @@ export const Modal: React.FC<ModalProps> = ({
       }
     };
 
+
+
+
     if (isOpen) {
       document.addEventListener("keydown", handleEscape);
     }
+
+
+
 
     return () => {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [isOpen, onClose]);
+
+
+
 
   useEffect(() => {
     if (isOpen) {
@@ -43,22 +61,28 @@ export const Modal: React.FC<ModalProps> = ({
       document.body.style.overflow = "unset";
     }
 
+
+
+
     return () => {
       document.body.style.overflow = "unset";
     };
   }, [isOpen]);
 
+
+
+
   if (!isOpen) return null;
+
+
+
 
   const contentClasses = isFullscreen
     ? "w-full h-full"
-    : `
-    relative w-full
-    max-h-[90vh]
-    overflow-hidden
-    rounded-3xl
-    bg-white dark:bg-gray-900
-  `;
+    : "relative w-full rounded-3xl bg-white  dark:bg-gray-900";
+
+
+
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-y-auto modal z-99999">
@@ -94,10 +118,7 @@ export const Modal: React.FC<ModalProps> = ({
             </svg>
           </button>
         )}
-        <div className="max-h-[90vh] overflow-y-auto p-6">
-          {children}
-        </div>
-
+        <div>{children}</div>
       </div>
     </div>
   );
