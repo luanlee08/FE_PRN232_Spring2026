@@ -9,7 +9,7 @@ import {
   accountService,
   AccountAdmin,
   AccountQuery,
-} from "../../../../services/admin_services/admin.account.service";
+} from "@/services/admin_services/admin.account.service";
 
 export default function AccountManagementUI() {
   const [accounts, setAccounts] = useState<AccountAdmin[]>([]);

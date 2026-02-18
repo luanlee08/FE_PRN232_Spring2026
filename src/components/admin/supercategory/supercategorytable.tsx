@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import { SuperCategoryAdmin } from "../../../../services/admin_services/admin.supercategory.service";
+import { SuperCategoryAdmin } from "@/services/admin_services/admin.supercategory.service";
 
 interface Props {
   data: SuperCategoryAdmin[];

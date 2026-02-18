@@ -1,7 +1,7 @@
 "use client";
 
 import { Pencil } from "lucide-react";
-import { CategoryAdmin } from "../../../../services/admin_services/admin.category.service";
+import { CategoryAdmin } from "@/services/admin_services/admin.category.service";
 
 interface Props {
   data: CategoryAdmin[];

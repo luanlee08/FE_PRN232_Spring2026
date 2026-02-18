@@ -15,10 +15,7 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentDispositionType: 'attachment',
   },
-  // Disable loopback detection for localhost images
-  experimental: {
-    loopbackDetection: false,
-  },
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/,

@@ -1,9 +1,9 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import toast from "react-hot-toast";
-import { ProfileService, ProfileResponse } from "../../../../services/admin_services/admin.profile.service";
+import { ProfileService, ProfileResponse } from "@/services/admin_services/admin.profile.service";
 import { useAuth } from "@/lib/auth/auth-context";
-import { API_BASE } from "../../../../configs/api-configs";
+import { API_BASE } from "@/configs/api-configs";
 import Cookies from "js-cookie";
 
 export default function EditProfileCard() {
@@ -93,7 +93,7 @@ export default function EditProfileCard() {
       const response = await ProfileService.updateProfile(formData);
       if (response.status === 200) {
         toast.success("Cập nhật profile thành công");
-        
+
         // Fetch updated profile
         const updatedProfile = await ProfileService.getProfile();
         if (updatedProfile.status === 200 && updatedProfile.data) {
@@ -110,7 +110,7 @@ export default function EditProfileCard() {
             Cookies.set('user', JSON.stringify(updatedUser), { expires: 7 });
           }
         }
-        
+
         await fetchProfile();
         refreshUser();
         setIsEditing(false);
@@ -264,7 +264,7 @@ export default function EditProfileCard() {
             </svg>
             Thông tin cá nhân
           </h5>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Account Name */}
             <div>
@@ -339,10 +339,10 @@ export default function EditProfileCard() {
                 </svg>
                 {profile?.createdAt
                   ? new Date(profile.createdAt).toLocaleDateString("vi-VN", {
-                      year: "numeric",
-                      month: "long",
-                      day: "numeric",
-                    })
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })
                   : ""}
               </p>
             </div>

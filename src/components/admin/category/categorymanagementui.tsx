@@ -9,7 +9,7 @@ import { Modal } from "../ui/modal";
 import {
   AdminCategoryService,
   CategoryAdmin,
-} from "../../../../services/admin_services/admin.category.service";
+} from "@/services/admin_services/admin.category.service";
 
 export default function CategoryManagementUI() {
 

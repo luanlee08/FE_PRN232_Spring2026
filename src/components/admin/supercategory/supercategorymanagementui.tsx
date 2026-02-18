@@ -7,7 +7,7 @@ import SuperCategoryForm from "./supercategoryform";
 import {
   AdminSuperCategoryService,
   SuperCategoryAdmin
-} from "../../../../services/admin_services/admin.supercategory.service";
+} from "@/services/admin_services/admin.supercategory.service";
 
 import { Modal } from "../ui/modal";
 
@@ -25,14 +25,14 @@ export default function SuperCategoryManagementUI() {
     useState<SuperCategoryAdmin | null>(null);
 
   const [openModal, setOpenModal] = useState(false);
-const handleToggle = async (item: SuperCategoryAdmin) => {
-  try {
-    await AdminSuperCategoryService.toggleStatus(item);
-    fetchData();
-  } catch (err) {
-    console.error(err);
-  }
-};
+  const handleToggle = async (item: SuperCategoryAdmin) => {
+    try {
+      await AdminSuperCategoryService.toggleStatus(item);
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // ================= FETCH =================
   const fetchData = async () => {
@@ -44,8 +44,13 @@ const handleToggle = async (item: SuperCategoryAdmin) => {
         keyword,
       });
 
-      setData(result.items);
-      setTotal(result.totalCount);
+      if (result) {
+        setData(result.items);
+        setTotal(result.totalCount);
+      } else {
+        setData([]);
+        setTotal(0);
+      }
     } catch (err) {
       console.error("Load SuperCategory error:", err);
     } finally {

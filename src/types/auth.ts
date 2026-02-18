@@ -32,9 +32,6 @@ export interface UserInfo {
   roleName: string;
 }
 
-export interface ApiResponse<T> {
-  status: number;
-  statusMessage: string;
-  message: string;
-  data: T | null;
-}
+// Re-export from common for backward compatibility
+export type { ApiResponse } from './common';
+
