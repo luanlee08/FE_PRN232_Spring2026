@@ -11,7 +11,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading } = useLogin();
   const { refreshUser } = useAuth();
-  
+
   const [authMethod, setAuthMethod] = useState<'email' | 'google'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState('');
@@ -27,28 +27,28 @@ export default function LoginPage() {
 
     if (result.success) {
       refreshUser();
-      
+
       setTimeout(() => {
         router.push('/');
       }, 1000);
     } else if (result.errors) {
       const backendErrors: { [key: string]: string } = {};
-      
+
       Object.keys(result.errors).forEach((key) => {
         const fieldName = key.toLowerCase();
         const errorMessages = result.errors[key];
-        
+
         if (Array.isArray(errorMessages) && errorMessages.length > 0) {
-          backendErrors[fieldName] = errorMessages[0]; 
+          backendErrors[fieldName] = errorMessages[0];
         }
       });
-      
+
       setErrors(backendErrors);
-      
+
       // Không reset field để tránh giảm trải nghiệm người dùng
     } else if (result.message) {
       const errorMessage = result.message;
-      
+
       if (errorMessage.toLowerCase().includes('email')) {
         setErrors({ email: errorMessage });
       } else if (errorMessage.toLowerCase().includes('mật khẩu') || errorMessage.toLowerCase().includes('password')) {
@@ -112,22 +112,20 @@ export default function LoginPage() {
           <div className="flex gap-3 mb-8 bg-[#F5F5F5] p-1.5 rounded-lg">
             <button
               onClick={() => setAuthMethod('email')}
-              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${
-                authMethod === 'email'
+              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${authMethod === 'email'
                   ? 'bg-white text-[#FF6B35] shadow-sm'
                   : 'bg-transparent text-gray-600 hover:text-[#222]'
-              }`}
+                }`}
             >
               <Mail className="w-4 h-4 inline mr-2" />
               Email
             </button>
             <button
               onClick={() => setAuthMethod('google')}
-              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${
-                authMethod === 'google'
+              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${authMethod === 'google'
                   ? 'bg-white text-[#FF6B35] shadow-sm'
                   : 'bg-transparent text-gray-600 hover:text-[#222]'
-              }`}
+                }`}
             >
               <svg className="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -151,14 +149,13 @@ export default function LoginPage() {
                     value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
-                      setErrors((prev) => ({ ...prev, email: undefined }));
+                      setErrors((prev) => ({ ...prev, email: "" }));
                     }}
                     placeholder="you@example.com"
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.email
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.email
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                         : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                      }`}
                   />
                 </div>
                 {errors.email && (
@@ -175,14 +172,13 @@ export default function LoginPage() {
                     value={password}
                     onChange={(e) => {
                       setPassword(e.target.value);
-                      setErrors((prev) => ({ ...prev, password: undefined }));
+                      setErrors((prev) => ({ ...prev, password: "" }));
                     }}
                     placeholder="••••••••"
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.password
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.password
                         ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
                         : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                      }`}
                   />
                   <button
                     type="button"
@@ -212,7 +208,7 @@ export default function LoginPage() {
                 </a>
               </div>
 
-              <button 
+              <button
                 type="submit"
                 disabled={isLoading}
                 className="w-full py-3 bg-[#FF6B35] hover:bg-[#E55A24] text-white font-semibold rounded-lg transition transform hover:scale-105 mt-6 disabled:opacity-50 disabled:cursor-not-allowed"

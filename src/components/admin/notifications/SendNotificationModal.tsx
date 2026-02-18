@@ -12,7 +12,7 @@ import {
   SendNotificationRequest,
   TargetType,
 } from "@/services/admin_services/admin.notification.service";
-import { AVAILABLE_TEMPLATES } from "@/types/notification";
+import { AVAILABLE_TEMPLATES } from "@/utils/notification.helpers";
 import { PAYLOAD_EXAMPLES, validatePayload } from "@/utils/notification.payload";
 import toast from "react-hot-toast";
 import PayloadBuilder from "./PayloadBuilder";
@@ -64,12 +64,12 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
   // Auto-fill example payload when template changes
   const handleTemplateChange = (value: string) => {
     setTemplateCode(value);
-    
+
     // Auto-fill example payload based on template type
     const template = AVAILABLE_TEMPLATES.find((t) => t.code === value);
     if (template) {
       const category = template.category;
-      
+
       if (category === "ORDER") {
         setPayload(PAYLOAD_EXAMPLES.order);
       } else if (category === "PROMOTION") {
@@ -142,9 +142,9 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
         targetUserIds:
           targetType === "Specific"
             ? targetUserIds
-                .split(",")
-                .map((id) => parseInt(id.trim()))
-                .filter((id) => !isNaN(id))
+              .split(",")
+              .map((id) => parseInt(id.trim()))
+              .filter((id) => !isNaN(id))
             : undefined,
         scheduledFor: isScheduled && scheduledFor ? scheduledFor : undefined,
       };
@@ -241,11 +241,10 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
-              className={`w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${
-                errors.message
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${errors.message
                   ? "border-red-500 focus:border-red-500 focus:ring-red-500/10"
                   : "border-gray-300 focus:border-brand-300 focus:ring-brand-500/10 dark:border-gray-700 dark:focus:border-brand-800"
-              }`}
+                }`}
             />
             <div className="flex justify-between items-center mt-1">
               {errors.message ? (
@@ -395,8 +394,8 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
             {isSubmitting
               ? "Đang gửi..."
               : isScheduled
-              ? "Lên lịch gửi"
-              : "Gửi ngay"}
+                ? "Lên lịch gửi"
+                : "Gửi ngay"}
           </Button>
         </div>
       </div>

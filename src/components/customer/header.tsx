@@ -1,20 +1,22 @@
 "use client";
 
-import { Search, ShoppingCart, Heart, Menu, X, Bell } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Search, ShoppingCart, Heart, Menu, X, Bell, User, ChevronDown } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/auth-context";
 import { CustomerNotificationService } from "@/services/customer_services/customer.notification.service";
+import { API_BASE } from "@/configs/api-configs";
 
 export function Header() {
   const [openMenu, setOpenMenu] = useState(false);
+  const [openUserMenu, setOpenUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
-  // Fetch unread notification count
   useEffect(() => {
     if (!isAuthenticated) {
       setUnreadCount(0);
@@ -27,16 +29,37 @@ export function Header() {
           setUnreadCount(res.data);
         }
       } catch {
-        // silently ignore – header should not break if API is down
       }
     };
     fetchUnread();
   }, [isAuthenticated]);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setOpenUserMenu(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = async () => {
     await logout();
     toast.success("Đăng xuất thành công");
     router.push("/login");
+  };
+
+  // Helper function to get full image URL
+  const getImageUrl = (imageUrl: string | null | undefined) => {
+    if (!imageUrl) return null;
+    // If it's a data URL (base64) or full URL, return as-is
+    if (imageUrl.startsWith('data:') || imageUrl.startsWith('http')) {
+      return imageUrl;
+    }
+    // Otherwise, prepend API_BASE for local backend images
+    return `${API_BASE}${imageUrl}`;
   };
 
   return (
@@ -99,18 +122,72 @@ export function Header() {
 
             <div className="hidden lg:flex items-center gap-3 ml-2">
               {isAuthenticated ? (
-                <>
-                  <span className="text-sm">
-                    Xin chào,{' '}
-                    <span className="font-semibold">{user?.accountName}</span>
-                  </span>
+                <div className="relative" ref={userMenuRef}>
                   <button
-                    onClick={handleLogout}
-                    className="text-sm font-medium hover:opacity-80 transition"
+                    onClick={() => setOpenUserMenu(!openUserMenu)}
+                    className="flex items-center gap-2 hover:opacity-80 transition"
                   >
-                    Đăng xuất
+                    <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
+                      {user?.image && getImageUrl(user.image) ? (
+                        <img
+                          src={getImageUrl(user.image) || ''}
+                          alt={user.accountName}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <User size={18} />
+                      )}
+                    </div>
+                    <span className="text-sm font-medium">{user?.accountName}</span>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform ${openUserMenu ? "rotate-180" : ""}`}
+                    />
                   </button>
-                </>
+
+                  {openUserMenu && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg py-2 z-50">
+                      <div className="px-4 py-3 border-b border-gray-100">
+                        <p className="text-sm font-semibold text-gray-800">
+                          {user?.accountName}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                      </div>
+
+                      <Link
+                        href="/profile"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                      >
+                        <User size={18} />
+                        Chỉnh sửa hồ sơ
+                      </Link>
+
+                      <button
+                        onClick={() => {
+                          setOpenUserMenu(false);
+                          handleLogout();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                      >
+                        <svg
+                          className="w-[18px] h-[18px]"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                          />
+                        </svg>
+                        Đăng xuất
+                      </button>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <>
                   <Link
@@ -163,16 +240,51 @@ export function Header() {
               <div className="border-t pt-4 mt-4">
                 {isAuthenticated ? (
                   <>
-                    <div className="text-gray-600 mb-2">
-                      Xin chào, <span className="font-semibold text-[#FF6B35]">{user?.accountName}</span>
+                    <div className="flex items-center gap-3 mb-4 p-3 bg-gray-50 rounded-lg">
+                      <div className="w-10 h-10 rounded-full overflow-hidden bg-[#FF6B35]/20 flex items-center justify-center">
+                        {user?.image && getImageUrl(user.image) ? (
+                          <img
+                            src={getImageUrl(user.image) || ''}
+                            alt={user.accountName}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User size={20} className="text-[#FF6B35]" />
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-semibold text-gray-800">{user?.accountName}</p>
+                        <p className="text-xs text-gray-600">{user?.email}</p>
+                      </div>
                     </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setOpenMenu(false)}
+                      className="flex items-center gap-2 text-[#FF6B35] font-medium mb-3"
+                    >
+                      <User size={18} />
+                      Chỉnh sửa hồ sơ
+                    </Link>
                     <button
                       onClick={() => {
                         setOpenMenu(false);
                         handleLogout();
                       }}
-                      className="text-red-500 font-medium"
+                      className="flex items-center gap-2 text-red-500 font-medium"
                     >
+                      <svg
+                        className="w-[18px] h-[18px]"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                        />
+                      </svg>
                       Đăng xuất
                     </button>
                   </>

@@ -34,7 +34,7 @@ export default function CategoryForm({
   useEffect(() => {
     const fetchSuperCategories = async () => {
       const data = await AdminSuperCategoryService.getActive();
-      setSuperCategories(data);
+      setSuperCategories(data || []);
     };
     fetchSuperCategories();
   }, []);

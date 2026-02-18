@@ -9,7 +9,7 @@ import { useRegister } from '@/hooks/useRegister';
 export default function RegisterPage() {
   const router = useRouter();
   const { register, isLoading } = useRegister();
-  
+
   const [authMethod, setAuthMethod] = useState<'email' | 'google'>('email');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -26,23 +26,23 @@ export default function RegisterPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    
+
     // Clear error for this field
-    setErrors((prev) => ({ ...prev, [name]: undefined }));
-    
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+
     if (name === 'confirmPassword') {
       if (value && value !== formData.password) {
         setErrors((prev) => ({ ...prev, confirmpassword: 'Mật khẩu không khớp' }));
       } else {
-        setErrors((prev) => ({ ...prev, confirmpassword: undefined }));
+        setErrors((prev) => ({ ...prev, confirmpassword: "" }));
       }
     }
-    
+
     if (name === 'password' && formData.confirmPassword) {
       if (value !== formData.confirmPassword) {
         setErrors((prev) => ({ ...prev, confirmpassword: 'Mật khẩu không khớp' }));
       } else {
-        setErrors((prev) => ({ ...prev, confirmpassword: undefined }));
+        setErrors((prev) => ({ ...prev, confirmpassword: "" }));
       }
     }
   };
@@ -50,47 +50,47 @@ export default function RegisterPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({}); // Clear previous errors
-    
+
     let hasClientError = false;
     const clientErrors: { [key: string]: string } = {};
-    
+
     if (!formData.fullName.trim()) {
       clientErrors.fullname = 'Tên tài khoản không được để trống';
       hasClientError = true;
     }
-    
+
     if (!formData.email.trim()) {
       clientErrors.email = 'Email không được để trống';
       hasClientError = true;
     }
-    
+
     if (!formData.phone.trim()) {
       clientErrors.phone = 'Số điện thoại không được để trống';
       hasClientError = true;
     }
-    
+
     if (!formData.password) {
       clientErrors.password = 'Mật khẩu không được để trống';
       hasClientError = true;
     }
-    
+
     if (!formData.confirmPassword) {
       clientErrors.confirmpassword = 'Xác nhận mật khẩu không được để trống';
       hasClientError = true;
     }
-    
+
     // Client-side validation: Password match
     if (formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword) {
       clientErrors.confirmpassword = 'Mật khẩu không khớp';
       hasClientError = true;
     }
-    
+
     // Kiểm tra checkbox điều khoản TRƯỚC KHI gọi API
     if (!agreedToTerms) {
       clientErrors.terms = 'Vui lòng đồng ý với Điều khoản dịch vụ';
       hasClientError = true;
     }
-    
+
     // Nếu có lỗi client-side, hiển thị và dừng
     if (hasClientError) {
       setErrors(clientErrors);
@@ -112,12 +112,12 @@ export default function RegisterPage() {
     } else if (result.errors) {
       // Backend trả về object errors
       const backendErrors: { [key: string]: string } = {};
-      
+
       // Convert backend errors format to frontend format
       Object.keys(result.errors).forEach((key) => {
         const fieldName = key.toLowerCase();
         const errorMessages = result.errors[key];
-        
+
         if (Array.isArray(errorMessages) && errorMessages.length > 0) {
           // Map backend field names to frontend field names
           let mappedFieldName = fieldName;
@@ -126,18 +126,18 @@ export default function RegisterPage() {
           } else if (fieldName === 'phonenumber') {
             mappedFieldName = 'phone';
           }
-          
+
           backendErrors[mappedFieldName] = errorMessages[0];
         }
       });
-      
+
       setErrors(backendErrors);
-      
+
       // Không reset field để tránh giảm trải nghiệm người dùng
     } else if (result.message) {
       // Fallback: nếu không có errors object, hiển thị message chung
       const errorMessage = result.message;
-      
+
       if (errorMessage.toLowerCase().includes('tên tài khoản') || errorMessage.toLowerCase().includes('accountname')) {
         setErrors({ fullname: errorMessage });
       } else if (errorMessage.toLowerCase().includes('email')) {
@@ -181,7 +181,7 @@ export default function RegisterPage() {
           <p className="text-xl text-white/90 max-w-sm mb-8">
             Tham gia vương quốc đồ chơi ngay hôm nay
           </p>
-          
+
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 mb-8">
             <h3 className="text-lg font-bold mb-4 text-white">Lợi ích thành viên:</h3>
             <ul className="space-y-2 text-white/90 text-sm">
@@ -213,22 +213,20 @@ export default function RegisterPage() {
           <div className="flex gap-3 mb-8 bg-[#F5F5F5] p-1.5 rounded-lg">
             <button
               onClick={() => setAuthMethod('email')}
-              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${
-                authMethod === 'email'
-                  ? 'bg-white text-[#FF6B35] shadow-sm'
-                  : 'bg-transparent text-gray-600 hover:text-[#222]'
-              }`}
+              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${authMethod === 'email'
+                ? 'bg-white text-[#FF6B35] shadow-sm'
+                : 'bg-transparent text-gray-600 hover:text-[#222]'
+                }`}
             >
               <Mail className="w-4 h-4 inline mr-2" />
               Email
             </button>
             <button
               onClick={() => setAuthMethod('google')}
-              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${
-                authMethod === 'google'
-                  ? 'bg-white text-[#FF6B35] shadow-sm'
-                  : 'bg-transparent text-gray-600 hover:text-[#222]'
-              }`}
+              className={`flex-1 py-2.5 px-4 rounded-md font-medium transition text-sm ${authMethod === 'google'
+                ? 'bg-white text-[#FF6B35] shadow-sm'
+                : 'bg-transparent text-gray-600 hover:text-[#222]'
+                }`}
             >
               <svg className="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -254,11 +252,10 @@ export default function RegisterPage() {
                     placeholder="Nhập họ và tên"
                     value={formData.fullName}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.fullname
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.fullname
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                      }`}
                   />
                 </div>
                 {errors.fullname && (
@@ -277,11 +274,10 @@ export default function RegisterPage() {
                     placeholder="you@example.com"
                     value={formData.email}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.email
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.email
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                      }`}
                   />
                 </div>
                 {errors.email && (
@@ -300,11 +296,10 @@ export default function RegisterPage() {
                     placeholder="0123456789"
                     value={formData.phone}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.phone
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                    className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.phone
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                      }`}
                   />
                 </div>
                 {errors.phone && (
@@ -323,11 +318,10 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     value={formData.password}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.password
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.password
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                      }`}
                   />
                   <button
                     type="button"
@@ -353,11 +347,10 @@ export default function RegisterPage() {
                     placeholder="••••••••"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${
-                      errors.confirmpassword
-                        ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
-                        : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
-                    }`}
+                    className={`w-full pl-10 pr-12 py-3 border rounded-lg focus:outline-none focus:ring-1 transition ${errors.confirmpassword
+                      ? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+                      : 'border-[#E8E8E8] focus:border-[#FF6B35] focus:ring-[#FF6B35]'
+                      }`}
                   />
                   <button
                     type="button"
@@ -375,13 +368,13 @@ export default function RegisterPage() {
               {/* Terms */}
               <div>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input 
-                    type="checkbox" 
-                    className="w-4 h-4 accent-[#FF6B35]" 
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 accent-[#FF6B35]"
                     checked={agreedToTerms}
                     onChange={(e) => {
                       setAgreedToTerms(e.target.checked);
-                      setErrors((prev) => ({ ...prev, terms: undefined }));
+                      setErrors((prev) => ({ ...prev, terms: "" }));
                     }}
                   />
                   <span className="text-sm text-gray-600">

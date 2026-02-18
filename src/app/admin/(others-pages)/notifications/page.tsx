@@ -16,7 +16,7 @@ import {
   NotificationStatsDto,
 } from "@/services/admin_services/admin.notification.service";
 import Select from "@/components/admin/form/Select";
-import { AVAILABLE_TEMPLATES } from "@/types/notification";
+import { AVAILABLE_TEMPLATES } from "@/utils/notification.helpers";
 
 export default function NotificationManagementPage() {
   const { user, isLoading: authLoading } = useAuth();
@@ -209,7 +209,7 @@ export default function NotificationManagementPage() {
                     Tỷ lệ chưa đọc
                   </p>
                   <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-white">
-                    {stats.totalDeliveries > 0 
+                    {stats.totalDeliveries > 0
                       ? ((stats.unreadDeliveries / stats.totalDeliveries) * 100).toFixed(1)
                       : '0.0'}%
                   </p>

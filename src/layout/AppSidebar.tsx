@@ -3,12 +3,12 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/lib/context/SidebarContext";
 import {
   BoxCubeIcon,
   CalenderIcon,
   ChevronDownIcon,
-  GridIcon, 
+  GridIcon,
   HorizontaLDots,
   ListIcon,
   PageIcon,
@@ -18,7 +18,7 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Package, Box, Receipt, TicketPercent, Bell  } from "lucide-react";
+import { Package, Box, Receipt, TicketPercent, Bell } from "lucide-react";
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -33,7 +33,7 @@ const navItems: NavItem[] = [
     subItems: [{ name: "Ecommerce", path: "/admin/", pro: false }],
   },
   {
-    icon: <UserCircleIcon  />,
+    icon: <UserCircleIcon />,
     name: "Quản lý tài khoản",
     subItems: [
       { name: "Quản lý nhân viên", path: "/admin/accounts", pro: false },
@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
   // },
 
   {
-    icon: <Bell  />,
+    icon: <Bell />,
     name: "Quản lý thông báo",
     path: "/admin/notifications",
   },
@@ -65,7 +65,7 @@ const navItems: NavItem[] = [
       { name: "Quan lý Reply Comment Blog", path: "/admin/blogs", pro: false }
     ],
   },
-    {
+  {
     name: "Quản lý Khuyến mãi",
     icon: <TicketPercent />,
     subItems: [

@@ -18,7 +18,7 @@ export default function AccountManagementUI() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [keyword, setKeyword] = useState("");
-  const [selectedRole, setSelectedRole] = useState<number>(2);
+  const [selectedRole, setSelectedRole] = useState<number | undefined>(undefined);
   const [selectedStatus, setSelectedStatus] = useState<string | undefined>(
     undefined
   );
@@ -82,13 +82,14 @@ export default function AccountManagementUI() {
           </div>
 
           <select
-            value={selectedRole || 2}
+            value={selectedRole ?? ""}
             onChange={(e) => {
               setPage(1);
-              setSelectedRole(Number(e.target.value));
+              setSelectedRole(e.target.value ? Number(e.target.value) : undefined);
             }}
             className="h-10 rounded-lg border px-4 text-sm"
           >
+            <option value="">Tất cả vai trò</option>
             <option value="2">Staff</option>
             <option value="3">Warehouse</option>
           </select>

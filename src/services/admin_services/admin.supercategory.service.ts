@@ -1,5 +1,6 @@
-import axios from "axios";
+import axiosInstance from "@/lib/api/axios";
 import { API_ENDPOINTS } from "@/configs/api-configs";
+import { ApiResponse, PagedResult } from "@/types/common";
 
 export interface SuperCategoryAdmin {
   superCategoryId: number;
@@ -7,21 +8,6 @@ export interface SuperCategoryAdmin {
   isDeleted: boolean;
   createdAt: string;
   updatedAt?: string;
-
-}
-
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
-
-export interface ApiResponse<T> {
-  status: number;
-  statusMessage: string;
-  message: string;
-  data: T;
 }
 
 export const AdminSuperCategoryService = {
@@ -30,7 +16,7 @@ export const AdminSuperCategoryService = {
     pageSize: number;
     keyword?: string;
   }) {
-    const res = await axios.get<ApiResponse<PagedResult<SuperCategoryAdmin>>>(
+    const res = await axiosInstance.get<ApiResponse<PagedResult<SuperCategoryAdmin>>>(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORIES,
       { params }
     );
@@ -39,7 +25,7 @@ export const AdminSuperCategoryService = {
   },
 
   async getActive() {
-    const res = await axios.get<ApiResponse<SuperCategoryAdmin[]>>(
+    const res = await axiosInstance.get<ApiResponse<SuperCategoryAdmin[]>>(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORIES_ACTIVE
     );
 
@@ -50,7 +36,7 @@ export const AdminSuperCategoryService = {
     superCategoryName: string;
     isDeleted: boolean;
   }) {
-    const res = await axios.post<ApiResponse<number>>(
+    const res = await axiosInstance.post<ApiResponse<number>>(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORIES,
       data
     );
@@ -65,7 +51,7 @@ export const AdminSuperCategoryService = {
       isDeleted: boolean;
     }
   ) {
-    const res = await axios.put<ApiResponse<boolean>>(
+    const res = await axiosInstance.put<ApiResponse<boolean>>(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(id),
       data
     );
@@ -78,7 +64,7 @@ export const AdminSuperCategoryService = {
     superCategoryName: string;
     isDeleted: boolean;
   }) {
-    const res = await axios.put(
+    const res = await axiosInstance.put(
       API_ENDPOINTS.ADMIN_SUPER_CATEGORY_BY_ID(item.superCategoryId),
       {
         superCategoryName: item.superCategoryName,
@@ -88,6 +74,5 @@ export const AdminSuperCategoryService = {
 
     return res.data;
   }
-
-
 };
+

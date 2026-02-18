@@ -10,39 +10,43 @@ export const useAdminLogin = () => {
     setIsLoading(true);
     try {
       const response = await authService.login(data);
-      
+
       if (response.status === 200) {
         // Kiểm tra role - chỉ cho phép Staff/Warehouse/Admin đăng nhập
         const allowedRoles = ['Staff', 'Warehouse', 'Admin'];
         const userRole = response.data?.user?.roleName;
-        
+
         if (!userRole || !allowedRoles.includes(userRole)) {
           toast.error('Tài khoản này không có quyền truy cập hệ thống quản trị');
-          
-          return { 
-            success: false, 
+
+          return {
+            success: false,
             message: 'Tài khoản này không có quyền truy cập hệ thống quản trị'
           };
         }
-                authService.saveLoginData(response.data);        toast.success(response.message);
-        return { success: true };
+        if (response.data) {
+          authService.saveLoginData(response.data);
+          toast.success(response.message);
+          return { success: true };
+        }
+        return { success: false, message: 'Đăng nhập thành công nhưng không có dữ liệu trả về' };
       } else {
         // Không hiện toast - để page tự xử lý hiển thị lỗi dưới textbox
-        return { 
-          success: false, 
+        return {
+          success: false,
           message: response.message,
-          errors: response.data 
+          errors: response.data
         };
       }
     } catch (error: any) {
       const message = error.response?.data?.message || 'Đăng nhập thất bại';
-      const errors = error.response?.data?.data; 
-      
+      const errors = error.response?.data?.data;
+
       // Không hiện toast - để page tự xử lý hiển thị lỗi dưới textbox
-      return { 
-        success: false, 
+      return {
+        success: false,
         message,
-        errors 
+        errors
       };
     } finally {
       setIsLoading(false);

@@ -14,12 +14,14 @@ import toast from 'react-hot-toast';
 import Link from 'next/link';
 import {
     NotificationCategory,
+} from '@/types/notification';
+import {
     getCategoryFromTemplate,
     getCategoryLabel,
     getCategoryIcon,
     getCategoryColor,
     parseNotificationPayload,
-} from '@/types/notification';
+} from '@/utils/notification.helpers';
 
 type TabKey = 'all' | 'unread' | 'read';
 
@@ -194,8 +196,8 @@ export default function NotificationPage() {
         }
     };
 
-    const unreadCount = Array.isArray(notifications) 
-        ? notifications.filter((n) => n.status === 'Unread').length 
+    const unreadCount = Array.isArray(notifications)
+        ? notifications.filter((n) => n.status === 'Unread').length
         : 0;
 
     // Filter notifications by category
@@ -204,8 +206,8 @@ export default function NotificationPage() {
         : activeCategory === 'all'
             ? notifications
             : notifications.filter(
-                  (n) => getCategoryFromTemplate(n.templateCode) === activeCategory
-              );
+                (n) => getCategoryFromTemplate(n.templateCode) === activeCategory
+            );
 
     // Get icon component for notification category
     const getCategoryIconComponent = (category: NotificationCategory) => {
@@ -214,10 +216,10 @@ export default function NotificationPage() {
             category === NotificationCategory.ORDER
                 ? Package
                 : category === NotificationCategory.PROMOTION
-                ? Tag
-                : category === NotificationCategory.PAYMENT
-                ? Wallet
-                : Bell;
+                    ? Tag
+                    : category === NotificationCategory.PAYMENT
+                        ? Wallet
+                        : Bell;
 
         return { IconComponent, colors };
     };
@@ -267,8 +269,8 @@ export default function NotificationPage() {
                             key={tab.key}
                             onClick={() => handleTabChange(tab.key)}
                             className={`flex-1 py-2.5 text-sm font-medium rounded-md transition ${activeTab === tab.key
-                                    ? 'bg-[#FF6B35] text-white shadow-sm'
-                                    : 'text-gray-500 hover:text-[#222] hover:bg-gray-50'
+                                ? 'bg-[#FF6B35] text-white shadow-sm'
+                                : 'text-gray-500 hover:text-[#222] hover:bg-gray-50'
                                 }`}
                         >
                             {tab.label}
@@ -281,16 +283,15 @@ export default function NotificationPage() {
                     {CATEGORY_FILTERS.map((filter) => {
                         const Icon = filter.icon;
                         const isActive = activeCategory === filter.key;
-                        
+
                         return (
                             <button
                                 key={filter.key}
                                 onClick={() => setActiveCategory(filter.key)}
-                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition shrink-0 ${
-                                    isActive
+                                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition shrink-0 ${isActive
                                         ? 'bg-[#FF6B35] text-white shadow-sm'
                                         : 'bg-white text-gray-600 hover:bg-gray-50 shadow-sm border border-gray-200'
-                                }`}
+                                    }`}
                             >
                                 <Icon className="w-4 h-4" />
                                 {filter.label}
@@ -361,17 +362,16 @@ export default function NotificationPage() {
                                     key={notif.deliveryId}
                                     onClick={() => handleNotificationClick(notif)}
                                     className={`bg-white rounded-lg p-4 flex gap-4 cursor-pointer transition group hover:shadow-md ${isUnread
-                                            ? 'border-l-4 border-[#FF6B35] bg-orange-50/40'
-                                            : 'border-l-4 border-transparent'
+                                        ? 'border-l-4 border-[#FF6B35] bg-orange-50/40'
+                                        : 'border-l-4 border-transparent'
                                         } ${isDeleting ? 'opacity-50 pointer-events-none' : ''}`}
                                 >
                                     {/* Icon */}
                                     <div
-                                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                                            isUnread
+                                        className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${isUnread
                                                 ? `${colors.bg} ${colors.text}`
                                                 : 'bg-gray-100 text-gray-400'
-                                        }`}
+                                            }`}
                                     >
                                         <IconComponent className="w-5 h-5" />
                                     </div>
@@ -381,8 +381,8 @@ export default function NotificationPage() {
                                         <div className="flex items-start justify-between gap-2">
                                             <h3
                                                 className={`text-sm leading-5 line-clamp-1 ${isUnread
-                                                        ? 'font-bold text-[#222]'
-                                                        : 'font-medium text-gray-600'
+                                                    ? 'font-bold text-[#222]'
+                                                    : 'font-medium text-gray-600'
                                                     }`}
                                             >
                                                 {notif.title}

@@ -1,12 +1,10 @@
 // services/admin_services/admin.product.service.ts
 
-
+import axiosInstance from "@/lib/api/axios";
 import { API_BASE, API_ENDPOINTS } from "@/configs/api-configs";
 import { CreateProductPayload } from "@/types/products";
 
-
 /* ================= BACKEND DTO ================= */
-
 
 interface ProductAdminResponse {
   id: number;
@@ -24,16 +22,11 @@ interface ProductAdminResponse {
   originId?: number;
   sexId?: number;
   ageId?: number;
-
-
-  // 🔥 ẢNH TỪ BACKEND
   mainImageUrl?: string | null;
   secondaryImageUrls?: string[];
 }
 
-
 /* ================= FRONTEND DTO ================= */
-
 
 export interface ProductAdmin {
   id: number;
@@ -52,20 +45,17 @@ export interface ProductAdmin {
   sexId?: number;
   ageId?: number;
   age?: string;
-  imageUrl?: string;           // MAIN IMAGE
-  secondaryImages?: string[];  // IMAGE GALLERY
+  imageUrl?: string;
+  secondaryImages?: string[];
 }
 
-
 /* ================= QUERY ================= */
-
 
 export interface ProductQuery {
   page: number;
   pageSize: number;
   keyword?: string;
 }
-
 
 interface PagedResponse<T> {
   status: number;
@@ -77,121 +67,24 @@ interface PagedResponse<T> {
   };
 }
 
-
 /* ================= SERVICE ================= */
-
 
 export const AdminProductService = {
   async getById(id: number) {
-    const res = await fetch(
-      `${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`,
-      { credentials: "include" }
-    );
-
-
-    if (!res.ok) {
-      throw new Error("Fetch product failed");
-    }
-
-
-    const json = await res.json();
-    return json.data;
+    const res = await axiosInstance.get(`${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`);
+    return res.data.data;
   },
-  async update(id: number, form: CreateProductPayload) {
-    const formData = new FormData();
-
-
-    formData.append("ProductName", form.name);
-    formData.append("DescriptionHtml", form.description ?? "");
-    formData.append("Price", form.price.toString());
-    formData.append("StockQuantity", form.quantity.toString());
-    formData.append("ProductStatus", form.status);
-
-
-    if (form.categoryId)
-      formData.append("CategoryId", form.categoryId.toString());
-
-
-    if (form.brandId)
-      formData.append("BrandId", form.brandId.toString());
-
-
-    if (form.materialId)
-      formData.append("MaterialId", form.materialId.toString());
-
-
-    if (form.originId)
-      formData.append("OriginId", form.originId.toString());
-
-
-    if (form.sexId)
-      formData.append("SexId", form.sexId.toString());
-
-
-    if (form.ageId)
-      formData.append("AgeId", form.ageId.toString());
-
-
-    if (form.mainImage)
-      formData.append("NewMainImage", form.mainImage);
-
-
-    if (form.subImages)
-      form.subImages.forEach(file =>
-        formData.append("NewSecondaryImages", file)
-      );
-
-
-    const res = await fetch(
-      `${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`,
-      {
-        method: "PUT",
-        body: formData,
-        credentials: "include",
-      }
-    );
-
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(errorText);
-    }
-
-
-    return res.json();
-  },
-
 
   async getAll(
     query: ProductQuery
   ): Promise<PagedResponse<ProductAdmin>> {
-    const params = new URLSearchParams({
-      page: query.page.toString(),
-      pageSize: query.pageSize.toString(),
-    });
-
-
-    if (query.keyword) {
-      params.append("keyword", query.keyword);
-    }
-
-
-    const res = await fetch(
-      `${API_ENDPOINTS.ADMIN_PRODUCTS}?${params.toString()}`,
-      { credentials: "include" }
+    const res = await axiosInstance.get<PagedResponse<ProductAdminResponse>>(
+      API_ENDPOINTS.ADMIN_PRODUCTS,
+      { params: query }
     );
 
+    const json = res.data;
 
-    if (!res.ok) {
-      throw new Error("Fetch products failed");
-    }
-
-
-    const json: PagedResponse<ProductAdminResponse> =
-      await res.json();
-
-
-    /* ================= MAP DTO ================= */
     return {
       ...json,
       data: {
@@ -199,12 +92,7 @@ export const AdminProductService = {
         items: json.data.items.map((p) => ({
           id: p.id,
           sku: p.sku,
-
-
-          // 🔥 FIX KHÔNG HIỆN TÊN
           name: p.productName,
-
-
           price: p.price,
           status: p.productStatus,
           createdAt: p.createdAt,
@@ -217,13 +105,9 @@ export const AdminProductService = {
           originId: p.originId,
           sexId: p.sexId,
           ageId: p.ageId,
-
-
           imageUrl: p.mainImageUrl
             ? `${API_BASE}${p.mainImageUrl}`
             : undefined,
-
-
           secondaryImages: p.secondaryImageUrls?.map(
             (url) => `${API_BASE}${url}`
           ),
@@ -232,10 +116,8 @@ export const AdminProductService = {
     };
   },
 
-
-  async create(form: CreateProductPayload): Promise<unknown> {
+  async create(form: CreateProductPayload) {
     const formData = new FormData();
-
 
     formData.append("ProductName", form.name);
     formData.append("Description", form.description ?? "");
@@ -243,68 +125,92 @@ export const AdminProductService = {
     formData.append("Quantity", form.quantity.toString());
     formData.append("ProductStatus", form.status);
 
-
     if (form.categoryId)
       formData.append("CategoryId", form.categoryId.toString());
-
 
     if (form.brandId)
       formData.append("BrandId", form.brandId.toString());
 
-
     if (form.materialId)
       formData.append("MaterialId", form.materialId.toString());
-
 
     if (form.originId)
       formData.append("OriginId", form.originId.toString());
 
-
     if (form.sexId)
       formData.append("SexId", form.sexId.toString());
-
 
     if (form.ageId)
       formData.append("AgeId", form.ageId.toString());
 
-
-    // MAIN IMAGE
-    if (form.mainImage) {
+    if (form.mainImage)
       formData.append("MainImage", form.mainImage);
-    }
 
-
-    // SUB IMAGES
-    if (form.subImages && form.subImages.length > 0) {
-      form.subImages.forEach((file: File) => {
+    if (form.subImages?.length) {
+      form.subImages.forEach((file) => {
         formData.append("SecondaryImages", file);
       });
     }
 
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.ADMIN_PRODUCTS,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
 
-    const res = await fetch(API_ENDPOINTS.ADMIN_PRODUCTS, {
-      method: "POST",
-      body: formData,
-      credentials: "include",
-    });
-
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      console.error("SERVER ERROR:", errorText);
-      throw new Error(errorText || "Create product failed");
-    }
-
-
-
-
-    return res.json();
+    return res.data;
   },
 
+  async update(id: number, form: CreateProductPayload) {
+    const formData = new FormData();
 
+    formData.append("ProductName", form.name);
+    formData.append("DescriptionHtml", form.description ?? "");
+    formData.append("Price", form.price.toString());
+    formData.append("StockQuantity", form.quantity.toString());
+    formData.append("ProductStatus", form.status);
+
+    if (form.categoryId)
+      formData.append("CategoryId", form.categoryId.toString());
+
+    if (form.brandId)
+      formData.append("BrandId", form.brandId.toString());
+
+    if (form.materialId)
+      formData.append("MaterialId", form.materialId.toString());
+
+    if (form.originId)
+      formData.append("OriginId", form.originId.toString());
+
+    if (form.sexId)
+      formData.append("SexId", form.sexId.toString());
+
+    if (form.ageId)
+      formData.append("AgeId", form.ageId.toString());
+
+    if (form.mainImage)
+      formData.append("NewMainImage", form.mainImage);
+
+    if (form.subImages?.length) {
+      form.subImages.forEach((file) => {
+        formData.append("NewSecondaryImages", file);
+      });
+    }
+
+    const res = await axiosInstance.put(
+      `${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data;
+  },
 };
-
-
-
-
-

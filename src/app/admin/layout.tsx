@@ -1,11 +1,11 @@
 "use client";
 
-import { useSidebar } from "@/context/SidebarContext";
+import { useSidebar } from "@/lib/context/SidebarContext";
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import { SidebarProvider } from "@/context/SidebarContext";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { SidebarProvider } from "@/lib/context/SidebarContext";
+import { ThemeProvider } from "@/lib/context/ThemeContext";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";

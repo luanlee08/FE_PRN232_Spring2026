@@ -1,5 +1,6 @@
-import axios from "axios";
+import axiosInstance from "@/lib/api/axios";
 import { API_ENDPOINTS } from "@/configs/api-configs";
+import { ApiResponse, PagedResult } from "@/types/common";
 
 export interface CategoryAdmin {
   categoryId: number;
@@ -12,20 +13,6 @@ export interface CategoryAdmin {
   updatedAt?: string;
 }
 
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
-
-export interface ApiResponse<T> {
-  status: number;
-  statusMessage: string;
-  message: string;
-  data: T;
-}
-
 export const AdminCategoryService = {
   async get(params: {
     page: number;
@@ -33,7 +20,7 @@ export const AdminCategoryService = {
     keyword?: string;
     superCategoryId?: number;
   }) {
-    const res = await axios.get<ApiResponse<PagedResult<CategoryAdmin>>>(
+    const res = await axiosInstance.get<ApiResponse<PagedResult<CategoryAdmin>>>(
       API_ENDPOINTS.ADMIN_CATEGORIES,
       { params }
     );
@@ -42,7 +29,7 @@ export const AdminCategoryService = {
   },
 
   async getActive(superCategoryId?: number) {
-    const res = await axios.get<ApiResponse<CategoryAdmin[]>>(
+    const res = await axiosInstance.get<ApiResponse<CategoryAdmin[]>>(
       API_ENDPOINTS.ADMIN_CATEGORIES_ACTIVE,
       { params: { superCategoryId } }
     );
@@ -56,7 +43,7 @@ export const AdminCategoryService = {
     superCategoryId: number;
     isDeleted: boolean;
   }) {
-    const res = await axios.post<ApiResponse<number>>(
+    const res = await axiosInstance.post<ApiResponse<number>>(
       API_ENDPOINTS.ADMIN_CATEGORIES,
       data
     );
@@ -73,7 +60,7 @@ export const AdminCategoryService = {
       isDeleted: boolean;
     }
   ) {
-    const res = await axios.put<ApiResponse<boolean>>(
+    const res = await axiosInstance.put<ApiResponse<boolean>>(
       API_ENDPOINTS.ADMIN_CATEGORY_BY_ID(id),
       data
     );
@@ -82,7 +69,7 @@ export const AdminCategoryService = {
   },
 
   async toggleStatus(item: CategoryAdmin) {
-    const res = await axios.put(
+    const res = await axiosInstance.put(
       API_ENDPOINTS.ADMIN_CATEGORY_BY_ID(item.categoryId),
       {
         categoryName: item.categoryName,
@@ -95,3 +82,4 @@ export const AdminCategoryService = {
     return res.data;
   },
 };
+

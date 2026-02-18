@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Eye, Trash2, Calendar, User, Users } from "lucide-react";
 import { NotificationDeliveryDto } from "@/services/admin_services/admin.notification.service";
-import { getCategoryFromTemplate, getCategoryLabel, getCategoryColor } from "@/types/notification";
+import { getCategoryFromTemplate, getCategoryLabel, getCategoryColor } from "@/utils/notification.helpers";
 import { Modal } from "../ui/modal";
 import Button from "../ui/button/Button";
 
