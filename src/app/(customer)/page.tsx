@@ -148,7 +148,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      <Header />
+      {/* <Header /> */}
 
       {/* Banner */}
       <div className="pt-6 px-6">
