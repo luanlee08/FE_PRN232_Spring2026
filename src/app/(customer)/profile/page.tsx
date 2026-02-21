@@ -352,7 +352,7 @@ export default function CustomerProfilePage() {
                       </svg>
                       Ngày tạo tài khoản
                     </label>
-                    <p className="text-gray-900 py-3 px-4 bg-gray-50 rounded-xl font-medium">
+                    <p className="text-gray-900 py-3 px-4 bg-gray-50 rounded-xl font-medium" suppressHydrationWarning>
                       {profile?.createdAt
                         ? new Date(profile.createdAt).toLocaleDateString("vi-VN", {
                           year: "numeric",
