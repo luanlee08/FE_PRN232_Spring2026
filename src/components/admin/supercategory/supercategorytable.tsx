@@ -63,13 +63,13 @@ export default function SuperCategoryTable({ data, loading, onEdit, onToggle }: 
                 )}
               </td>
 
-              <td className="py-5 px-6 text-gray-600">
-                {new Date(item.createdAt).toLocaleDateString()}
+              <td className="py-5 px-6 text-gray-600" suppressHydrationWarning>
+                {new Date(item.createdAt).toLocaleDateString('vi-VN')}
               </td>
 
-              <td className="py-5 px-6 text-gray-600">
+              <td className="py-5 px-6 text-gray-600" suppressHydrationWarning>
                 {item.updatedAt
-                  ? new Date(item.updatedAt).toLocaleDateString()
+                  ? new Date(item.updatedAt).toLocaleDateString('vi-VN')
                   : "-"}
               </td>
 

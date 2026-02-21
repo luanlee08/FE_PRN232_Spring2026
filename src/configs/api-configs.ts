@@ -38,6 +38,22 @@ export const API_ENDPOINTS = {
     `${API_BASE}/api/cart/remove/${cartItemId}`,
   CART_CLEAR: `${API_BASE}/api/cart/clear`,
 
+  // ===== CUSTOMER ADDRESSES =====
+  ADDRESSES: `${API_BASE}/api/addresses`,
+  ADDRESS_BY_ID: (id: number) => `${API_BASE}/api/addresses/${id}`,
+  ADDRESS_SET_DEFAULT: (id: number) => `${API_BASE}/api/addresses/${id}/set-default`,
+
+  // ===== CUSTOMER ORDERS =====
+  ORDERS: `${API_BASE}/api/COrder`,
+  ORDER_BY_ID: (id: number) => `${API_BASE}/api/COrder/${id}`,
+  ORDER_PAYMENT_METHODS: `${API_BASE}/api/COrder/payment-methods`,
+  ORDER_MY_ORDERS: `${API_BASE}/api/COrder/my-orders`,
+  ORDER_CANCEL: (id: number) => `${API_BASE}/api/COrder/${id}/cancel`,
+
+  // ===== CUSTOMER SHIPPING =====
+  SHIPPING_METHODS: `${API_BASE}/api/CShipping/methods`,
+  SHIPPING_CALCULATE_FEE: `${API_BASE}/api/CShipping/calculate-fee`,
+
   // ===== CUSTOMER NOTIFICATIONS =====
   NOTIFICATIONS: `${API_BASE}/api/notifications`,
   NOTIFICATIONS_UNREAD_COUNT: `${API_BASE}/api/notifications/unread-count`,

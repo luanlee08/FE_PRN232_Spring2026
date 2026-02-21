@@ -141,7 +141,7 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
                         {notification.status === "Unread" ? "Chưa đọc" : "Đã đọc"}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
+                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400" suppressHydrationWarning>
                       {formatDate(notification.createdAt)}
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">

@@ -93,7 +93,7 @@ export default function ProductDetailPage() {
                   </div>
                   <span className="text-gray-600 text-sm">({product.reviews} đánh giá)</span>
                   <span className="text-gray-600 text-sm">|</span>
-                  <span className="text-gray-600 text-sm">Đã bán {product.sold.toLocaleString()}</span>
+                  <span className="text-gray-600 text-sm">Đã bán {product.sold.toLocaleString('vi-VN')}</span>
                 </div>
 
                 {/* Name */}
@@ -103,10 +103,10 @@ export default function ProductDetailPage() {
                 <div className="mb-6 p-4 bg-[#FFF5F0] rounded-lg">
                   <div className="flex items-baseline gap-3">
                     <span className="text-4xl font-bold text-[#FF6B35]">
-                      {product.price.toLocaleString()}₫
+                      {product.price.toLocaleString('vi-VN')}₫
                     </span>
                     <span className="text-xl text-gray-500 line-through">
-                      {product.originalPrice.toLocaleString()}₫
+                      {product.originalPrice.toLocaleString('vi-VN')}₫
                     </span>
                     <span className="text-lg font-bold text-[#FF6B35]">
                       -40%
@@ -129,7 +129,7 @@ export default function ProductDetailPage() {
                     </div>
                     <div>
                       <span className="text-gray-600">Người theo dõi: </span>
-                      <span className="font-semibold text-[#222]">{product.seller.followers.toLocaleString()}</span>
+                      <span className="font-semibold text-[#222]">{product.seller.followers.toLocaleString('vi-VN')}</span>
                     </div>
                   </div>
                 </div>
