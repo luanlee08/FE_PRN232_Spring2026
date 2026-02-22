@@ -395,7 +395,7 @@ export default function NotificationPage() {
                                             {notif.message}
                                         </p>
                                         <div className="flex items-center justify-between mt-2">
-                                            <span className="text-xs text-gray-400">
+                                            <span className="text-xs text-gray-400" suppressHydrationWarning>
                                                 {timeAgo(notif.createdAt)}
                                             </span>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">

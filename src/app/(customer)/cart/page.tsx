@@ -456,6 +456,7 @@ export default function CartPage() {
 
                                 <button
                                     disabled={selectedCount === 0}
+                                    onClick={() => router.push('/checkout')}
                                     className="w-full py-3.5 bg-[#FF6B35] hover:bg-[#E55A24] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-lg transition text-base"
                                 >
                                     Đặt Hàng ({selectedCount})

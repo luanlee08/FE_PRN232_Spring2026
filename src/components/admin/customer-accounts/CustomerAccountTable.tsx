@@ -67,7 +67,7 @@ export default function CustomerAccountTable({ customers, onEdit }: Props) {
                   {customer.status}
                 </span>
               </td>
-              <td className="px-4 py-3 text-sm">
+              <td className="px-4 py-3 text-sm" suppressHydrationWarning>
                 {new Date(customer.createdAt).toLocaleDateString("vi-VN")}
               </td>
               <td className="px-4 py-3 text-center">
