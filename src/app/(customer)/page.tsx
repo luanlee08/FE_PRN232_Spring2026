@@ -154,11 +154,11 @@ export default function Home() {
       <div className="pt-6 px-6">
         <CarouselBanner />
       </div>
-      
-      <BrandsMarquee />
+{/*       
+      <BrandsMarquee /> */}
 
       <div className="flex max-w-7xl mx-auto gap-0 bg-[#F5F5F5] min-h-screen">
-        <SidebarCategories />
+        {/* <SidebarCategories /> */}
 
         {/* Main Content */}
         <div className="flex-1 px-6 py-6">
