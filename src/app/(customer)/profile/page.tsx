@@ -3,9 +3,11 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { CustomerProfileService, ProfileResponse } from "@/services/customer_services/customer.profile.service";
+import {
+  CustomerProfileService,
+  ProfileResponse,
+} from "@/services/customer_services/customer.profile.service";
 import { useAuth } from "@/lib/auth/auth-context";
-import { Header } from "@/components/customer/header";
 import { Footer } from "@/components/customer/footer";
 import { API_BASE } from "@/configs/api-configs";
 import Cookies from "js-cookie";
@@ -53,7 +55,7 @@ export default function CustomerProfilePage() {
   const getImageUrl = (imageUrl: string | null) => {
     if (!imageUrl) return null;
     // If it's a data URL (base64) or full URL, return as-is
-    if (imageUrl.startsWith('data:') || imageUrl.startsWith('http')) {
+    if (imageUrl.startsWith("data:") || imageUrl.startsWith("http")) {
       return imageUrl;
     }
     // Otherwise, prepend API_BASE for local backend images
@@ -103,7 +105,7 @@ export default function CustomerProfilePage() {
         const updatedProfile = await CustomerProfileService.getProfile();
         if (updatedProfile.status === 200 && updatedProfile.data) {
           // Update cookie with new user info
-          const userCookie = Cookies.get('user');
+          const userCookie = Cookies.get("user");
           if (userCookie) {
             const currentUser = JSON.parse(userCookie);
             const updatedUser = {
@@ -112,7 +114,7 @@ export default function CustomerProfilePage() {
               phoneNumber: updatedProfile.data.phoneNumber,
               image: updatedProfile.data.image,
             };
-            Cookies.set('user', JSON.stringify(updatedUser), { expires: 7 });
+            Cookies.set("user", JSON.stringify(updatedUser), { expires: 7 });
           }
         }
 
@@ -131,7 +133,6 @@ export default function CustomerProfilePage() {
   if (loadingProfile) {
     return (
       <>
-        <Header />
         <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 py-12">
           <div className="max-w-4xl mx-auto px-4">
             <div className="bg-white rounded-2xl shadow-xl overflow-hidden animate-pulse">
@@ -159,20 +160,26 @@ export default function CustomerProfilePage() {
 
   return (
     <>
-      <Header />
       <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Breadcrumb */}
           <div className="mb-6">
             <nav className="flex items-center gap-2 text-sm">
-              <Link href="/" className="text-gray-600 hover:text-orange-600 transition flex items-center gap-1">
+              <Link
+                href="/"
+                className="text-gray-600 hover:text-orange-600 transition flex items-center gap-1"
+              >
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z" />
                 </svg>
                 Trang chủ
               </Link>
               <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                <path
+                  fillRule="evenodd"
+                  d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"
+                  clipRule="evenodd"
+                />
               </svg>
               <span className="text-orange-600 font-medium">Hồ sơ cá nhân</span>
             </nav>
@@ -256,8 +263,16 @@ export default function CustomerProfilePage() {
                   </p>
                   {isEditing && (
                     <p className="text-sm text-orange-600 mt-3 flex items-center justify-center lg:justify-start gap-1 flex-wrap">
-                      <svg className="w-4 h-4 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      <svg
+                        className="w-4 h-4 flex-shrink-0"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       <span>Click vào avatar để đổi ảnh đại diện</span>
                     </p>
@@ -270,7 +285,12 @@ export default function CustomerProfilePage() {
                     className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl hover:from-orange-600 hover:to-red-600 transition-all font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center gap-2 whitespace-nowrap flex-shrink-0 mt-4 lg:mt-0"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
                     Chỉnh sửa hồ sơ
                   </button>
@@ -283,8 +303,16 @@ export default function CustomerProfilePage() {
                   {/* Account Name */}
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-orange-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Tên tài khoản <span className="text-red-500">*</span>
                     </label>
@@ -307,7 +335,11 @@ export default function CustomerProfilePage() {
                   {/* Email */}
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-5 h-5 text-orange-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
                         <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
                       </svg>
@@ -321,7 +353,11 @@ export default function CustomerProfilePage() {
                   {/* Phone Number */}
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                      <svg
+                        className="w-5 h-5 text-orange-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
                         <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
                       </svg>
                       Số điện thoại
@@ -347,18 +383,29 @@ export default function CustomerProfilePage() {
                   {/* Created Date */}
                   <div className="space-y-2">
                     <label className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-                      <svg className="w-5 h-5 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-orange-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                       Ngày tạo tài khoản
                     </label>
-                    <p className="text-gray-900 py-3 px-4 bg-gray-50 rounded-xl font-medium" suppressHydrationWarning>
+                    <p
+                      className="text-gray-900 py-3 px-4 bg-gray-50 rounded-xl font-medium"
+                      suppressHydrationWarning
+                    >
                       {profile?.createdAt
                         ? new Date(profile.createdAt).toLocaleDateString("vi-VN", {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        })
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })
                         : ""}
                     </p>
                   </div>
@@ -391,15 +438,30 @@ export default function CustomerProfilePage() {
                       {loading ? (
                         <span className="flex items-center justify-center gap-2">
                           <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                            ></circle>
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            ></path>
                           </svg>
                           Đang lưu...
                         </span>
                       ) : (
                         <span className="flex items-center justify-center gap-2">
                           <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <path
+                              fillRule="evenodd"
+                              d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                              clipRule="evenodd"
+                            />
                           </svg>
                           Lưu thay đổi
                         </span>
