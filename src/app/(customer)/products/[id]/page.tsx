@@ -1,9 +1,10 @@
-'use client';
+"use client";
 
-import { Header } from '@/components/customer/header';
-import { SidebarCategories } from '@/components/customer/sidebar-categories';
-import { Heart, ShoppingCart, Truck, RotateCcw, Shield } from 'lucide-react';
-import { useState } from 'react';
+import { SidebarCategories } from "@/components/customer/sidebar-categories";
+import { ProductReviews } from "@/components/customer/product-reviews";
+import { Heart, ShoppingCart, Truck, RotateCcw, Shield } from "lucide-react";
+import { useState } from "react";
+import Link from "next/link";
 
 export default function ProductDetailPage() {
   const [quantity, setQuantity] = useState(1);
@@ -11,38 +12,37 @@ export default function ProductDetailPage() {
 
   const product = {
     id: 1,
-    name: 'Bộ Lego Xây Dựng 500 Chi Tiết - Sáng Tạo Vô Hạn',
+    name: "Bộ Lego Xây Dựng 500 Chi Tiết - Sáng Tạo Vô Hạn",
     price: 299000,
     originalPrice: 499000,
     rating: 4.8,
     reviews: 1234,
     sold: 5600,
     images: [
-      'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80',
-      'https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80',
-      'https://images.unsplash.com/photo-1613904556901-b6c4d23c8d60?w=600&q=80',
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80",
+      "https://images.unsplash.com/photo-1572635196237-14b3f281503f?w=600&q=80",
+      "https://images.unsplash.com/photo-1613904556901-b6c4d23c8d60?w=600&q=80",
     ],
-    description: 'Bộ Lego xây dựng cao cấp với 500 chi tiết đa màu sắc. Phù hợp cho trẻ từ 6 tuổi trở lên. Giúp phát triển sáng tạo và kỹ năng xây dựng.',
+    description:
+      "Bộ Lego xây dựng cao cấp với 500 chi tiết đa màu sắc. Phù hợp cho trẻ từ 6 tuổi trở lên. Giúp phát triển sáng tạo và kỹ năng xây dựng.",
     details: [
-      'Số lượng chi tiết: 500',
-      'Độ tuổi: 6+',
-      'Chất liệu: Nhựa ABS an toàn',
-      'Bao gồm: Hộp đựng, hướng dẫn lắp ráp',
-      'Kích thước: 35cm x 25cm x 20cm'
+      "Số lượng chi tiết: 500",
+      "Độ tuổi: 6+",
+      "Chất liệu: Nhựa ABS an toàn",
+      "Bao gồm: Hộp đựng, hướng dẫn lắp ráp",
+      "Kích thước: 35cm x 25cm x 20cm",
     ],
     seller: {
-      name: 'LorKingdom Official',
+      name: "LorKingdom Official",
       rating: 4.9,
-      followers: 125000
-    }
+      followers: 125000,
+    },
   };
 
   const [selectedImage, setSelectedImage] = useState(0);
 
   return (
     <div className="min-h-screen bg-white">
-      <Header />
-
       <div className="flex">
         <SidebarCategories />
 
@@ -51,9 +51,13 @@ export default function ProductDetailPage() {
           <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Breadcrumb */}
             <div className="flex gap-2 text-sm mb-8 text-gray-600">
-              <a href="/" className="hover:text-[#FF6B35]">Trang chủ</a>
+              <Link href="/" className="hover:text-[#FF6B35]">
+                Trang chủ
+              </Link>
               <span>/</span>
-              <a href="#" className="hover:text-[#FF6B35]">Lego & Xây Dựng</a>
+              <Link href="/categories/lego" className="hover:text-[#FF6B35]">
+                Lego & Xây Dựng
+              </Link>
               <span>/</span>
               <span className="text-[#222]">{product.name}</span>
             </div>
@@ -74,10 +78,15 @@ export default function ProductDetailPage() {
                     <button
                       key={idx}
                       onClick={() => setSelectedImage(idx)}
-                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition ${selectedImage === idx ? 'border-[#FF6B35]' : 'border-[#E8E8E8]'
-                        }`}
+                      className={`w-20 h-20 rounded-lg overflow-hidden border-2 transition ${
+                        selectedImage === idx ? "border-[#FF6B35]" : "border-[#E8E8E8]"
+                      }`}
                     >
-                      <img src={img || "/placeholder.svg"} alt="Thumb" className="w-full h-full object-cover" />
+                      <img
+                        src={img || "/placeholder.svg"}
+                        alt="Thumb"
+                        className="w-full h-full object-cover"
+                      />
                     </button>
                   ))}
                 </div>
@@ -93,7 +102,9 @@ export default function ProductDetailPage() {
                   </div>
                   <span className="text-gray-600 text-sm">({product.reviews} đánh giá)</span>
                   <span className="text-gray-600 text-sm">|</span>
-                  <span className="text-gray-600 text-sm">Đã bán {product.sold.toLocaleString('vi-VN')}</span>
+                  <span className="text-gray-600 text-sm">
+                    Đã bán {product.sold.toLocaleString("vi-VN")}
+                  </span>
                 </div>
 
                 {/* Name */}
@@ -103,14 +114,12 @@ export default function ProductDetailPage() {
                 <div className="mb-6 p-4 bg-[#FFF5F0] rounded-lg">
                   <div className="flex items-baseline gap-3">
                     <span className="text-4xl font-bold text-[#FF6B35]">
-                      {product.price.toLocaleString('vi-VN')}₫
+                      {product.price.toLocaleString("vi-VN")}₫
                     </span>
                     <span className="text-xl text-gray-500 line-through">
-                      {product.originalPrice.toLocaleString('vi-VN')}₫
+                      {product.originalPrice.toLocaleString("vi-VN")}₫
                     </span>
-                    <span className="text-lg font-bold text-[#FF6B35]">
-                      -40%
-                    </span>
+                    <span className="text-lg font-bold text-[#FF6B35]">-40%</span>
                   </div>
                 </div>
 
@@ -129,7 +138,9 @@ export default function ProductDetailPage() {
                     </div>
                     <div>
                       <span className="text-gray-600">Người theo dõi: </span>
-                      <span className="font-semibold text-[#222]">{product.seller.followers.toLocaleString('vi-VN')}</span>
+                      <span className="font-semibold text-[#222]">
+                        {product.seller.followers.toLocaleString("vi-VN")}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -179,13 +190,14 @@ export default function ProductDetailPage() {
                 <div className="flex gap-3 mb-6">
                   <button
                     onClick={() => setIsWishlisted(!isWishlisted)}
-                    className={`flex-1 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 border-2 ${isWishlisted
-                        ? 'bg-[#FFE5E0] border-[#FF6B35] text-[#FF6B35]'
-                        : 'bg-white border-[#FF6B35] text-[#FF6B35] hover:bg-[#FFF5F0]'
-                      }`}
+                    className={`flex-1 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 border-2 ${
+                      isWishlisted
+                        ? "bg-[#FFE5E0] border-[#FF6B35] text-[#FF6B35]"
+                        : "bg-white border-[#FF6B35] text-[#FF6B35] hover:bg-[#FFF5F0]"
+                    }`}
                   >
-                    <Heart className={`w-5 h-5 ${isWishlisted ? 'fill-current' : ''}`} />
-                    {isWishlisted ? 'Đã Thích' : 'Thích'}
+                    <Heart className={`w-5 h-5 ${isWishlisted ? "fill-current" : ""}`} />
+                    {isWishlisted ? "Đã Thích" : "Thích"}
                   </button>
                   <button className="flex-1 py-3 bg-white border-2 border-[#FF6B35] text-[#FF6B35] rounded-lg font-semibold hover:bg-[#FFF5F0] transition flex items-center justify-center gap-2">
                     <ShoppingCart className="w-5 h-5" />
@@ -206,9 +218,12 @@ export default function ProductDetailPage() {
                   <h2 className="text-2xl font-bold text-[#222] mb-6">Thông Tin Chi Tiết</h2>
                   <div className="space-y-4">
                     {product.details.map((detail, idx) => (
-                      <div key={idx} className="flex justify-between py-3 border-b border-[#E8E8E8] last:border-0">
-                        <span className="text-gray-600">{detail.split(':')[0]}</span>
-                        <span className="font-semibold text-[#222]">{detail.split(':')[1]}</span>
+                      <div
+                        key={idx}
+                        className="flex justify-between py-3 border-b border-[#E8E8E8] last:border-0"
+                      >
+                        <span className="text-gray-600">{detail.split(":")[0]}</span>
+                        <span className="font-semibold text-[#222]">{detail.split(":")[1]}</span>
                       </div>
                     ))}
                   </div>
@@ -226,7 +241,10 @@ export default function ProductDetailPage() {
                 <h3 className="font-bold text-[#222] mb-4">Sản Phẩm Liên Quan</h3>
                 <div className="space-y-4">
                   {[1, 2, 3].map((item) => (
-                    <div key={item} className="p-3 bg-[#F5F5F5] rounded-lg hover:shadow-md transition cursor-pointer">
+                    <div
+                      key={item}
+                      className="p-3 bg-[#F5F5F5] rounded-lg hover:shadow-md transition cursor-pointer"
+                    >
                       <div className="font-medium text-sm text-[#222] mb-1">Sản phẩm {item}</div>
                       <div className="text-[#FF6B35] font-bold text-sm">299.000₫</div>
                     </div>
@@ -234,6 +252,9 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
+
+            {/* Reviews & Ratings - Full Width */}
+            <ProductReviews />
           </div>
         </div>
       </div>

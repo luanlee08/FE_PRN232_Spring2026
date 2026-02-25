@@ -1,10 +1,8 @@
 // export const API_BASE =
 //   process.env.NEXT_PUBLIC_API_URL!;
-export const API_BASE =
-  process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
 export const API_ENDPOINTS = {
   // ===== AUTH =====
-
 
   // ===== ADMIN PRODUCTS =====
   ADMIN_PRODUCTS: `${API_BASE}/api/admin/products`,
@@ -15,12 +13,10 @@ export const API_ENDPOINTS = {
   ADMIN_SEXES: `${API_BASE}/api/admin/sexes`,
   ADMIN_SUPER_CATEGORIES: `${API_BASE}/api/admin/super-categories`,
   ADMIN_SUPER_CATEGORIES_ACTIVE: `${API_BASE}/api/admin/super-categories/active`,
-  ADMIN_SUPER_CATEGORY_BY_ID: (id: number) =>
-    `${API_BASE}/api/admin/super-categories/${id}`,
+  ADMIN_SUPER_CATEGORY_BY_ID: (id: number) => `${API_BASE}/api/admin/super-categories/${id}`,
   ADMIN_CATEGORIES: `${API_BASE}/api/admin/categories`,
   ADMIN_CATEGORIES_ACTIVE: `${API_BASE}/api/admin/categories/active`,
-  ADMIN_CATEGORY_BY_ID: (id: number) =>
-    `${API_BASE}/api/admin/categories/${id}`,
+  ADMIN_CATEGORY_BY_ID: (id: number) => `${API_BASE}/api/admin/categories/${id}`,
 
   // ===== ADMIN ACCOUNTS =====
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
@@ -30,12 +26,9 @@ export const API_ENDPOINTS = {
   CART: `${API_BASE}/api/cart`,
   CART_ADD: `${API_BASE}/api/cart/add`,
   CART_UPDATE: `${API_BASE}/api/cart/update`,
-  CART_INCREMENT: (cartItemId: number) =>
-    `${API_BASE}/api/cart/increment/${cartItemId}`,
-  CART_DECREMENT: (cartItemId: number) =>
-    `${API_BASE}/api/cart/decrement/${cartItemId}`,
-  CART_REMOVE: (cartItemId: number) =>
-    `${API_BASE}/api/cart/remove/${cartItemId}`,
+  CART_INCREMENT: (cartItemId: number) => `${API_BASE}/api/cart/increment/${cartItemId}`,
+  CART_DECREMENT: (cartItemId: number) => `${API_BASE}/api/cart/decrement/${cartItemId}`,
+  CART_REMOVE: (cartItemId: number) => `${API_BASE}/api/cart/remove/${cartItemId}`,
   CART_CLEAR: `${API_BASE}/api/cart/clear`,
 
   // ===== CUSTOMER ADDRESSES =====
@@ -57,15 +50,16 @@ export const API_ENDPOINTS = {
   // ===== CUSTOMER NOTIFICATIONS =====
   NOTIFICATIONS: `${API_BASE}/api/notifications`,
   NOTIFICATIONS_UNREAD_COUNT: `${API_BASE}/api/notifications/unread-count`,
-  NOTIFICATION_MARK_READ: (id: number) =>
-    `${API_BASE}/api/notifications/${id}/read`,
+  NOTIFICATION_MARK_READ: (id: number) => `${API_BASE}/api/notifications/${id}/read`,
   NOTIFICATIONS_READ_ALL: `${API_BASE}/api/notifications/read-all`,
-  NOTIFICATION_DELETE: (id: number) =>
-    `${API_BASE}/api/notifications/${id}`,
+  NOTIFICATION_DELETE: (id: number) => `${API_BASE}/api/notifications/${id}`,
+
+  // ===== ADMIN VOUCHERS =====
+  ADMIN_VOUCHERS: `${API_BASE}/api/admin/vouchers`,
+  ADMIN_VOUCHER_BY_ID: (id: number) => `${API_BASE}/api/admin/vouchers/${id}`,
 
   // ===== ADMIN NOTIFICATIONS =====
   ADMIN_NOTIFICATIONS: `${API_BASE}/api/admin/notifications`,
-  ADMIN_NOTIFICATION_BY_ID: (id: number) =>
-    `${API_BASE}/api/admin/notifications/${id}`,
+  ADMIN_NOTIFICATION_BY_ID: (id: number) => `${API_BASE}/api/admin/notifications/${id}`,
   ADMIN_NOTIFICATIONS_STATS: `${API_BASE}/api/admin/notifications/stats`,
 };

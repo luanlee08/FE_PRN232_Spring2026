@@ -5,15 +5,24 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'localhost',
-        port: '7219',
-        pathname: '/uploads/**',
+        protocol: "https",
+        hostname: "localhost",
+        port: "7219",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "i.pravatar.cc",
+        pathname: "/**",
       },
     ],
     // Allow loading images from localhost
     dangerouslyAllowSVG: true,
-    contentDispositionType: 'attachment',
+    contentDispositionType: "attachment",
   },
 
   webpack(config) {
@@ -25,9 +34,9 @@ const nextConfig: NextConfig = {
   },
   turbopack: {
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },
