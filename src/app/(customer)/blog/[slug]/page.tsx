@@ -2,10 +2,9 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { useState, useMemo } from "react";
-import { MOCK_REACTIONS, MOCK_COMMENTS } from "../mock-data";
-
-/* ================= TYPES ================= */
+import { useEffect, useState } from "react";
+import { customerBlogService } from "@/services/customer_services/customer.blog.service";
+import { BlogPublic } from "@/types/blog";
 
 type Reaction = {
   like: number;
@@ -20,94 +19,67 @@ type Comment = {
   createdAt: string;
 };
 
-/* ================= MOCK BLOG DATA ================= */
-
-const MOCK_BLOGS = [
-  {
-    blogPostId: 1,
-    blogTitle: "5 cách chăm sóc da mùa hè hiệu quả",
-    blogContent: `
-      <p>Mùa hè là thời điểm da dễ bị tổn thương bởi ánh nắng mặt trời.</p>
-      <h2>1. Sử dụng kem chống nắng</h2>
-      <p>Luôn sử dụng kem chống nắng SPF 50+ trước khi ra ngoài.</p>
-      <h2>2. Uống đủ nước</h2>
-      <p>Ít nhất 2 lít nước mỗi ngày để giữ ẩm cho da.</p>
-      <p><strong>Chăm sóc da đúng cách</strong> sẽ giúp bạn tự tin hơn mỗi ngày.</p>
-    `,
-    blogThumbnail:
-      "https://images.unsplash.com/photo-1556228453-efd6c1ff04f6",
-    blogCategory: "Chăm sóc da",
-    authorEmail: "admin@glowpurea.vn",
-    createdAt: "2026-02-15",
-  },
-  {
-    blogPostId: 2,
-    blogTitle: "Top 3 sản phẩm dưỡng ẩm tốt nhất 2026",
-    blogContent: `
-      <p>Dưỡng ẩm là bước quan trọng trong skincare.</p>
-      <ul>
-        <li>Kem dưỡng chứa HA</li>
-        <li>Serum Vitamin B5</li>
-        <li>Mặt nạ ngủ</li>
-      </ul>
-    `,
-    blogThumbnail:
-      "https://images.unsplash.com/photo-1600185365926-3a2ce3cdb9eb",
-    blogCategory: "Review sản phẩm",
-    authorEmail: "editor@glowpurea.vn",
-    createdAt: "2026-02-10",
-  },
-  {
-    blogPostId: 3,
-    blogTitle: "Routine skincare cơ bản cho người mới",
-    blogContent: `
-      <p>Nếu bạn mới bắt đầu skincare, hãy làm theo các bước sau:</p>
-      <ol>
-        <li>Tẩy trang</li>
-        <li>Rửa mặt</li>
-        <li>Toner</li>
-        <li>Serum</li>
-        <li>Kem dưỡng</li>
-      </ol>
-    `,
-    blogThumbnail: null,
-    blogCategory: "Hướng dẫn",
-    authorEmail: "support@glowpurea.vn",
-    createdAt: "2026-02-05",
-  },
-];
-
-/* ================= COMPONENT ================= */
-
 export default function BlogDetailPage() {
-
   const { slug } = useParams<{ slug: string }>();
 
-  const postId = Number(slug);
+  const [blog, setBlog] = useState<BlogPublic | null>(null);
+  const [recentBlogs, setRecentBlogs] = useState<BlogPublic[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // const [comments, setComments] = useState(
-  //   MOCK_COMMENTS?.[postId] || []
-  // );
+  // ===== LOCAL UI STATE =====
+  const [reactions, setReactions] = useState<Reaction>({
+    like: 0,
+    love: 0,
+    wow: 0,
+  });
 
-  /* ===== FIND BLOG ===== */
-  const blog = useMemo(() => {
-    return MOCK_BLOGS.find(
-      (b) => b.blogPostId === postId
-    );
-  }, [postId]);
-
-  const recentBlogs = MOCK_BLOGS.slice(0, 5);
-
-  /* ===== STATES ===== */
-  const [reactions, setReactions] = useState<Reaction>(
-    MOCK_REACTIONS?.[postId] || { like: 0, love: 0, wow: 0 }
-  );
-
-  const [comments, setComments] = useState<Comment[]>(
-    MOCK_COMMENTS?.[postId] || []
-  );
-
+  const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+
+  /* ================= FETCH DETAIL ================= */
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+
+        const result =
+          await customerBlogService.getBlogDetail(
+            Number(slug)
+          );
+
+        setBlog(result.data);
+      } catch (err) {
+        console.error("Fetch detail error:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetail();
+  }, [slug]);
+
+  /* ================= FETCH RECENT ================= */
+
+  useEffect(() => {
+    const fetchRecent = async () => {
+      const result =
+        await customerBlogService.getRecent(5);
+      setRecentBlogs(result.data);
+    };
+
+    fetchRecent();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen flex items-center justify-center">
+        Đang tải...
+      </main>
+    );
+  }
 
   if (!blog) {
     return (
@@ -119,6 +91,7 @@ export default function BlogDetailPage() {
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
+
       {/* ===== BREADCRUMB ===== */}
       <div className="max-w-7xl mx-auto px-4 py-6 text-sm text-gray-500">
         <Link href="/" className="hover:text-orange-500">
@@ -152,7 +125,12 @@ export default function BlogDetailPage() {
 
               <div className="flex flex-wrap gap-6 text-sm text-gray-500 border-b pb-4">
                 <span>👤 {blog.authorEmail}</span>
-                <span>📅 {blog.createdAt}</span>
+                <span>
+                  📅{" "}
+                  {new Date(
+                    blog.createdAt
+                  ).toLocaleDateString("vi-VN")}
+                </span>
               </div>
 
               {blog.blogThumbnail && (
@@ -170,7 +148,7 @@ export default function BlogDetailPage() {
                 }}
               />
 
-              {/* ===== REACTIONS ===== */}
+              {/* ===== REACTIONS (LOCAL UI ONLY) ===== */}
               <div className="border-t pt-8 mt-8">
                 <h3 className="font-semibold mb-4 text-lg">
                   Bạn cảm thấy bài viết này thế nào?
@@ -188,19 +166,25 @@ export default function BlogDetailPage() {
                         setReactions((prev) => ({
                           ...prev,
                           [item.key]:
-                            prev[item.key as keyof Reaction] + 1,
+                            prev[
+                              item.key as keyof Reaction
+                            ] + 1,
                         }))
                       }
                       className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-orange-100 transition text-sm"
                     >
                       {item.icon}
-                      {reactions[item.key as keyof Reaction]}
+                      {
+                        reactions[
+                          item.key as keyof Reaction
+                        ]
+                      }
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* ===== COMMENTS ===== */}
+              {/* ===== COMMENTS (LOCAL DEMO) ===== */}
               <div className="border-t pt-10 mt-10">
                 <h3 className="font-semibold mb-6 text-lg">
                   Bình luận ({comments.length})
@@ -219,7 +203,9 @@ export default function BlogDetailPage() {
                       <div>
                         <div className="text-xs text-gray-500 mb-1">
                           {c.author} •{" "}
-                          {new Date(c.createdAt).toLocaleDateString("vi-VN")}
+                          {new Date(
+                            c.createdAt
+                          ).toLocaleDateString("vi-VN")}
                         </div>
                         <p className="text-sm text-gray-700">
                           {c.content}
@@ -234,13 +220,16 @@ export default function BlogDetailPage() {
                     type="text"
                     placeholder="Viết bình luận của bạn..."
                     value={newComment}
-                    onChange={(e) => setNewComment(e.target.value)}
+                    onChange={(e) =>
+                      setNewComment(e.target.value)
+                    }
                     className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
                   />
 
                   <button
                     onClick={() => {
-                      if (!newComment.trim()) return;
+                      if (!newComment.trim())
+                        return;
 
                       setComments((prev) => [
                         ...prev,
@@ -248,7 +237,8 @@ export default function BlogDetailPage() {
                           id: Date.now(),
                           author: "Bạn",
                           content: newComment,
-                          createdAt: new Date().toISOString(),
+                          createdAt:
+                            new Date().toISOString(),
                         },
                       ]);
 
@@ -282,7 +272,9 @@ export default function BlogDetailPage() {
                         {item.blogTitle}
                       </p>
                       <span className="text-xs text-gray-500">
-                        {item.createdAt}
+                        {new Date(
+                          item.createdAt
+                        ).toLocaleDateString("vi-VN")}
                       </span>
                     </Link>
                   </li>
