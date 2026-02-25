@@ -38,7 +38,9 @@ export const CustomerProfileService = {
     });
 
     if (!response.ok) {
-      throw new Error("Failed to fetch profile");
+      const error: any = new Error(`Failed to fetch profile`);
+      error.status = response.status;
+      throw error;
     }
 
     return response.json();

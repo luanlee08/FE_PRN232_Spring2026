@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, ShoppingCart, Heart, Menu, X, Bell, User, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart, Heart, Menu, X, Bell, User, ChevronDown, ClipboardList, MapPin, Ticket, LogOut } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,15 @@ export function Header() {
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
   const userMenuRef = useRef<HTMLDivElement>(null);
+  const userMenuTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleUserMenuEnter = () => {
+    if (userMenuTimer.current) clearTimeout(userMenuTimer.current);
+    setOpenUserMenu(true);
+  };
+  const handleUserMenuLeave = () => {
+    userMenuTimer.current = setTimeout(() => setOpenUserMenu(false), 200);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -34,13 +43,13 @@ export function Header() {
     fetchUnread();
   }, [isAuthenticated]);
 
+  // Click-outside still closes menu if opened via other means
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
         setOpenUserMenu(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -122,9 +131,14 @@ export function Header() {
 
             <div className="hidden lg:flex items-center gap-3 ml-2">
               {isAuthenticated ? (
-                <div className="relative" ref={userMenuRef}>
+                <div
+                  className="relative"
+                  ref={userMenuRef}
+                  onMouseEnter={handleUserMenuEnter}
+                  onMouseLeave={handleUserMenuLeave}
+                >
                   <button
-                    onClick={() => setOpenUserMenu(!openUserMenu)}
+                    onClick={() => router.push("/profile")}
                     className="flex items-center gap-2 hover:opacity-80 transition"
                   >
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
@@ -145,46 +159,65 @@ export function Header() {
                     />
                   </button>
 
+                  {/* bridge gap so mouse doesn't lose hover when moving to dropdown */}
+                  {openUserMenu && <div className="absolute right-0 top-full w-full h-2" onMouseEnter={handleUserMenuEnter} />}
+
                   {openUserMenu && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg py-2 z-50">
-                      <div className="px-4 py-3 border-b border-gray-100">
-                        <p className="text-sm font-semibold text-gray-800">
-                          {user?.accountName}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-0.5">{user?.email}</p>
+                    <div
+                      className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl py-2 z-50 border border-gray-100"
+                      onMouseEnter={handleUserMenuEnter}
+                      onMouseLeave={handleUserMenuLeave}
+                    >
+                      {/* User info */}
+                      <div className="px-4 py-3 border-b border-gray-100 mb-1">
+                        <p className="text-sm font-semibold text-gray-800">{user?.accountName}</p>
+                        <p className="text-xs text-gray-500 mt-0.5 truncate">{user?.email}</p>
                       </div>
 
                       <Link
                         href="/profile"
                         onClick={() => setOpenUserMenu(false)}
-                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition"
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <User size={18} />
-                        Chỉnh sửa hồ sơ
+                        <User size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        Tài Khoản Của Tôi
+                      </Link>
+                      <Link
+                        href="/orders"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
+                      >
+                        <ClipboardList size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        Đơn Mua
                       </Link>
 
-                      <button
-                        onClick={() => {
-                          setOpenUserMenu(false);
-                          handleLogout();
-                        }}
-                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition"
+                      <Link
+                        href="/profile/addresses"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <svg
-                          className="w-[18px] h-[18px]"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
+                        <MapPin size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        Địa Chỉ Của Tôi
+                      </Link>
+
+                      <Link
+                        href="/vouchers"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
+                      >
+                        <Ticket size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        Quản Lý Voucher
+                      </Link>
+
+                      <div className="border-t border-gray-100 mt-1 pt-1">
+                        <button
+                          onClick={() => { setOpenUserMenu(false); handleLogout(); }}
+                          className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors group"
                         >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                          />
-                        </svg>
-                        Đăng xuất
-                      </button>
+                          <LogOut size={17} className="text-red-400 group-hover:text-red-500 transition-colors" />
+                          Đăng Xuất
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -260,32 +293,54 @@ export function Header() {
                     <Link
                       href="/profile"
                       onClick={() => setOpenMenu(false)}
-                      className="flex items-center gap-2 text-[#FF6B35] font-medium mb-3"
+                      className="flex items-center gap-2 text-[#FF6B35] font-medium mb-2"
                     >
-                      <User size={18} />
-                      Chỉnh sửa hồ sơ
+                      <User size={17} />
+                      Tài Khoản Của Tôi
+                    </Link>
+                    <Link
+                      href="/notification"
+                      onClick={() => setOpenMenu(false)}
+                      className="flex items-center gap-2 text-gray-700 font-medium mb-2"
+                    >
+                      <Bell size={17} />
+                      Thông Báo
+                      {unreadCount > 0 && (
+                        <span className="ml-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#FF6B35] px-1 text-[10px] font-bold text-white">
+                          {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                      )}
+                    </Link>
+                    <Link
+                      href="/orders"
+                      onClick={() => setOpenMenu(false)}
+                      className="flex items-center gap-2 text-gray-700 font-medium mb-2"
+                    >
+                      <ClipboardList size={17} />
+                      Đơn Mua
+                    </Link>
+                    <Link
+                      href="/profile/addresses"
+                      onClick={() => setOpenMenu(false)}
+                      className="flex items-center gap-2 text-gray-700 font-medium mb-2"
+                    >
+                      <MapPin size={17} />
+                      Địa Chỉ Của Tôi
+                    </Link>
+                    <Link
+                      href="/vouchers"
+                      onClick={() => setOpenMenu(false)}
+                      className="flex items-center gap-2 text-gray-700 font-medium mb-3"
+                    >
+                      <Ticket size={17} />
+                      Quản Lý Voucher
                     </Link>
                     <button
-                      onClick={() => {
-                        setOpenMenu(false);
-                        handleLogout();
-                      }}
+                      onClick={() => { setOpenMenu(false); handleLogout(); }}
                       className="flex items-center gap-2 text-red-500 font-medium"
                     >
-                      <svg
-                        className="w-[18px] h-[18px]"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-                        />
-                      </svg>
-                      Đăng xuất
+                      <LogOut size={17} />
+                      Đăng Xuất
                     </button>
                   </>
                 ) : (
