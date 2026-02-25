@@ -31,5 +31,39 @@ export interface CreateBlogRequest {
   isActive: boolean;
   thumbnail?: File;
 }
+export interface BlogPublic {
+  blogPostId: number;
+  blogTitle: string;
+  blogExcerpt: string;
+  blogContent: string;
+  blogThumbnail: string | null;
+  blogCategory: string;
+  categoryId: number;
+  authorEmail: string;
+  createdAt: string;
+}
 
+export interface BlogCategory {
+  blogCategoryId: number;
+  blogCategoryName: string;
+}
+
+export interface PagedResponse<T> {
+  status: number;
+  statusMessage: string;
+  message: string;
+  data: {
+    items: T[];
+    totalCount: number;
+    page: number;
+    pageSize: number;
+  };
+}
+
+export interface ApiResponse<T> {
+  status: number;
+  statusMessage: string;
+  message: string;
+  data: T;
+}
 export type UpdateBlogRequest = CreateBlogRequest
