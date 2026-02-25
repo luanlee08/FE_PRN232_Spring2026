@@ -62,4 +62,13 @@ export const API_ENDPOINTS = {
   ADMIN_NOTIFICATIONS: `${API_BASE}/api/admin/notifications`,
   ADMIN_NOTIFICATION_BY_ID: (id: number) => `${API_BASE}/api/admin/notifications/${id}`,
   ADMIN_NOTIFICATIONS_STATS: `${API_BASE}/api/admin/notifications/stats`,
+
+ // ===== ADMIN BLOG =====
+ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
+ADMIN_BLOG_SEARCH: `${API_BASE}/api/admin/blogs/search`,
+ADMIN_BLOG_BY_ID: (id: number) =>
+  `${API_BASE}/api/admin/blogs/${id}`,
+
+// ===== ADMIN BLOG CATEGORIES =====
+ADMIN_BLOG_CATEGORIES: `${API_BASE}/api/admin/blog-categories`,
 };
