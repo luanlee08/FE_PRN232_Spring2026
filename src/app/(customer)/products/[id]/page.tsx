@@ -51,7 +51,7 @@ export default function ProductDetailPage() {
           <div className="max-w-6xl mx-auto px-6 py-8">
             {/* Breadcrumb */}
             <div className="flex gap-2 text-sm mb-8 text-gray-600">
-              <a href="/" className="hover:text-[#FF6B35]">Trang chủ</a>
+              {/* <a href="/" className="hover:text-[#FF6B35]">Trang chủ</a> */}
               <span>/</span>
               <a href="#" className="hover:text-[#FF6B35]">Lego & Xây Dựng</a>
               <span>/</span>
