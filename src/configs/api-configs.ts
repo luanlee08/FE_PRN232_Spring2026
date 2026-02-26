@@ -73,4 +73,18 @@ export const API_ENDPOINTS = {
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
   ADMIN_REVIEW_BY_ID: (id: number) => `${API_BASE}/api/admin/reviews/${id}`,
   ADMIN_REVIEW_REPLIES: `${API_BASE}/api/admin/reviews/replies`,
+
+  // ===== ADMIN BLOG =====
+  ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
+  ADMIN_BLOG_SEARCH: `${API_BASE}/api/admin/blogs/search`,
+  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE}/api/admin/blogs/${id}`,
+
+  // ===== ADMIN BLOG CATEGORIES =====
+  ADMIN_BLOG_CATEGORIES: `${API_BASE}/api/admin/blog-categories`,
+
+  // ===== CUSTOMER BLOG =====
+  BLOGS: `${API_BASE}/api/blogs`,
+  BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
+  BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
+  BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
 };
