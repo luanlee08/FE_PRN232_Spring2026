@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { customerBlogService } from "@/services/customer_services/customer.blog.service";
 import { BlogPublic, BlogCategory } from "@/types/blog";
-
+import { API_BASE } from "@/configs/api-configs";
 export default function BlogPage() {
   const [blogs, setBlogs] = useState<BlogPublic[]>([]);
   const [categories, setCategories] = useState<BlogCategory[]>([]);
@@ -14,7 +14,7 @@ export default function BlogPage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const pageSize = 3;
-
+  const [featuredBlogs, setFeaturedBlogs] = useState<BlogPublic[]>([]);
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [selectedCategoryId, setSelectedCategoryId] =
@@ -63,7 +63,14 @@ export default function BlogPage() {
     fetchCategories();
     fetchRecent();
   }, []);
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      const result = await customerBlogService.getFeatured(3);
+      setFeaturedBlogs(result.data);
+    };
 
+    fetchFeatured();
+  }, []);
   const totalPages = Math.ceil(total / pageSize);
 
   return (
@@ -94,8 +101,11 @@ export default function BlogPage() {
                 <div className="w-40 h-40 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                   <img
                     src={
-                      post.blogThumbnail ||
-                      "/images/no-image.png"
+                      post.blogThumbnail
+                        ? post.blogThumbnail.startsWith("http")
+                          ? post.blogThumbnail
+                          : `${API_BASE}${post.blogThumbnail}`
+                        : "/images/no-image.png"
                     }
                     alt={post.blogTitle}
                     className="w-full h-full object-cover"
@@ -154,11 +164,10 @@ export default function BlogPage() {
                     <button
                       key={i}
                       onClick={() => setPage(i + 1)}
-                      className={`px-4 py-2 rounded border ${
-                        page === i + 1
-                          ? "bg-orange-500 text-white"
-                          : "bg-white hover:bg-orange-100"
-                      }`}
+                      className={`px-4 py-2 rounded border ${page === i + 1
+                        ? "bg-orange-500 text-white"
+                        : "bg-white hover:bg-orange-100"
+                        }`}
                     >
                       {i + 1}
                     </button>
@@ -244,7 +253,7 @@ export default function BlogPage() {
             </div>
 
             {/* RECENT */}
-            <div className="bg-white p-6 rounded-xl shadow-sm">
+            {/* <div className="bg-white p-6 rounded-xl shadow-sm">
               <h4 className="font-bold mb-4 border-b pb-2">
                 Bài viết gần đây
               </h4>
@@ -259,8 +268,11 @@ export default function BlogPage() {
                       <div className="w-20 h-20 rounded-lg overflow-hidden">
                         <img
                           src={
-                            post.blogThumbnail ||
-                            "/images/no-image.png"
+                            post.blogThumbnail
+                              ? post.blogThumbnail.startsWith("http")
+                                ? post.blogThumbnail
+                                : `${API_BASE}${post.blogThumbnail}`
+                              : "/images/no-image.png"
                           }
                           alt={post.blogTitle}
                           className="w-full h-full object-cover"
@@ -281,8 +293,46 @@ export default function BlogPage() {
                   </li>
                 ))}
               </ul>
-            </div>
+            </div> */}
+            <div className="bg-white p-6 rounded-xl shadow-sm">
+              <h4 className="font-bold mb-4 border-b pb-2">
+                ⭐ Bài viết nổi bật
+              </h4>
 
+              <ul className="space-y-4">
+                {featuredBlogs.map((post) => (
+                  <li key={post.blogPostId}>
+                    <Link
+                      href={`/blog/${post.blogPostId}`}
+                      className="flex gap-4 group"
+                    >
+                      <div className="w-20 h-20 rounded-lg overflow-hidden">
+                        <img
+                          src={
+                            post.blogThumbnail
+                              ? post.blogThumbnail.startsWith("http")
+                                ? post.blogThumbnail
+                                : `${API_BASE}${post.blogThumbnail}`
+                              : "/images/no-image.png"
+                          }
+                          alt={post.blogTitle}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold line-clamp-2 group-hover:text-orange-500">
+                          {post.blogTitle}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </aside>
         </div>
       </section>
