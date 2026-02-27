@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { customerBlogService } from "@/services/customer_services/customer.blog.service";
 import { BlogPublic, ReviewBlog } from "@/types/blog";
-
+import { API_BASE } from "@/configs/api-configs";
 type Reaction = {
   like: number;
   love: number;
@@ -21,7 +21,7 @@ type Comment = {
 
 export default function BlogDetailPage() {
   const { slug } = useParams<{ slug: string }>();
-
+  const [featuredBlogs, setFeaturedBlogs] = useState<BlogPublic[]>([]);
   const [blog, setBlog] = useState<BlogPublic | null>(null);
   const [recentBlogs, setRecentBlogs] = useState<BlogPublic[]>([]);
   const [loading, setLoading] = useState(true);
@@ -78,7 +78,14 @@ export default function BlogDetailPage() {
     fetchReviews();
   }, [slug]);
   /* ================= FETCH RECENT ================= */
+  useEffect(() => {
+    const fetchFeatured = async () => {
+      const result = await customerBlogService.getFeatured(3);
+      setFeaturedBlogs(result.data);
+    };
 
+    fetchFeatured();
+  }, []);
   useEffect(() => {
     const fetchRecent = async () => {
       const result =
@@ -168,7 +175,11 @@ export default function BlogDetailPage() {
 
               {blog.blogThumbnail && (
                 <img
-                  src={blog.blogThumbnail}
+                  src={
+                    blog.blogThumbnail.startsWith("http")
+                      ? blog.blogThumbnail
+                      : `${API_BASE}${blog.blogThumbnail}`
+                  }
                   alt={blog.blogTitle}
                   className="w-full rounded-xl object-cover max-h-[420px]"
                 />
@@ -209,6 +220,7 @@ export default function BlogDetailPage() {
                       {item.icon}
                       {
                         reactions[
+                        item.key as keyof Reaction
                         item.key as keyof Reaction
                         ]
                       }
@@ -294,6 +306,46 @@ export default function BlogDetailPage() {
 
           {/* SIDEBAR */}
           <aside className="lg:col-span-4 space-y-6">
+
+            <div className="bg-white p-6 rounded-xl shadow-sm">
+              <h4 className="font-bold mb-4 border-b pb-2">
+                ⭐ Bài viết nổi bật
+              </h4>
+
+              <ul className="space-y-4">
+                {featuredBlogs.map((post) => (
+                  <li key={post.blogPostId}>
+                    <Link
+                      href={`/blog/${post.blogPostId}`}
+                      className="flex gap-4 group"
+                    >
+                      <div className="w-20 h-20 rounded-lg overflow-hidden">
+                        <img
+                          src={
+                            post.blogThumbnail
+                              ? post.blogThumbnail.startsWith("http")
+                                ? post.blogThumbnail
+                                : `${API_BASE}${post.blogThumbnail}`
+                              : "/images/no-image.png"
+                          }
+                          alt={post.blogTitle}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-semibold line-clamp-2 group-hover:text-orange-500">
+                          {post.blogTitle}
+                        </p>
+                        <span className="text-xs text-gray-500">
+                          {new Date(post.createdAt).toLocaleDateString("vi-VN")}
+                        </span>
+                      </div>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="font-semibold mb-4">
                 🕒 Bài viết gần đây

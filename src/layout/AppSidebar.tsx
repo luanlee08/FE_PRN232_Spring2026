@@ -95,10 +95,7 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đơn hàng",
     icon: <Receipt size={18} />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    subItems: [{ name: "Danh sách đơn hàng", path: "/admin/orders", pro: false }],
   },
 ];
 

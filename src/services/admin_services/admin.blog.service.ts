@@ -1,9 +1,14 @@
+// services/admin_services/admin.blog.service.ts
+
+import axiosInstance from "@/lib/api/axios";
 import { API_ENDPOINTS } from "@/configs/api-configs";
 import {
   BlogAdmin,
   BlogQuery,
   BlogCategory,
 } from "@/types/blog";
+
+/* ================= RESPONSE TYPES ================= */
 
 interface PagedResponse<T> {
   status: number;
@@ -24,73 +29,65 @@ interface ApiResponse<T> {
   data: T;
 }
 
+/* ================= SERVICE ================= */
+
 export const blogService = {
-  // ===== SEARCH =====
-  searchBlogs: async (
+  /* ===== SEARCH ===== */
+  async searchBlogs(
     query: BlogQuery
-  ): Promise<PagedResponse<BlogAdmin>> => {
-    const params = new URLSearchParams({
-      page: query.page.toString(),
-      pageSize: query.pageSize.toString(),
+  ): Promise<PagedResponse<BlogAdmin>> {
+    const res = await axiosInstance.get<
+      PagedResponse<BlogAdmin>
+    >(API_ENDPOINTS.ADMIN_BLOG_SEARCH, {
+      params: query,
     });
 
-    if (query.keyword) params.append("keyword", query.keyword);
+    return res.data;
+  },
 
-    const res = await fetch(
-      `${API_ENDPOINTS.ADMIN_BLOG_SEARCH}?${params}`,
+  /* ===== CREATE ===== */
+  async createBlog(
+    formData: FormData
+  ): Promise<ApiResponse<number>> {
+    const res = await axiosInstance.post(
+      API_ENDPOINTS.ADMIN_BLOGS,
+      formData,
       {
-        cache: "no-store",
-        credentials: "include",
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
     );
 
-    if (!res.ok) {
-      throw new Error("Failed to fetch blogs");
-    }
-
-    return res.json();
+    return res.data;
   },
 
-  // ===== CREATE =====
-  createBlog: async (
-    data: FormData
-  ): Promise<ApiResponse<number>> => {
-    const res = await fetch(API_ENDPOINTS.ADMIN_BLOGS, {
-      method: "POST",
-      credentials: "include",
-      body: data,
-    });
-
-    return res.json();
-  },
-
-  // ===== UPDATE =====
-  updateBlog: async (
+  /* ===== UPDATE ===== */
+  async updateBlog(
     id: number,
-    data: FormData
-  ): Promise<ApiResponse<boolean>> => {
-    const res = await fetch(
+    formData: FormData
+  ): Promise<ApiResponse<boolean>> {
+    const res = await axiosInstance.put(
       API_ENDPOINTS.ADMIN_BLOG_BY_ID(id),
+      formData,
       {
-        method: "PUT",
-        credentials: "include",
-        body: data,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
     );
 
-    return res.json();
+    return res.data;
   },
 
-  // ===== GET CATEGORIES =====
-  getCategories: async (): Promise<ApiResponse<BlogCategory[]>> => {
-    const res = await fetch(
-      API_ENDPOINTS.ADMIN_BLOG_CATEGORIES,
-      {
-        cache: "no-store",
-        credentials: "include",
-      }
-    );
+  /* ===== GET CATEGORIES ===== */
+  async getCategories(): Promise<
+    ApiResponse<BlogCategory[]>
+  > {
+    const res = await axiosInstance.get<
+      ApiResponse<BlogCategory[]>
+    >(API_ENDPOINTS.ADMIN_BLOG_CATEGORIES);
 
-    return res.json();
+    return res.data;
   },
 };

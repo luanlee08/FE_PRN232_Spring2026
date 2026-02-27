@@ -107,7 +107,7 @@ export default function BlogTable({
 
                 {/* ACTIVE */}
                 <td>
-                  {blog.isDeleted ? (
+                  {!blog.isDeleted ? (
                     <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs text-emerald-700">
                       Hoạt động
                     </span>

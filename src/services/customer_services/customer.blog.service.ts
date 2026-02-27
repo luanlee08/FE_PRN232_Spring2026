@@ -1,4 +1,5 @@
 import { API_ENDPOINTS } from "@/configs/api-configs";
+import axiosInstance from "@/lib/api/axios";
 import {
   BlogPublic,
   BlogCategory,
@@ -8,6 +9,18 @@ import {
 } from "@/types/blog";
 
 export const customerBlogService = {
+
+  async getFeatured(limit: number) {
+  const res = await axiosInstance.get<ApiResponse<BlogPublic[]>>(
+    API_ENDPOINTS.BLOG_FEATURED,
+    {
+      params: { limit },
+    }
+  );
+
+  return res.data;
+},
+
   // ===== LIST =====
   getBlogs: async (
     page: number,
@@ -61,6 +74,9 @@ export const customerBlogService = {
   },
 
   // ===== CATEGORIES =====
+
+
+  
   getCategories: async (): Promise<
     ApiResponse<BlogCategory[]>
   > => {
