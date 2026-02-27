@@ -221,7 +221,6 @@ export default function BlogDetailPage() {
                       {
                         reactions[
                         item.key as keyof Reaction
-                        item.key as keyof Reaction
                         ]
                       }
                     </button>
