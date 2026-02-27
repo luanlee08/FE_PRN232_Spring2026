@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { blogService } from "@/services/admin_services/admin.blog.service";
 import { BlogAdmin, BlogCategory } from "@/types/blog";
-
+import { API_BASE } from "@/configs/api-configs";
 interface Props {
   initialData?: BlogAdmin | null;
   submitText?: string;
@@ -36,7 +36,9 @@ export default function BlogForm({
   );
   const [thumbnail, setThumbnail] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(
-    initialData?.blogThumbnail ?? null
+    initialData?.blogThumbnail
+      ? `${API_BASE}${initialData.blogThumbnail}`
+      : null
   );
 
   // LOAD CATEGORIES
@@ -63,15 +65,17 @@ export default function BlogForm({
 
     try {
       const formData = new FormData();
-      formData.append("blogTitle", title);
-      formData.append("blogContent", content);
-      formData.append("categoryId", String(categoryId));
-      formData.append("isPublished", String(isPublished));
-      formData.append("isFeatured", String(isFeatured));
-      formData.append("isDeleted", String(isDeleted));
+
+      formData.append("BlogTitle", title);
+      formData.append("BlogContent", content);
+      formData.append("BlogCategoryId", String(categoryId));
+      formData.append("IsPublished", String(isPublished));
+      formData.append("IsFeatured", String(isFeatured));
+      formData.append("IsDeleted", String(isDeleted));
+
 
       if (thumbnail) {
-        formData.append("thumbnail", thumbnail);
+        formData.append("BlogThumbnail", thumbnail);
       }
 
       if (initialData) {
@@ -196,9 +200,9 @@ export default function BlogForm({
         <label className="flex items-center gap-2">
           <input
             type="checkbox"
-            checked={isDeleted}
+            checked={!isDeleted}
             onChange={(e) =>
-              setIsDeleted(e.target.checked)
+              setIsDeleted(!e.target.checked)
             }
           />
           Hoạt động

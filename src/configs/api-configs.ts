@@ -77,4 +77,5 @@ BLOGS: `${API_BASE}/api/blogs`,
 BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
 BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
 BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
+BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
 };
