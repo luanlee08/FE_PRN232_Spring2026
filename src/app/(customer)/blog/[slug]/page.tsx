@@ -4,7 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { customerBlogService } from "@/services/customer_services/customer.blog.service";
-import { BlogPublic } from "@/types/blog";
+import { BlogPublic, ReviewBlog } from "@/types/blog";
 
 type Reaction = {
   like: number;
@@ -35,7 +35,9 @@ export default function BlogDetailPage() {
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
-
+  const [reviews, setReviews] = useState<ReviewBlog[]>([]);
+  const [newReview, setNewReview] = useState("");
+  const [rating, setRating] = useState(5);
   /* ================= FETCH DETAIL ================= */
 
   useEffect(() => {
@@ -60,7 +62,21 @@ export default function BlogDetailPage() {
 
     fetchDetail();
   }, [slug]);
+  //* ================= FETCH REVIEWS ================= */
+  useEffect(() => {
+    if (!slug) return;
 
+    const fetchReviews = async () => {
+      const result =
+        await customerBlogService.getReviewsByBlog(
+          Number(slug)
+        );
+
+      setReviews(result.data);
+    };
+
+    fetchReviews();
+  }, [slug]);
   /* ================= FETCH RECENT ================= */
 
   useEffect(() => {
@@ -88,7 +104,24 @@ export default function BlogDetailPage() {
       </main>
     );
   }
+  const handleCreateReview = async () => {
+    if (!newReview.trim()) return;
 
+    await customerBlogService.createReview(
+      blog!.blogPostId,
+      newReview,
+      rating
+    );
+
+    setNewReview("");
+
+    const result =
+      await customerBlogService.getReviewsByBlog(
+        blog!.blogPostId
+      );
+
+    setReviews(result.data);
+  };
   return (
     <main className="min-h-screen bg-[#fafafa]">
 
@@ -167,7 +200,7 @@ export default function BlogDetailPage() {
                           ...prev,
                           [item.key]:
                             prev[
-                              item.key as keyof Reaction
+                            item.key as keyof Reaction
                             ] + 1,
                         }))
                       }
@@ -176,7 +209,7 @@ export default function BlogDetailPage() {
                       {item.icon}
                       {
                         reactions[
-                          item.key as keyof Reaction
+                        item.key as keyof Reaction
                         ]
                       }
                     </button>
@@ -185,72 +218,77 @@ export default function BlogDetailPage() {
               </div>
 
               {/* ===== COMMENTS (LOCAL DEMO) ===== */}
+              
+              {/* ===== REVIEWS FROM DATABASE ===== */}
               <div className="border-t pt-10 mt-10">
                 <h3 className="font-semibold mb-6 text-lg">
-                  Bình luận ({comments.length})
+                  Đánh giá từ khách hàng ({reviews.length})
                 </h3>
 
+                {/* LIST REVIEW */}
                 <div className="space-y-4 mb-6">
-                  {comments.map((c) => (
+                  {reviews.map((r) => (
                     <div
-                      key={c.id}
+                      key={r.reviewBlogId}
                       className="flex gap-4 bg-gray-50 p-4 rounded-xl"
                     >
                       <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center font-bold text-orange-700">
-                        {c.author.charAt(0)}
+                        {r.customerName?.charAt(0)}
                       </div>
 
                       <div>
                         <div className="text-xs text-gray-500 mb-1">
-                          {c.author} •{" "}
-                          {new Date(
-                            c.createdAt
-                          ).toLocaleDateString("vi-VN")}
+                          {r.customerName} •{" "}
+                          {new Date(r.createdAt).toLocaleDateString("vi-VN")}
                         </div>
+
+                        <div className="text-yellow-500 text-sm mb-1">
+                          {"⭐".repeat(r.rating)}
+                        </div>
+
                         <p className="text-sm text-gray-700">
-                          {c.content}
+                          {r.content}
                         </p>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Viết bình luận của bạn..."
-                    value={newComment}
+                {/* ADD REVIEW */}
+                <div className="space-y-3">
+                  <textarea
+                    placeholder="Viết đánh giá của bạn..."
+                    value={newReview}
                     onChange={(e) =>
-                      setNewComment(e.target.value)
+                      setNewReview(e.target.value)
                     }
-                    className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                    className="w-full border rounded-lg px-4 py-2 text-sm"
                   />
 
-                  <button
-                    onClick={() => {
-                      if (!newComment.trim())
-                        return;
+                  <div className="flex justify-between items-center">
+                    {/* <select
+                      value={rating}
+                      onChange={(e) =>
+                        setRating(Number(e.target.value))
+                      }
+                      className="border rounded px-3 py-1 text-sm"
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={n}>
+                          {n} sao
+                        </option>
+                      ))}
+                    </select> */}
 
-                      setComments((prev) => [
-                        ...prev,
-                        {
-                          id: Date.now(),
-                          author: "Bạn",
-                          content: newComment,
-                          createdAt:
-                            new Date().toISOString(),
-                        },
-                      ]);
-
-                      setNewComment("");
-                    }}
-                    className="bg-orange-500 text-white px-6 rounded-lg text-sm hover:bg-orange-600 transition"
-                  >
-                    Gửi
-                  </button>
+                    <button
+                      onClick={handleCreateReview}
+                      className="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm hover:bg-orange-600"
+                    >
+                      Gửi đánh giá
+                    </button>
+                  </div>
                 </div>
               </div>
-
             </article>
           </div>
 

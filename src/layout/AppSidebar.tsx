@@ -51,11 +51,17 @@ const navItems: NavItem[] = [
     name: "Quản lý thông báo",
     path: "/admin/notifications",
   },
-  {
-    name: "Quản lý đánh giá",
-    icon: <ListIcon />,
-    subItems: [{ name: "Quản lý review sản phẩm", path: "/form-elements", pro: false }],
-  },
+ {
+  name: "Quản lý đánh giá",
+  icon: <ListIcon />,
+  subItems: [
+    {
+      name: "Quản lý review blog",
+      path: "/admin/reviews-blog",
+      pro: false,
+    },
+  ],
+},
   {
     name: "Quản lý bài đăng",
     icon: <PageIcon />,
