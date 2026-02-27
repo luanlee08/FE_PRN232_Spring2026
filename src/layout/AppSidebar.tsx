@@ -54,7 +54,7 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đánh giá",
     icon: <ListIcon />,
-    subItems: [{ name: "Quản lý review sản phẩm", path: "/form-elements", pro: false }],
+    subItems: [{ name: "Quản lý review sản phẩm", path: "/admin/reviews", pro: false }],
   },
   {
     name: "Quản lý bài đăng",
@@ -89,10 +89,7 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đơn hàng",
     icon: <Receipt size={18} />,
-    subItems: [
-      { name: "Blank Page", path: "/blank", pro: false },
-      { name: "404 Error", path: "/error-404", pro: false },
-    ],
+    subItems: [{ name: "Danh sách đơn hàng", path: "/admin/orders", pro: false }],
   },
 ];
 
