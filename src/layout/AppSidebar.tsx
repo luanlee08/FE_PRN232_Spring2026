@@ -18,7 +18,7 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Package, Box, Receipt, TicketPercent, Bell } from "lucide-react";
+import { Package, Box, Receipt, TicketPercent, Bell, BarChart2 } from "lucide-react";
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -98,6 +98,14 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Danh sách đơn hàng", path: "/admin/orders", pro: false },
       { name: "Quản lý hoàn trả", path: "/admin/refunds", pro: false },
+    ],
+  },
+  {
+    name: "Thống kê",
+    icon: <BarChart2 size={18} />,
+    subItems: [
+      { name: "Doanh thu", path: "/admin/statistics/revenue", pro: false },
+      { name: "Sản phẩm", path: "/admin/statistics/products", pro: false },
     ],
   },
 ];
