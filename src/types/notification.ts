@@ -80,11 +80,25 @@ export type NotificationPayload =
 export interface NotificationDto {
   deliveryId: number;
   accountId: number;
+  accountName?: string | null;
+  accountEmail?: string | null;
+  createdByJobId?: number | null;
+  jobName?: string | null;
   templateCode: string;
   title: string;
   message: string;
-  payload?: string; // JSON string
-  status: "Unread" | "Read";
+  payload?: string; // JSON string — deserialize with NotificationPayload union
+  status: 'Unread' | 'Read';
   createdAt: string;
-  createdByJobId?: number;
+}
+
+// Query params for fetching notifications
+export interface NotificationQuery {
+  status?: 'Unread' | 'Read';
+  templateCode?: string;
+  keyword?: string;
+  fromDate?: string;
+  toDate?: string;
+  page?: number;
+  pageSize?: number;
 }

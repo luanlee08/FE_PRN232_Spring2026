@@ -183,7 +183,7 @@ export function Header() {
                         Tài Khoản Của Tôi
                       </Link>
                       <Link
-                        href="/orders"
+                        href="/profile?tab=orders"
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
@@ -192,7 +192,7 @@ export function Header() {
                       </Link>
 
                       <Link
-                        href="/profile/addresses"
+                        href="/profile?tab=addresses"
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
@@ -201,7 +201,7 @@ export function Header() {
                       </Link>
 
                       <Link
-                        href="/vouchers"
+                        href="/profile?tab=vouchers"
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
@@ -312,7 +312,7 @@ export function Header() {
                       )}
                     </Link>
                     <Link
-                      href="/orders"
+                      href="/profile?tab=orders"
                       onClick={() => setOpenMenu(false)}
                       className="flex items-center gap-2 text-gray-700 font-medium mb-2"
                     >
@@ -320,7 +320,7 @@ export function Header() {
                       Đơn Mua
                     </Link>
                     <Link
-                      href="/profile/addresses"
+                      href="/profile?tab=addresses"
                       onClick={() => setOpenMenu(false)}
                       className="flex items-center gap-2 text-gray-700 font-medium mb-2"
                     >
@@ -328,7 +328,7 @@ export function Header() {
                       Địa Chỉ Của Tôi
                     </Link>
                     <Link
-                      href="/vouchers"
+                      href="/profile?tab=vouchers"
                       onClick={() => setOpenMenu(false)}
                       className="flex items-center gap-2 text-gray-700 font-medium mb-3"
                     >
