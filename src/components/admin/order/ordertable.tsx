@@ -124,7 +124,11 @@ export default function OrderTable({
           )}
 
           {data.map((item) => (
-            <tr key={item.orderId} className="border-b hover:bg-gray-50">
+            <tr
+              key={item.orderId}
+              className="border-b hover:bg-gray-50 cursor-pointer"
+              onClick={() => onViewDetail?.(item)}
+            >
               <td className="px-4 py-3 text-sm font-mono font-semibold text-indigo-600">
                 {item.orderCode}
               </td>
@@ -137,7 +141,8 @@ export default function OrderTable({
                 {formatCurrency(item.totalAmount)}
               </td>
 
-              <td className="px-4 py-3 text-sm">
+              {/* stopPropagation so the status select doesn’t also open the detail modal */}
+              <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                 {item.statusId >= 5 ? (
                   <StatusBadge label={item.statusName} map={STATUS_BADGE} />
                 ) : (
@@ -153,7 +158,6 @@ export default function OrderTable({
                         key={s.id}
                         value={s.id}
                         disabled={s.id <= item.statusId}
-                        // className="bg-white text-gray-800"
                       >
                         {s.name}
                       </option>
@@ -177,7 +181,8 @@ export default function OrderTable({
                 {new Date(item.orderDate).toLocaleString("vi-VN")}
               </td>
 
-              <td className="px-4 py-3 text-center">
+              {/* stopPropagation so the button doesn’t double-fire onViewDetail */}
+              <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
                 <button
                   onClick={() => onViewDetail?.(item)}
                   className="hover:text-blue-700 p-2"

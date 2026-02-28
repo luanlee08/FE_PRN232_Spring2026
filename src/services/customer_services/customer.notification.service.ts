@@ -2,37 +2,8 @@
 
 import axiosInstance from '@/lib/api/axios';
 import { API_ENDPOINTS } from '@/configs/api-configs';
-
-/* ================= TYPES ================= */
-
-export interface NotificationDto {
-    deliveryId: number;
-    accountId: number;
-    accountName: string | null;
-    accountEmail: string | null;
-    createdByJobId: number | null;
-    jobName: string | null;
-    templateCode: string;
-    title: string;
-    message: string;
-    payload: string;
-    status: string; // "Unread" | "Read"
-    createdAt: string;
-}
-
-export interface PagedResult<T> {
-    items: T[];
-    totalCount: number;
-    page: number;
-    pageSize: number;
-}
-
-export interface ApiResponse<T> {
-    status: number;
-    statusMessage: string;
-    message: string;
-    data: T | null;
-}
+import type { ApiResponse, PagedResult } from '@/types/common';
+import type { NotificationDto } from '@/types/notification';
 
 /* ================= SERVICE ================= */
 
