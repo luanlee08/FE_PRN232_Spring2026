@@ -1,24 +1,14 @@
 "use client";
 
-import { Eye } from "lucide-react";
+import { Edit, Eye } from "lucide-react";
 import { AdminOrderListItem } from "@/services/admin_services/admin.order.service";
 
 interface Props {
   data: AdminOrderListItem[];
   loading: boolean;
   onViewDetail?: (item: AdminOrderListItem) => void;
-  onUpdateStatus?: (orderId: number, newStatusId: number, note?: string) => void;
-  onRequestCancel?: (orderId: number) => void;
+  onEditStatus?: (item: AdminOrderListItem) => void;
 }
-
-const ORDER_STATUSES = [
-  { id: 1, name: "Pending" },
-  { id: 2, name: "Confirmed" },
-  { id: 3, name: "Shipped" },
-  { id: 4, name: "Delivered" },
-  { id: 5, name: "Completed" },
-  { id: 6, name: "Cancelled" },
-];
 
 const STATUS_BADGE: Record<string, string> = {
   Pending: "bg-gray-100 text-gray-600",
@@ -50,37 +40,7 @@ function StatusBadge({ label, map }: { label: string; map: Record<string, string
   return <span className={`rounded-full px-3 py-1 text-xs font-medium ${cls}`}>{label}</span>;
 }
 
-function generateNoteForStatus(statusId: number) {
-  switch (statusId) {
-    case 2:
-      return "Đơn hàng đã được xác nhận.";
-    case 3:
-      return "Đơn hàng đang được giao.";
-    case 4:
-      return "Đơn hàng đã giao thành công.";
-    case 5:
-      return "Đơn hàng đã hoàn thành.";
-    default:
-      return "Cập nhật trạng thái đơn hàng.";
-  }
-}
-
-export default function OrderTable({
-  data,
-  loading,
-  onViewDetail,
-  onUpdateStatus,
-  onRequestCancel,
-}: Props) {
-  const handleStatusChange = (item: AdminOrderListItem, newStatusId: number) => {
-    if (newStatusId === 6) {
-      onRequestCancel?.(item.orderId);
-    } else {
-      const note = generateNoteForStatus(newStatusId);
-      onUpdateStatus?.(item.orderId, newStatusId, note);
-    }
-  };
-
+export default function OrderTable({ data, loading, onViewDetail, onEditStatus }: Props) {
   return (
     <div className="overflow-x-auto relative">
       {loading && (
@@ -138,28 +98,7 @@ export default function OrderTable({
               </td>
 
               <td className="px-4 py-3 text-sm">
-                {item.statusId >= 5 ? (
-                  <StatusBadge label={item.statusName} map={STATUS_BADGE} />
-                ) : (
-                  <select
-                    value={item.statusId}
-                    onChange={(e) => handleStatusChange(item, Number(e.target.value))}
-                    className={`rounded-full px-3 py-1 text-xs font-medium border-none outline-none cursor-pointer ${
-                      STATUS_BADGE[item.statusName] ?? "bg-gray-100 text-gray-600"
-                    }`}
-                  >
-                    {ORDER_STATUSES.map((s) => (
-                      <option
-                        key={s.id}
-                        value={s.id}
-                        disabled={s.id <= item.statusId}
-                        // className="bg-white text-gray-800"
-                      >
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <StatusBadge label={item.statusName} map={STATUS_BADGE} />
               </td>
 
               <td className="px-4 py-3 text-sm">
@@ -178,13 +117,22 @@ export default function OrderTable({
               </td>
 
               <td className="px-4 py-3 text-center">
-                <button
-                  onClick={() => onViewDetail?.(item)}
-                  className="hover:text-blue-700 p-2"
-                  title="Xem chi tiết"
-                >
-                  <Eye size={16} />
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    title="Xem chi tiết"
+                    onClick={() => onViewDetail?.(item)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-cyan-600 hover:bg-sky-100"
+                  >
+                    <Eye size={16} />
+                  </button>
+                  <button
+                    title="Cập nhật trạng thái"
+                    onClick={() => onEditStatus?.(item)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 hover:bg-blue-100"
+                  >
+                    <Edit size={16} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}
