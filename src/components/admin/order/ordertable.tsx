@@ -84,7 +84,11 @@ export default function OrderTable({ data, loading, onViewDetail, onEditStatus }
           )}
 
           {data.map((item) => (
-            <tr key={item.orderId} className="border-b hover:bg-gray-50">
+            <tr
+              key={item.orderId}
+              className="border-b hover:bg-gray-50 cursor-pointer"
+              onClick={() => onViewDetail?.(item)}
+            >
               <td className="px-4 py-3 text-sm font-mono font-semibold text-indigo-600">
                 {item.orderCode}
               </td>
@@ -96,7 +100,6 @@ export default function OrderTable({ data, loading, onViewDetail, onEditStatus }
               <td className="px-4 py-3 text-sm font-semibold">
                 {formatCurrency(item.totalAmount)}
               </td>
-
               <td className="px-4 py-3 text-sm">
                 <StatusBadge label={item.statusName} map={STATUS_BADGE} />
               </td>
@@ -115,7 +118,6 @@ export default function OrderTable({ data, loading, onViewDetail, onEditStatus }
               >
                 {new Date(item.orderDate).toLocaleString("vi-VN")}
               </td>
-
               <td className="px-4 py-3 text-center">
                 <div className="flex items-center justify-center gap-2">
                   <button

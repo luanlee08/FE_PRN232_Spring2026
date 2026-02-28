@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Search, FileDown } from "lucide-react";
+import toast from "react-hot-toast";
 import OrderTable from "./ordertable";
 import OrderDetailModal from "./orderdetailmodal";
 import {
@@ -110,10 +111,25 @@ export default function OrderManagementUI() {
   const handleUpdateStatus = async (orderId: number, newStatusId: number, note?: string) => {
     setUpdating(true);
     try {
-      await AdminOrderService.updateStatus(orderId, { statusId: newStatusId, note });
+      // statusId 2 = Confirmed — backend requires autoCreateShipping=true to push to GHN
+      const shouldCreateShipping = newStatusId === 2;
+      const res = await AdminOrderService.updateStatus(orderId, {
+        statusId: newStatusId,
+        note,
+        autoCreateShipping: shouldCreateShipping,
+        shippingServiceId: 53321,
+        shippingRequiredNote: 'KHONGCHOXEMHANG',
+      });
       fetchData();
-    } catch (err) {
+      // Surface GHN warning or success from backend response
+      if (res.message?.includes('⚠️')) {
+        toast.error(res.message, { duration: 6000 });
+      } else {
+        toast.success(res.message || 'Cập nhật trạng thái thành công');
+      }
+    } catch (err: any) {
       console.error("Update status error:", err);
+      toast.error(err?.response?.data?.message || 'Cập nhật thất bại');
     } finally {
       setUpdating(false);
     }
