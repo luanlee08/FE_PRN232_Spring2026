@@ -88,4 +88,20 @@ BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
 BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
 BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
 BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+// ===== BLOG REVIEWS =====
+BLOG_REVIEWS: `${API_BASE}/api/blog-reviews`,
+BLOG_REVIEWS_BY_BLOG: (blogId: number) =>
+  `${API_BASE}/api/blog-reviews/blog/${blogId}`,
+
+// ===== ADMIN REVIEW BLOG =====
+ADMIN_REVIEW_BLOGS: `${API_BASE}/api/admin/reviews-blog`,
+ADMIN_REVIEW_BLOG_BLOCK: (id: number) =>
+  `${API_BASE}/api/admin/reviews-blog/${id}/block`,
+
+// ===== BLOG REVIEW REACTIONS =====
+BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
+BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
+  `${API_BASE}/api/blog-review-reactions/${reviewId}`,
 };
+
+

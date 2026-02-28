@@ -4,14 +4,12 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { customerBlogService } from "@/services/customer_services/customer.blog.service";
-import { BlogPublic } from "@/types/blog";
+import { BlogPublic, ReviewBlog } from "@/types/blog";
+import { customerBlogReviewService }
+  from "@/services/customer_services/customer.blogReview.service";
 import { API_BASE } from "@/configs/api-configs";
-type Reaction = {
-  like: number;
-  love: number;
-  wow: number;
-};
-
+import { customerBlogReactionService } from "@/services/customer_services/customer.blogReaction.service";
+import { AxiosError } from "axios";
 type Comment = {
   id: number;
   author: string;
@@ -19,22 +17,43 @@ type Comment = {
   createdAt: string;
 };
 
+
+type BlogReactionSummary = {
+  likeCount: number;
+  dislikeCount: number;
+  userReaction?: "Like" | "Dislike" | null;
+};
+
+
 export default function BlogDetailPage() {
   const { slug } = useParams<{ slug: string }>();
   const [featuredBlogs, setFeaturedBlogs] = useState<BlogPublic[]>([]);
   const [blog, setBlog] = useState<BlogPublic | null>(null);
   const [recentBlogs, setRecentBlogs] = useState<BlogPublic[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [reactionSummary, setReactionSummary] =
+    useState<BlogReactionSummary | null>(null);
   // ===== LOCAL UI STATE =====
-  const [reactions, setReactions] = useState<Reaction>({
-    like: 0,
-    love: 0,
-    wow: 0,
-  });
 
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
+
+  const [reviews, setReviews] = useState<ReviewBlog[]>([]);
+  const [newReview, setNewReview] = useState("");
+  const [rating, setRating] = useState(5);
+  const [submitting, setSubmitting] = useState(false);
+
+  const loadReviews = async (blogId: number) => {
+    try {
+      const result =
+        await customerBlogReviewService.getByBlog(blogId);
+
+      setReviews(result.data);
+    } catch (err) {
+      console.error("Load reviews error:", err);
+    }
+  };
+
 
   /* ================= FETCH DETAIL ================= */
 
@@ -61,6 +80,14 @@ export default function BlogDetailPage() {
     fetchDetail();
   }, [slug]);
 
+
+
+
+  useEffect(() => {
+    if (!slug) return;
+
+    loadReviews(Number(slug));
+  }, [slug]);
   /* ================= FETCH RECENT ================= */
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -95,6 +122,59 @@ export default function BlogDetailPage() {
       </main>
     );
   }
+
+  const handleCreateReview = async () => {
+    if (!newReview.trim()) return;
+
+    try {
+      setSubmitting(true);
+
+      const res = await customerBlogReviewService.create(
+        blog!.blogPostId,
+        newReview,
+        rating
+      );
+
+      if (res.status !== 201) {
+        alert(res.message);
+        return;
+      }
+
+      setNewReview("");
+      setRating(5);
+
+      await loadReviews(blog!.blogPostId);
+
+    } catch (err: unknown) {
+      if (err instanceof AxiosError) {
+        if (err.response?.status === 401) {
+          alert("Vui lòng đăng nhập để đánh giá");
+          return;
+        }
+      }
+
+      console.error("Create review error:", err);
+      alert("Có lỗi xảy ra");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleReact = async (
+  reviewBlogId: number,
+  type: "Like" | "Dislike"
+) => {
+  try {
+    await customerBlogReactionService.react(reviewBlogId, type);
+
+    // 🔥 reload lại reviews từ backend
+    await loadReviews(blog!.blogPostId);
+
+  } catch (err) {
+    console.error(err);
+    alert("Vui lòng đăng nhập để react");
+  }
+};
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -159,109 +239,108 @@ export default function BlogDetailPage() {
                 }}
               />
 
-              {/* ===== REACTIONS (LOCAL UI ONLY) ===== */}
-              <div className="border-t pt-8 mt-8">
-                <h3 className="font-semibold mb-4 text-lg">
-                  Bạn cảm thấy bài viết này thế nào?
-                </h3>
 
-                <div className="flex gap-4">
-                  {[
-                    { key: "like", icon: "👍" },
-                    { key: "love", icon: "❤️" },
-                    { key: "wow", icon: "😮" },
-                  ].map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() =>
-                        setReactions((prev) => ({
-                          ...prev,
-                          [item.key]:
-                            prev[
-                            item.key as keyof Reaction
-                            ] + 1,
-                        }))
-                      }
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-100 hover:bg-orange-100 transition text-sm"
-                    >
-                      {item.icon}
-                      {
-                        reactions[
-                        item.key as keyof Reaction
-                        ]
-                      }
-                    </button>
-                  ))}
-                </div>
-              </div>
 
-              {/* ===== COMMENTS (LOCAL DEMO) ===== */}
+              {/* ===== REVIEWS FROM DATABASE ===== */}
               <div className="border-t pt-10 mt-10">
                 <h3 className="font-semibold mb-6 text-lg">
-                  Bình luận ({comments.length})
+                  Đánh giá từ khách hàng ({reviews.length})
                 </h3>
 
+                {/* LIST REVIEW */}
                 <div className="space-y-4 mb-6">
-                  {comments.map((c) => (
+                  {reviews.length === 0 && (
+                    <p className="text-sm text-gray-500">
+                      Chưa có đánh giá nào.
+                    </p>
+                  )}
+
+                  {reviews.map((r) => (
                     <div
-                      key={c.id}
+                      key={r.reviewBlogId}
                       className="flex gap-4 bg-gray-50 p-4 rounded-xl"
                     >
                       <div className="w-10 h-10 bg-orange-200 rounded-full flex items-center justify-center font-bold text-orange-700">
-                        {c.author.charAt(0)}
+                        {r.customerName?.charAt(0).toUpperCase()}
                       </div>
 
-                      <div>
-                        <div className="text-xs text-gray-500 mb-1">
-                          {c.author} •{" "}
-                          {new Date(
-                            c.createdAt
-                          ).toLocaleDateString("vi-VN")}
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
+                          <span>
+                            {r.customerName} •{" "}
+                            {new Date(r.createdAt).toLocaleDateString("vi-VN")}
+                          </span>
+
+                          {/* <span className="text-yellow-500">
+                            {"★".repeat(r.rating)}
+                            {"☆".repeat(5 - r.rating)}
+                          </span> */}
                         </div>
+
                         <p className="text-sm text-gray-700">
-                          {c.content}
+                          {r.comment} {/* SỬA Ở ĐÂY */}
                         </p>
+
+                        <div className="flex gap-4 mt-2 text-sm">
+
+                          <button
+                            onClick={() => handleReact(r.reviewBlogId, "Like")}
+                            className={`flex items-center gap-1 ${r.userReaction === "Like"
+                                ? "text-blue-600 font-semibold"
+                                : "text-gray-500 hover:text-blue-600"
+                              }`}
+                          >
+                            👍 {r.likeCount}
+                          </button>
+
+                          <button
+                            onClick={() => handleReact(r.reviewBlogId, "Dislike")}
+                            className={`flex items-center gap-1 ${r.userReaction === "Dislike"
+                                ? "text-red-600 font-semibold"
+                                : "text-gray-500 hover:text-red-600"
+                              }`}
+                          >
+                            👎 {r.dislikeCount}
+                          </button>
+
+                        </div>
                       </div>
                     </div>
                   ))}
                 </div>
 
-                <div className="flex gap-3">
-                  <input
-                    type="text"
-                    placeholder="Viết bình luận của bạn..."
-                    value={newComment}
-                    onChange={(e) =>
-                      setNewComment(e.target.value)
-                    }
-                    className="flex-1 border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                {/* ADD REVIEW */}
+                <div className="space-y-3">
+                  <textarea
+                    placeholder="Viết đánh giá của bạn..."
+                    value={newReview}
+                    onChange={(e) => setNewReview(e.target.value)}
+                    className="w-full border rounded-lg px-4 py-2 text-sm"
                   />
 
-                  <button
-                    onClick={() => {
-                      if (!newComment.trim())
-                        return;
+                  <div className="flex justify-between items-center">
+                    {/* <select
+                      value={rating}
+                      onChange={(e) => setRating(Number(e.target.value))}
+                      className="border rounded px-3 py-1 text-sm"
+                    >
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <option key={n} value={n}>
+                          {n} sao
+                        </option>
+                      ))}
+                    </select> */}
 
-                      setComments((prev) => [
-                        ...prev,
-                        {
-                          id: Date.now(),
-                          author: "Bạn",
-                          content: newComment,
-                          createdAt:
-                            new Date().toISOString(),
-                        },
-                      ]);
-
-                      setNewComment("");
-                    }}
-                    className="bg-orange-500 text-white px-6 rounded-lg text-sm hover:bg-orange-600 transition"
-                  >
-                    Gửi
-                  </button>
+                    <button
+                      onClick={handleCreateReview}
+                      disabled={submitting}
+                      className="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50"
+                    >
+                      {submitting ? "Đang gửi..." : "Gửi đánh giá"}
+                    </button>
+                  </div>
                 </div>
               </div>
-
             </article>
           </div>
 
