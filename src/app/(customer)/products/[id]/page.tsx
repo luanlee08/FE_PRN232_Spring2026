@@ -54,6 +54,7 @@ export default function ProductDetailPage() {
               <Link href="/" className="hover:text-[#FF6B35]">
                 Trang chủ
               </Link>
+              {/* <a href="/" className="hover:text-[#FF6B35]">Trang chủ</a> */}
               <span>/</span>
               <Link href="/categories/lego" className="hover:text-[#FF6B35]">
                 Lego & Xây Dựng
