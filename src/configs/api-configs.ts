@@ -97,5 +97,11 @@ BLOG_REVIEWS_BY_BLOG: (blogId: number) =>
 ADMIN_REVIEW_BLOGS: `${API_BASE}/api/admin/reviews-blog`,
 ADMIN_REVIEW_BLOG_BLOCK: (id: number) =>
   `${API_BASE}/api/admin/reviews-blog/${id}/block`,
+
+// ===== BLOG REVIEW REACTIONS =====
+BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
+BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
+  `${API_BASE}/api/blog-review-reactions/${reviewId}`,
 };
+
 
