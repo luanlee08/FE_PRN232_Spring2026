@@ -2,13 +2,14 @@
 
 import axiosInstance from '@/lib/api/axios';
 import { API_ENDPOINTS } from '@/configs/api-configs';
-import { ApiResponse } from '@/types/common';
+import { ApiResponse, PagedResult } from '@/types/common';
 import { 
     CreateOrderRequest, 
     CreateOrderResponse, 
     PaymentMethodDTO,
     GetPaymentMethodsResponse,
-    OrderResponse 
+    OrderResponse,
+    OrderDto
 } from '@/types/order';
 
 /* ================= SERVICE ================= */
@@ -27,14 +28,18 @@ export const CustomerOrderService = {
     },
 
     // Lấy chi tiết đơn hàng theo ID
-    async getOrderById(id: number): Promise<ApiResponse<OrderResponse>> {
+    async getOrderById(id: number): Promise<ApiResponse<OrderDto>> {
         const res = await axiosInstance.get(API_ENDPOINTS.ORDER_BY_ID(id));
         return res.data;
     },
 
-    // Lấy danh sách đơn hàng của user
-    async getMyOrders(): Promise<ApiResponse<OrderResponse[]>> {
-        const res = await axiosInstance.get(API_ENDPOINTS.ORDER_MY_ORDERS);
+    // Lấy danh sách đơn hàng của user (server-side filter by status)
+    async getMyOrders(status?: string, pageNumber = 1, pageSize = 50): Promise<ApiResponse<PagedResult<OrderDto>>> {
+        const params = new URLSearchParams();
+        params.append('pageNumber', String(pageNumber));
+        params.append('pageSize', String(pageSize));
+        if (status) params.append('status', status);
+        const res = await axiosInstance.get(`${API_ENDPOINTS.ORDER_MY_ORDERS}?${params.toString()}`);
         return res.data;
     },
 

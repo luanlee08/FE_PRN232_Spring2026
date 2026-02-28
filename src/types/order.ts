@@ -1,5 +1,55 @@
 // Order types matching backend DTOs
 
+// ------------------------------------------------------------------
+// Order Status constants (mirrors backend OrderStatusNames)
+// ------------------------------------------------------------------
+export const ORDER_STATUS = {
+  PENDING: 'Pending',
+  PROCESSING: 'Processing',
+  CONFIRMED: 'Confirmed',
+  SHIPPED: 'Shipped',
+  DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
+  REFUNDED: 'Refunded',
+} as const;
+
+export type OrderStatusName = (typeof ORDER_STATUS)[keyof typeof ORDER_STATUS];
+
+// ------------------------------------------------------------------
+// Payment method constants (mirrors backend PaymentMethods)
+// ------------------------------------------------------------------
+export const PAYMENT_METHOD = {
+  COD: 'COD',
+  WALLET: 'Wallet',
+  VNPAY: 'VNPay',
+  MOMO: 'MoMo',
+  SEPAY: 'Sepay',
+} as const;
+
+export type PaymentMethodCode = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_METHOD];
+
+// ------------------------------------------------------------------
+// Valid status transitions (mirrors backend OrderStatusTransitions)
+// Useful for disabling buttons client-side before API call.
+// ------------------------------------------------------------------
+export const ORDER_STATUS_TRANSITIONS: Record<OrderStatusName, OrderStatusName[]> = {
+  Pending: ['Processing', 'Cancelled'],
+  Processing: ['Confirmed', 'Cancelled'],
+  Confirmed: ['Shipped', 'Cancelled'],
+  Shipped: ['Delivered'],
+  Delivered: ['Refunded'],
+  Cancelled: [],
+  Refunded: [],
+};
+
+export function canTransition(from: OrderStatusName, to: OrderStatusName): boolean {
+  return ORDER_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
+}
+
+export function isCustomerCancellable(status: OrderStatusName): boolean {
+  return status === ORDER_STATUS.PENDING || status === ORDER_STATUS.PROCESSING;
+}
+
 export interface CreateOrderRequest {
     accountId?: number; // Will be set by controller from JWT
     voucherId?: number;
@@ -100,4 +150,75 @@ export interface ShippingMethodInfo {
 
 export interface GetShippingMethodsResponse {
     shippingMethods: ShippingMethodInfo[];
+}
+
+/* ─── Customer Order DTOs (matches backend OrderDto / PagedResult) ─── */
+
+export interface OrderDetailDto {
+    orderDetailId: number;
+    productId: number;
+    productName: string;
+    productImage?: string | null;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+    reviewed: boolean;
+}
+
+export interface OrderStatusHistoryDto {
+    orderStatusHistoryId: number;
+    statusId?: number;
+    statusName?: string;
+    changedAt: string;
+    changedBy?: number;
+    changedByName?: string;
+    note?: string;
+}
+
+export interface PaymentInfoDto {
+    paymentMethod: string;
+    paymentStatus: string;
+    transactionCode?: string;
+    amount: number;
+    paymentUrl?: string;
+    createdAt: string;
+}
+
+export interface ShippingInfoDto {
+    provider: string;
+    trackingNumber?: string;
+    status?: string;
+    estimatedDelivery?: string;
+    actualDelivery?: string;
+}
+
+export interface OrderDto {
+    orderId: number;
+    orderCode?: string;
+    accountId: number;
+    accountName?: string;
+    voucherId?: number;
+    voucherCode?: string;
+    statusId: number;
+    statusName: string;
+    shippingName?: string;
+    shippingPhone?: string;
+    shippingAddressLine?: string;
+    shippingCity?: string;
+    shippingDistrict?: string;
+    shippingWard?: string;
+    shippingMethod?: string;
+    shippingFee: number;
+    orderDate: string;
+    totalAmount: number;
+    paidByWalletAmount: number;
+    paidByExternalAmount: number;
+    paymentCompletedAt?: string;
+    refundStatus: string;
+    orderDetails: OrderDetailDto[];
+    statusHistory: OrderStatusHistoryDto[];
+    paymentInfo?: PaymentInfoDto;
+    shippingInfo?: ShippingInfoDto;
+    createdAt: string;
+    updatedAt?: string;
 }

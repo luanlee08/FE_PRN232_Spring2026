@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
   User, MapPin, ClipboardList, Ticket, LogOut,
   Camera, X, Plus, Trash2, Star, Package,
   ChevronRight, Edit2, Check, Search,
-  Clock, Truck, CheckCircle, XCircle, RefreshCw, CreditCard, Calendar, Phone,
+  Clock, Truck, CheckCircle, XCircle, RefreshCw, CreditCard, Calendar, Phone, FileText, Inbox,
 } from "lucide-react";
 import {
   CustomerProfileService,
@@ -16,7 +16,7 @@ import {
 import { CustomerAddressService } from "@/services/customer_services/customer.address.service";
 import { CustomerOrderService } from "@/services/customer_services/customer.order.service";
 import { AddressResponse, AddressRequest, AddressUpdateRequest } from "@/types/address";
-import { OrderResponse } from "@/types/order";
+import { OrderDto } from "@/types/order";
 import { LocationService, Province, District, Ward } from "@/services/location.service";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Footer } from "@/components/customer/footer";
@@ -48,6 +48,7 @@ const ORDER_TABS: { key: StatusKey; label: string }[] = [
   { key: "delivered", label: "Hoàn thành" },
   { key: "cancelled", label: "Đã huỷ" },
 ];
+const ORDER_PAGE_SIZE = 5;
 
 const fmtVND = (n: number) => n?.toLocaleString("vi-VN") + "₫";
 const fmtDate = (s: string) => new Date(s).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -108,11 +109,110 @@ function SideNavItem({ id, label, icon: Icon, active, onSelect, setTab }: {
   );
 }
 
+/* ═══════════ ORDER TRACKING STEPPER ═══════════ */
+function OrderTrackingStepper({ order }: { order: OrderDto }) {
+  const steps = [
+    { key: "Pending", label: "Đơn hàng đã đặt", icon: FileText },
+    { key: "Confirmed", label: "Đã xác nhận", icon: CreditCard },
+    { key: "Shipped", label: "Đã giao ĐVVC", icon: Truck },
+    { key: "Delivered", label: "Đã nhận hàng", icon: Inbox },
+    { key: "Completed", label: "Đánh giá", icon: Star },
+  ];
+
+  const s = order.statusName?.toLowerCase() || "";
+  let activeIdx = 0;
+  if (["confirmed", "processing"].includes(s)) activeIdx = 1;
+  else if (s === "shipped") activeIdx = 2;
+  else if (s === "delivered") activeIdx = 3;
+  else if (s === "completed") activeIdx = 4;
+  
+  const isFailed = ["cancelled", "refunded"].includes(s);
+
+  const getDate = (stepKey: string) => {
+    if (stepKey === "Pending") return order.orderDate;
+    if (stepKey === "Confirmed") return order.paymentCompletedAt || order.statusHistory?.find(h => ["Confirmed", "Processing"].includes(h.statusName || ""))?.changedAt;
+    return order.statusHistory?.find(h => h.statusName === stepKey)?.changedAt;
+  };
+
+  const fmtDate = (s: string) => new Date(s).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }); // Redefine just in case context is weird, but actually it is defined above. Wait, if I use the one above, I don't need this.
+  // Actually, let's just use the one from scope if available.
+  
+  return (
+    <div className="w-full px-4 pt-10 pb-6">
+      <div className="relative flex items-center justify-between">
+        {/* Background Line */}
+        <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 -z-10 rounded-full" />
+        
+        {/* Active Line */}
+        <div 
+          className={`absolute top-5 left-0 h-1 rounded-full transition-all duration-500 -z-10 ${isFailed ? "bg-red-500" : "bg-green-600"}`}
+          style={{ width: isFailed ? "100%" : `${Math.min(100, (activeIdx / (steps.length - 1)) * 100)}%` }}
+        />
+
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          const isCompleted = !isFailed && index <= activeIdx;
+          const isCurrent = !isFailed && index === activeIdx;
+          const date = getDate(step.key);
+
+          let circleClass = "border-gray-300 bg-white text-gray-400";
+          let labelClass = "text-gray-400";
+          let iconSize = 18;
+
+          if (isFailed) {
+             circleClass = "border-red-500 bg-white text-red-500";
+             labelClass = "text-red-500";
+          } else if (isCompleted) {
+             circleClass = "border-green-600 bg-green-600 text-white shadow-md shadow-green-200 scale-110";
+             labelClass = "text-green-700 font-semibold";
+             iconSize = 20;
+          } else if (isCurrent) {
+             circleClass = "border-green-600 bg-white text-green-600 ring-4 ring-green-50 scale-110";
+             labelClass = "text-green-600 font-medium";
+             iconSize = 20;
+          }
+
+          return (
+            <div key={step.key} className="flex flex-col items-center relative group" style={{ width: "20%" }}>
+              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 ${circleClass}`}>
+                {isFailed && index === steps.length -1 ? <XCircle size={18} /> : 
+                 (isCompleted && !isFailed ? <Check size={iconSize} strokeWidth={3} /> : <Icon size={iconSize} />)}
+              </div>
+              <p className={`text-[11px] mt-3 text-center transition-all duration-300 px-1 leading-tight ${labelClass}`}>
+                {step.label}
+              </p>
+              <div className="h-8 flex flex-col items-center justify-start mt-1">
+                <p className="text-[10px] text-gray-400 font-medium leading-none">
+                    {date ? new Date(date).toLocaleDateString("vi-VN", {day:"2-digit", month:"2-digit"}) : ""}
+                </p>
+                {date && (
+                    <p className="text-[9px] text-gray-400 leading-none mt-0.5">
+                    {new Date(date).toLocaleTimeString("vi-VN", {hour:"2-digit", minute:"2-digit"})}
+                    </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {isFailed && <p className="text-center text-red-500 font-medium mt-2 bg-red-50 py-2 rounded-lg border border-red-100">Đơn hàng đã bị huỷ</p>}
+    </div>
+  );
+}
+
 /* ═══════════ PAGE ═══════════ */
 export default function CustomerProfilePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { refreshUser, logout } = useAuth();
   const [tab, setTab] = useState<Tab>("profile");
+
+  /* ── deep-link: /profile?tab=orders — reactive to URL changes ── */
+  useEffect(() => {
+    const validTabs: Tab[] = ["profile", "addresses", "orders", "vouchers"];
+    const t = searchParams.get("tab") as Tab | null;
+    if (t && validTabs.includes(t)) setTab(t);
+  }, [searchParams]);
 
   /* ── profile state ── */
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -139,11 +239,13 @@ export default function CustomerProfilePage() {
   const [selWard, setSelWard] = useState<string | null>(null);
 
   /* ── orders state ── */
-  const [orders, setOrders] = useState<OrderResponse[]>([]);
+  const [orders, setOrders] = useState<OrderDto[]>([]);
+  const [orderTotalCount, setOrderTotalCount] = useState(0);
+  const [orderPage, setOrderPage] = useState(1);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [orderTab, setOrderTab] = useState<StatusKey>("all");
   const [orderSearch, setOrderSearch] = useState("");
-  const [selectedOrder, setSelectedOrder] = useState<OrderResponse | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [cancelling, setCancelling] = useState<number | null>(null);
 
   /* ── auth guard ── */
@@ -155,7 +257,7 @@ export default function CustomerProfilePage() {
 
   useEffect(() => {
     if (tab === "addresses" && addresses.length === 0) fetchAddresses();
-    if (tab === "orders" && orders.length === 0) fetchOrders();
+    if (tab === "orders") { setOrderTab("all"); setOrderPage(1); fetchOrders("all", 1); }
   }, [tab]);
 
   useEffect(() => {
@@ -189,11 +291,15 @@ export default function CustomerProfilePage() {
     catch { toast.error("Không thể tải địa chỉ"); } finally { setLoadingAddr(false); }
   };
 
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (status: StatusKey = "all", page = 1) => {
     try {
       setLoadingOrders(true);
-      const r = await CustomerOrderService.getMyOrders();
-      if (r.status === 200) setOrders(Array.isArray(r.data) ? r.data : []);
+      const statusParam = status === "all" ? undefined : status.charAt(0).toUpperCase() + status.slice(1);
+      const r = await CustomerOrderService.getMyOrders(statusParam, page, ORDER_PAGE_SIZE);
+      if (r.status === 200 && r.data) {
+        setOrders(r.data.items ?? []);
+        setOrderTotalCount(r.data.totalCount ?? 0);
+      }
     } catch { toast.error("Không thể tải đơn hàng"); } finally { setLoadingOrders(false); }
   }, []);
 
@@ -361,23 +467,32 @@ export default function CustomerProfilePage() {
       const res = await CustomerOrderService.cancelOrder(orderId);
       if (res.status === 200) {
         toast.success("Đã huỷ đơn hàng");
-        fetchOrders();
+        fetchOrders(orderTab, orderPage);
         if (selectedOrder?.orderId === orderId) setSelectedOrder(null);
       }
     } catch (err: any) { toast.error(err?.response?.data?.message || "Không thể huỷ đơn"); }
     finally { setCancelling(null); }
   };
 
+  const handleOrderTab = (key: StatusKey) => {
+    setOrderTab(key);
+    setOrderPage(1);
+    fetchOrders(key, 1);
+  };
+
+  const handleOrderPage = (page: number) => {
+    setOrderPage(page);
+    fetchOrders(orderTab, page);
+  };
+
   const filteredOrders = orders.filter(o => {
-    const matchTab = orderTab === "all" || o.statusName?.toLowerCase() === orderTab;
-    const matchSearch = !orderSearch.trim() ||
-      o.orderCode?.toLowerCase().includes(orderSearch.toLowerCase()) ||
-      o.customerName?.toLowerCase().includes(orderSearch.toLowerCase());
-    return matchTab && matchSearch;
+    if (!orderSearch.trim()) return true;
+    const q = orderSearch.toLowerCase();
+    return o.orderCode?.toLowerCase().includes(q) || o.shippingName?.toLowerCase().includes(q);
   });
 
-  const orderTabCount = (key: StatusKey) =>
-    key === "all" ? orders.length : orders.filter(o => o.statusName?.toLowerCase() === key).length;
+  const orderTabCount = (key: StatusKey) => key === orderTab ? orderTotalCount : 0;
+  const totalOrderPages = Math.ceil(orderTotalCount / ORDER_PAGE_SIZE);
 
   /* ── nav ── */
   const navItems: { id: Tab; label: string; icon: React.ElementType }[] = [
@@ -407,7 +522,7 @@ export default function CustomerProfilePage() {
           <div className="flex gap-4 items-start">
 
             {/* ══ SIDEBAR ══ */}
-            <aside className="w-[220px] flex-shrink-0 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100 overflow-visible">
+            <aside className="w-[220px] flex-shrink-0 bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.04)] border border-gray-100 overflow-visible sticky top-20 self-start">
               <div className="px-5 py-6 border-b border-gray-50 flex flex-col items-center">
                 <div className="relative group">
                   <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-orange-100 shadow-sm transition-transform duration-300 group-hover:scale-105">
@@ -590,38 +705,41 @@ export default function CustomerProfilePage() {
               {/* ─── ĐƠN MUA ─── */}
               {tab === "orders" && (
                 <div className="bg-white rounded-sm">
-                  {/* header */}
-                  <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                    <div>
-                      <h1 className="text-lg font-medium text-gray-800">Đơn Mua</h1>
-                      <p className="text-xs text-gray-400 mt-0.5">{orders.length} đơn hàng</p>
+                  {/* sticky header + tabs */}
+                  <div className="sticky top-16 z-20 bg-white rounded-t-sm">
+                    {/* header */}
+                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+                      <div>
+                        <h1 className="text-lg font-medium text-gray-800">Đơn Mua</h1>
+                        <p className="text-xs text-gray-400 mt-0.5">{orderTotalCount} đơn hàng</p>
+                      </div>
+                      <div className="relative flex-shrink-0 w-52">
+                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input type="text" value={orderSearch} onChange={e => setOrderSearch(e.target.value)}
+                          placeholder="Tìm mã đơn..."
+                          className="w-full pl-8 pr-8 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-orange-400 transition" />
+                        {orderSearch && (
+                          <button onClick={() => setOrderSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={13} /></button>
+                        )}
+                      </div>
                     </div>
-                    <div className="relative flex-shrink-0 w-52">
-                      <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input type="text" value={orderSearch} onChange={e => setOrderSearch(e.target.value)}
-                        placeholder="Tìm mã đơn..."
-                        className="w-full pl-8 pr-8 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-orange-400 transition" />
-                      {orderSearch && (
-                        <button onClick={() => setOrderSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={13} /></button>
-                      )}
-                    </div>
-                  </div>
 
-                  {/* status tabs */}
-                  <div className="flex border-b border-gray-100 overflow-x-auto">
-                    {ORDER_TABS.map(t => {
-                      const cnt = orderTabCount(t.key);
-                      const active = orderTab === t.key;
-                      return (
-                        <button key={t.key} onClick={() => setOrderTab(t.key)}
-                          className={`flex-shrink-0 flex items-center gap-1 px-4 py-3 text-xs font-medium border-b-2 transition-colors ${active ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
-                          {t.label}
-                          {cnt > 0 && (
-                            <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500"}`}>{cnt}</span>
-                          )}
-                        </button>
-                      );
-                    })}
+                    {/* status tabs */}
+                    <div className="flex border-b border-gray-100 overflow-x-auto">
+                      {ORDER_TABS.map(t => {
+                        const cnt = orderTabCount(t.key);
+                        const active = orderTab === t.key;
+                        return (
+                          <button key={t.key} onClick={() => handleOrderTab(t.key)}
+                            className={`flex-shrink-0 flex items-center gap-1 px-4 py-3 text-xs font-medium border-b-2 transition-colors ${active ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
+                            {t.label}
+                            {cnt > 0 && (
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500"}`}>{cnt}</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   </div>
 
                   {/* order list */}
@@ -667,7 +785,7 @@ export default function CustomerProfilePage() {
                                     <p className="text-sm text-gray-700 truncate">{item.productName}</p>
                                     <p className="text-xs text-gray-400">x{item.quantity}</p>
                                   </div>
-                                  <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.totalPrice)}</p>
+                                  <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.total)}</p>
                                 </div>
                               ))}
                               {(order.orderDetails?.length ?? 0) > 2 && (
@@ -696,6 +814,49 @@ export default function CustomerProfilePage() {
                       })
                     )}
                   </div>
+
+                  {/* pagination */}
+                  {totalOrderPages > 1 && (
+                    <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                      <span className="text-xs text-gray-400">
+                        Trang {orderPage}/{totalOrderPages} · {orderTotalCount} đơn
+                      </span>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleOrderPage(orderPage - 1)}
+                          disabled={orderPage === 1}
+                          className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >‹</button>
+                        {Array.from({ length: totalOrderPages }, (_, i) => i + 1)
+                          .filter(p => p === 1 || p === totalOrderPages || Math.abs(p - orderPage) <= 1)
+                          .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                            if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
+                            acc.push(p);
+                            return acc;
+                          }, [])
+                          .map((p, i) =>
+                            p === "..." ? (
+                              <span key={`e${i}`} className="px-1.5 text-xs text-gray-400">…</span>
+                            ) : (
+                              <button
+                                key={p}
+                                onClick={() => handleOrderPage(p as number)}
+                                className={`px-2.5 py-1 text-xs rounded border transition-colors ${
+                                  p === orderPage
+                                    ? "bg-orange-500 border-orange-500 text-white"
+                                    : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                                }`}
+                              >{p}</button>
+                            )
+                          )}
+                        <button
+                          onClick={() => handleOrderPage(orderPage + 1)}
+                          disabled={orderPage === totalOrderPages}
+                          className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >›</button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -797,28 +958,15 @@ export default function CustomerProfilePage() {
               <button onClick={() => setSelectedOrder(null)} className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"><X size={18} /></button>
             </div>
             <div className="flex-1 overflow-y-auto">
-              {/* status */}
-              {(() => {
-                const skey = selectedOrder.statusName?.toLowerCase() as string;
-                const st = STATUS_MAP[skey] ?? { label: selectedOrder.statusName, color: "text-gray-500", bg: "bg-gray-50 border-gray-200", icon: Package };
-                const Icon = st.icon;
-                return (
-                  <div className={`mx-6 mt-5 flex items-center gap-3 p-3 rounded-lg border ${st.bg}`}>
-                    <Icon size={20} className={st.color} />
-                    <div>
-                      <p className={`text-sm font-semibold ${st.color}`}>{st.label}</p>
-                      {selectedOrder.orderDate && <p className="text-xs text-gray-400 mt-0.5">Đặt ngày {fmtDate(selectedOrder.orderDate)}</p>}
-                    </div>
-                  </div>
-                );
-              })()}
+              {/* status - Order Tracking Stepper */}
+              <OrderTrackingStepper order={selectedOrder} />
               {/* info grid */}
               <div className="px-6 mt-5 grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
                   <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Khách hàng</h3>
-                  <div className="flex items-start gap-2"><User size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.customerName || "—"}</p></div>
-                  <div className="flex items-start gap-2"><Phone size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.customerPhone || "—"}</p></div>
-                  <div className="flex items-start gap-2"><MapPin size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700 leading-relaxed">{selectedOrder.shippingAddress || "—"}</p></div>
+                  <div className="flex items-start gap-2"><User size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.shippingName || selectedOrder.accountName || "—"}</p></div>
+                  <div className="flex items-start gap-2"><Phone size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.shippingPhone || "—"}</p></div>
+                  <div className="flex items-start gap-2"><MapPin size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700 leading-relaxed">{[selectedOrder.shippingAddressLine, selectedOrder.shippingWard, selectedOrder.shippingDistrict, selectedOrder.shippingCity].filter(Boolean).join(", ") || "—"}</p></div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
                   <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Đơn hàng</h3>
@@ -844,7 +992,7 @@ export default function CustomerProfilePage() {
                         <p className="text-sm font-medium text-gray-800 truncate">{item.productName}</p>
                         <p className="text-xs text-gray-400 mt-0.5">{fmtVND(item.unitPrice)} × {item.quantity}</p>
                       </div>
-                      <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.totalPrice)}</p>
+                      <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.total)}</p>
                     </div>
                   ))}
                 </div>

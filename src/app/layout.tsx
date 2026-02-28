@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { Providers } from '@/lib/providers';
 import './globals.css';
 
 const _geist = Geist({ subsets: ['latin'] });
@@ -42,8 +43,9 @@ export default function RootLayout({
     <html lang="vi" suppressHydrationWarning>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
         <AuthProvider>
-          {children}
-          <Toaster
+          <Providers>
+            {children}
+            <Toaster
             position="top-right"
             toastOptions={{
               duration: 3000,
@@ -65,6 +67,7 @@ export default function RootLayout({
               },
             }}
           />
+          </Providers>
         </AuthProvider>
         <Analytics />
       </body>
