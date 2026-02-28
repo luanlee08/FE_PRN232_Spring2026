@@ -4,40 +4,35 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
-<<<<<<< HEAD
-  User,
-  MapPin,
-  ClipboardList,
-  Ticket,
-  LogOut,
-  Camera,
-  X,
-  Plus,
-  Trash2,
-  Star,
-  Package,
-  ChevronRight,
-  ChevronLeft,
-  Edit2,
-  Check,
-  Search,
-  Clock,
-  Truck,
-  CheckCircle,
-  XCircle,
-  RefreshCw,
-  CreditCard,
-  Calendar,
-  Phone,
-  Wallet,
-  ArrowDownCircle,
-  ArrowUpCircle,
-=======
-  User, MapPin, ClipboardList, Ticket, LogOut,
-  Camera, X, Plus, Trash2, Star, Package,
-  ChevronRight, Edit2, Check, Search,
-  Clock, Truck, CheckCircle, XCircle, RefreshCw, CreditCard, Calendar, Phone, FileText, Inbox,
->>>>>>> 3db30d69965b8c5c643cc8e7d7fc53aebc7c53d2
+User,
+MapPin,
+ClipboardList,
+Ticket,
+LogOut,
+Camera,
+X,
+Plus,
+Trash2,
+Star,
+Package,
+ChevronRight,
+ChevronLeft,
+Edit2,
+Check,
+Search,
+Clock,
+Truck,
+CheckCircle,
+XCircle,
+RefreshCw,
+CreditCard,
+Calendar,
+Phone,
+FileText,
+Inbox,
+ArrowDownCircle,
+ArrowUpCircle,
+Wallet,
 } from "lucide-react";
 import {
   CustomerProfileService,
@@ -46,7 +41,7 @@ import {
 import { CustomerAddressService } from "@/services/customer_services/customer.address.service";
 import { CustomerOrderService } from "@/services/customer_services/customer.order.service";
 import { AddressResponse, AddressRequest, AddressUpdateRequest } from "@/types/address";
-import { OrderDto } from "@/types/order";
+import { OrderDto, RefundDto, CreateRefundRequest, REFUND_STATUS } from "@/types/order";
 import { LocationService, Province, District, Ward } from "@/services/location.service";
 import { useAuth } from "@/lib/auth/auth-context";
 import { Footer } from "@/components/customer/footer";
@@ -56,7 +51,7 @@ import { CustomerWalletService } from "@/services/customer_services/customer.wal
 import { WalletResponse, WalletTransactionResponse, TopUpRequest } from "@/types/wallet";
 
 type Tab = "profile" | "addresses" | "orders" | "vouchers" | "wallet";
-type StatusKey = "all" | "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+type StatusKey = "all" | "pending" | "processing" | "confirmed" | "shipped" | "delivered" | "completed" | "cancelled" | "refunded";
 
 /* ── helpers ── */
 const imgUrl = (url?: string | null) => {
@@ -70,16 +65,22 @@ const STATUS_MAP: Record<
   { label: string; color: string; bg: string; icon: React.ElementType }
 > = {
   pending: {
-    label: "Chờ xử lý",
+    label: "Chờ xác nhận",
     color: "text-amber-600",
     bg: "bg-amber-50 border-amber-200",
     icon: Clock,
   },
-  processing: {
-    label: "Đang xử lý",
+  confirmed: {
+    label: "Đã xác nhận",
     color: "text-blue-600",
     bg: "bg-blue-50 border-blue-200",
-    icon: RefreshCw,
+    icon: CheckCircle,
+  },
+  processing: {
+    label: "Đã xác nhận",
+    color: "text-blue-600",
+    bg: "bg-blue-50 border-blue-200",
+    icon: CheckCircle,
   },
   shipped: {
     label: "Đang giao",
@@ -88,10 +89,22 @@ const STATUS_MAP: Record<
     icon: Truck,
   },
   delivered: {
-    label: "Hoàn thành",
+    label: "Đã giao hàng",
     color: "text-emerald-600",
     bg: "bg-emerald-50 border-emerald-200",
     icon: CheckCircle,
+  },
+  completed: {
+    label: "Hoàn tất",
+    color: "text-green-700",
+    bg: "bg-green-50 border-green-300",
+    icon: CheckCircle,
+  },
+  refunded: {
+    label: "Đã hoàn tiền",
+    color: "text-indigo-600",
+    bg: "bg-indigo-50 border-indigo-200",
+    icon: ArrowDownCircle,
   },
   cancelled: {
     label: "Đã huỷ",
@@ -102,10 +115,11 @@ const STATUS_MAP: Record<
 };
 const ORDER_TABS: { key: StatusKey; label: string }[] = [
   { key: "all", label: "Tất cả" },
-  { key: "pending", label: "Chờ xử lý" },
-  { key: "processing", label: "Đang xử lý" },
+  { key: "pending", label: "Chờ xác nhận" },
+  { key: "confirmed", label: "Đã xác nhận" },
   { key: "shipped", label: "Đang giao" },
-  { key: "delivered", label: "Hoàn thành" },
+  { key: "delivered", label: "Đã giao hàng" },
+  { key: "completed", label: "Hoàn tất" },
   { key: "cancelled", label: "Đã huỷ" },
 ];
 const ORDER_PAGE_SIZE = 5;
@@ -376,6 +390,16 @@ export default function CustomerProfilePage() {
   const [orderSearch, setOrderSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [cancelling, setCancelling] = useState<number | null>(null);
+
+  /* ── refund state ── */
+  const [showRefundModal, setShowRefundModal] = useState(false);
+  const [refundTargetOrder, setRefundTargetOrder] = useState<OrderDto | null>(null);
+  const [refundReason, setRefundReason] = useState("");
+  const [refundAmount, setRefundAmount] = useState<string>("");
+  const [submittingRefund, setSubmittingRefund] = useState(false);
+  const [myRefunds, setMyRefunds] = useState<RefundDto[]>([]);
+  const [loadingRefunds, setLoadingRefunds] = useState(false);
+  const [showRefundStatus, setShowRefundStatus] = useState(false);
 
   /* ── wallet state ── */
   const [wallet, setWallet] = useState<WalletResponse | null>(null);
@@ -815,6 +839,62 @@ export default function CustomerProfilePage() {
     }
   };
 
+  const handleOpenRefundModal = (order: OrderDto, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setRefundTargetOrder(order);
+    setRefundReason("");
+    setRefundAmount(String(order.totalAmount));
+    setShowRefundModal(true);
+  };
+
+  const handleSubmitRefund = async () => {
+    if (!refundTargetOrder) return;
+    const amount = parseFloat(refundAmount);
+    if (!refundReason.trim()) {
+      toast.error("Vui lòng nhập lý do hoàn tiền");
+      return;
+    }
+    if (isNaN(amount) || amount <= 0 || amount > refundTargetOrder.totalAmount) {
+      toast.error(`Số tiền hoàn phải từ 1₫ đến ${fmtVND(refundTargetOrder.totalAmount)}`);
+      return;
+    }
+    setSubmittingRefund(true);
+    try {
+      const req: CreateRefundRequest = {
+        orderId: refundTargetOrder.orderId,
+        refundAmount: amount,
+        refundMode: "Wallet",
+        reason: refundReason.trim(),
+      };
+      const res = await CustomerOrderService.createRefundRequest(req);
+      if (res.status === 201 || res.status === 200) {
+        toast.success("Gửi yêu cầu hoàn tiền thành công! Chúng tôi sẽ xử lý trong 1–3 ngày làm việc.");
+        setShowRefundModal(false);
+        fetchOrders(orderTab, orderPage);
+      } else {
+        toast.error(res.message || "Có lỗi xảy ra");
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Không thể gửi yêu cầu hoàn tiền");
+    } finally {
+      setSubmittingRefund(false);
+    }
+  };
+
+  const fetchMyRefunds = async () => {
+    setLoadingRefunds(true);
+    try {
+      const res = await CustomerOrderService.getMyRefunds(1, 20);
+      if (res.status === 200 && res.data) {
+        setMyRefunds(res.data.items ?? []);
+      }
+    } catch {
+      toast.error("Không thể tải lịch sử hoàn tiền");
+    } finally {
+      setLoadingRefunds(false);
+    }
+  };
+
   const handleOrderTab = (key: StatusKey) => {
     setOrderTab(key);
     setOrderPage(1);
@@ -1179,6 +1259,7 @@ export default function CustomerProfilePage() {
 
               {/* ─── ĐƠN MUA ─── */}
               {tab === "orders" && (
+                <>
                 <div className="bg-white rounded-sm">
                   {/* sticky header + tabs */}
                   <div className="sticky top-16 z-20 bg-white rounded-t-sm">
@@ -1245,6 +1326,8 @@ export default function CustomerProfilePage() {
                         };
                         const Icon = st.icon;
                         const canCancel = skey === "pending";
+                        const canRefund = skey === "completed" && order.refundStatus === "None";
+                        const hasRefundRequest = order.refundStatus !== "None" && order.refundStatus !== "" && skey === "completed";
                         return (
                           <div
                             key={order.orderId}
@@ -1315,6 +1398,21 @@ export default function CustomerProfilePage() {
                                     {cancelling === order.orderId ? "Đang huỷ..." : "Huỷ đơn"}
                                   </button>
                                 )}
+                                {canRefund && (
+                                  <button
+                                    onClick={(e) => handleOpenRefundModal(order, e)}
+                                    className="flex items-center gap-1 px-3 py-1 border border-orange-200 text-orange-600 text-xs rounded hover:bg-orange-50 hover:border-orange-400 transition-colors"
+                                  >
+                                    <ArrowDownCircle size={11} />
+                                    Yêu cầu hoàn tiền
+                                  </button>
+                                )}
+                                {hasRefundRequest && (
+                                  <span className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full border border-indigo-100">
+                                    <RefreshCw size={10} />
+                                    Đã gửi YC hoàn tiền
+                                  </span>
+                                )}
                                 <span className="text-xs text-gray-400">Xem chi tiết →</span>
                               </div>
                               <div className="flex items-center gap-1.5">
@@ -1373,6 +1471,22 @@ export default function CustomerProfilePage() {
                     </div>
                   )}
                 </div>
+
+                {/* ─── Link xem trạng thái hoàn tiền ─── */}
+                <div className="bg-white rounded-sm mt-3 px-5 py-3 flex items-center justify-between border border-dashed border-orange-200">
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Đơn yêu cầu hoàn tiền</p>
+                    <p className="text-xs text-gray-400 mt-0.5">Xem trạng thái các yêu cầu hoàn tiền của bạn</p>
+                  </div>
+                  <button
+                    onClick={() => { setShowRefundStatus(true); fetchMyRefunds(); }}
+                    className="flex items-center gap-1.5 text-xs text-orange-500 font-medium border border-orange-200 rounded-lg px-3 py-1.5 hover:bg-orange-50 transition-colors"
+                  >
+                    <ArrowDownCircle size={13} />
+                    Xem lịch sử hoàn tiền
+                  </button>
+                </div>
+                </>
               )}
 
               {/* ─── VOUCHER ─── */}
@@ -2055,6 +2169,229 @@ export default function CustomerProfilePage() {
                   )}
                 </button>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── REFUND REQUEST MODAL ─── */}
+      {showRefundModal && refundTargetOrder && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <ArrowDownCircle size={18} className="text-orange-500" />
+                Yêu cầu hoàn tiền
+              </h3>
+              <button
+                onClick={() => setShowRefundModal(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="px-6 py-5 space-y-4 overflow-y-auto">
+              {/* Order info */}
+              <div className="bg-orange-50 border border-orange-100 rounded-xl p-4 space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Mã đơn hàng</span>
+                  <span className="font-semibold text-gray-800">{refundTargetOrder.orderCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Tổng giá trị</span>
+                  <span className="font-semibold text-orange-600">{fmtVND(refundTargetOrder.totalAmount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Phương thức hoàn tiền</span>
+                  <span className="font-semibold text-indigo-600 flex items-center gap-1">
+                    <Wallet size={13} /> Ví điện tử
+                  </span>
+                </div>
+              </div>
+
+              {/* Refund amount */}
+              <div>
+                <label className={labelCls}>
+                  Số tiền hoàn <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  min={1}
+                  max={refundTargetOrder.totalAmount}
+                  value={refundAmount}
+                  onChange={(e) => setRefundAmount(e.target.value)}
+                  placeholder={`Tối đa ${fmtVND(refundTargetOrder.totalAmount)}`}
+                  className={inputCls}
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  Nhập số tiền bạn muốn hoàn (tối đa {fmtVND(refundTargetOrder.totalAmount)})
+                </p>
+              </div>
+
+              {/* Reason */}
+              <div>
+                <label className={labelCls}>
+                  Lý do hoàn tiền <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  rows={3}
+                  value={refundReason}
+                  onChange={(e) => setRefundReason(e.target.value)}
+                  placeholder="Mô tả lý do bạn muốn hoàn tiền..."
+                  className={`${inputCls} resize-none`}
+                />
+              </div>
+
+              {/* Note */}
+              <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-start gap-2">
+                <FileText size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                <p className="text-xs text-blue-600">
+                  Tiền sẽ được hoàn vào <strong>ví điện tử</strong> của bạn sau khi yêu cầu được
+                  xét duyệt. Thời gian xử lý thường từ 1-3 ngày làm việc.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end gap-3">
+              <button
+                onClick={() => setShowRefundModal(false)}
+                disabled={submittingRefund}
+                className="px-5 py-2 border border-gray-200 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors disabled:opacity-60"
+              >
+                Huỷ
+              </button>
+              <button
+                onClick={handleSubmitRefund}
+                disabled={submittingRefund || !refundReason.trim() || !refundAmount}
+                className="px-5 py-2 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg transition-colors disabled:opacity-60 flex items-center gap-2"
+              >
+                {submittingRefund ? (
+                  <>
+                    <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
+                    Đang gửi...
+                  </>
+                ) : (
+                  <>
+                    <ArrowDownCircle size={15} /> Gửi yêu cầu
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── REFUND STATUS MODAL ─── */}
+      {showRefundStatus && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden max-h-[80vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-900 flex items-center gap-2">
+                <RefreshCw size={18} className="text-indigo-500" />
+                Lịch sử hoàn tiền
+              </h3>
+              <button
+                onClick={() => setShowRefundStatus(false)}
+                className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="overflow-y-auto flex-1 px-6 py-5">
+              {loadingRefunds ? (
+                <div className="flex items-center justify-center py-12">
+                  <span className="animate-spin inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full" />
+                  <span className="ml-3 text-sm text-gray-500">Đang tải...</span>
+                </div>
+              ) : myRefunds.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-gray-400">
+                  <Inbox size={40} className="mb-3 opacity-40" />
+                  <p className="text-sm">Bạn chưa có yêu cầu hoàn tiền nào</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {myRefunds.map((refund) => {
+                    const refundStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
+                      Requested: { label: "Chờ xét duyệt", color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
+                      Approved: { label: "Đã duyệt", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
+                      Processing: { label: "Đang xử lý", color: "text-violet-600", bg: "bg-violet-50 border-violet-200" },
+                      Completed: { label: "Hoàn tất", color: "text-green-600", bg: "bg-green-50 border-green-200" },
+                      Rejected: { label: "Từ chối", color: "text-red-500", bg: "bg-red-50 border-red-200" },
+                      PartialRefund: { label: "Hoàn một phần", color: "text-orange-500", bg: "bg-orange-50 border-orange-200" },
+                      FullRefund: { label: "Hoàn toàn bộ", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" },
+                    };
+                    const sc = refundStatusConfig[refund.refundStatus] ?? {
+                      label: refund.refundStatus,
+                      color: "text-gray-500",
+                      bg: "bg-gray-50 border-gray-200",
+                    };
+                    return (
+                      <div
+                        key={refund.refundId}
+                        className="border border-gray-100 rounded-xl p-4 space-y-3 hover:shadow-sm transition-shadow"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">
+                              {refund.orderCode ?? `#${refund.orderId}`}
+                            </p>
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {refund.createdAt ? fmtDate(refund.createdAt) : "—"}
+                            </p>
+                          </div>
+                          <span
+                            className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${sc.bg} ${sc.color}`}
+                          >
+                            {sc.label}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                          <div>
+                            <span className="text-gray-400">Số tiền YC:</span>{" "}
+                            <span className="font-medium text-orange-600">{fmtVND(refund.refundAmount)}</span>
+                          </div>
+                          <div>
+                            <span className="text-gray-400">Phương thức:</span>{" "}
+                            <span className="font-medium">
+                              {refund.refundMode === "Wallet" ? "Ví điện tử" : refund.refundMode}
+                            </span>
+                          </div>
+                          {refund.approvedByName && (
+                            <div className="col-span-2">
+                              <span className="text-gray-400">Xét duyệt bởi:</span>{" "}
+                              <span className="font-medium">{refund.approvedByName}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {refund.reason && (
+                          <p className="text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2 italic">
+                            &ldquo;{refund.reason}&rdquo;
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 bg-gray-50 flex items-center justify-end">
+              <button
+                onClick={() => setShowRefundStatus(false)}
+                className="px-5 py-2 border border-gray-200 text-gray-600 text-sm rounded-lg hover:bg-gray-100 transition-colors"
+              >
+                Đóng
+              </button>
             </div>
           </div>
         </div>

@@ -9,7 +9,9 @@ import {
     PaymentMethodDTO,
     GetPaymentMethodsResponse,
     OrderResponse,
-    OrderDto
+    OrderDto,
+    RefundDto,
+    CreateRefundRequest,
 } from '@/types/order';
 
 /* ================= SERVICE ================= */
@@ -48,4 +50,26 @@ export const CustomerOrderService = {
         const res = await axiosInstance.post(API_ENDPOINTS.ORDER_CANCEL(id));
         return res.data;
     },
+
+    // ── REFUND ──
+    // Tạo yêu cầu hoàn tiền (chỉ với đơn ở trạng thái Completed)
+    async createRefundRequest(data: CreateRefundRequest): Promise<ApiResponse<RefundDto>> {
+        const res = await axiosInstance.post(API_ENDPOINTS.ORDER_REFUND_REQUEST, data);
+        return res.data;
+    },
+
+    // Lấy danh sách yêu cầu hoàn tiền của tôi
+    async getMyRefunds(pageNumber = 1, pageSize = 10): Promise<ApiResponse<PagedResult<RefundDto>>> {
+        const res = await axiosInstance.get(API_ENDPOINTS.ORDER_MY_REFUNDS, {
+            params: { pageNumber, pageSize },
+        });
+        return res.data;
+    },
+
+    // Lấy chi tiết yêu cầu hoàn tiền
+    async getRefundById(refundId: number): Promise<ApiResponse<RefundDto>> {
+        const res = await axiosInstance.get(API_ENDPOINTS.ORDER_REFUND_BY_ID(refundId));
+        return res.data;
+    },
 };
+

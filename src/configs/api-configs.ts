@@ -60,6 +60,16 @@ export const API_ENDPOINTS = {
   ADMIN_ORDER_STATUS: (id: number) => `${API_BASE}/api/admin/orders/${id}/status`,
   ADMIN_ORDERS_EXPORT: `${API_BASE}/api/admin/orders/export`,
 
+  // ===== ADMIN REFUNDS =====
+  ADMIN_REFUNDS: `${API_BASE}/api/admin/refunds`,
+  ADMIN_REFUND_BY_ID: (id: number) => `${API_BASE}/api/admin/refunds/${id}`,
+  ADMIN_REFUND_PROCESS: (id: number) => `${API_BASE}/api/admin/refunds/${id}/process`,
+
+  // ===== CUSTOMER REFUNDS =====
+  ORDER_REFUND_REQUEST: `${API_BASE}/api/COrder/refund/request`,
+  ORDER_MY_REFUNDS: `${API_BASE}/api/COrder/refund/my-refunds`,
+  ORDER_REFUND_BY_ID: (id: number) => `${API_BASE}/api/COrder/refund/${id}`,
+
   // ===== ADMIN VOUCHERS =====
   ADMIN_VOUCHERS: `${API_BASE}/api/admin/vouchers`,
   ADMIN_VOUCHER_BY_ID: (id: number) => `${API_BASE}/api/admin/vouchers/${id}`,

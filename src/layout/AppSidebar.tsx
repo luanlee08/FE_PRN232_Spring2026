@@ -95,7 +95,10 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đơn hàng",
     icon: <Receipt size={18} />,
-    subItems: [{ name: "Danh sách đơn hàng", path: "/admin/orders", pro: false }],
+    subItems: [
+      { name: "Danh sách đơn hàng", path: "/admin/orders", pro: false },
+      { name: "Quản lý hoàn trả", path: "/admin/refunds", pro: false },
+    ],
   },
 ];
 
