@@ -1,6 +1,20 @@
 "use client";
 
-import { Search, ShoppingCart, Heart, Menu, X, Bell, User, ChevronDown, ClipboardList, MapPin, Ticket, LogOut } from "lucide-react";
+import {
+  Search,
+  ShoppingCart,
+  Heart,
+  Menu,
+  X,
+  Bell,
+  User,
+  ChevronDown,
+  ClipboardList,
+  MapPin,
+  Ticket,
+  Wallet,
+  LogOut,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -37,8 +51,7 @@ export function Header() {
         if (res.status === 200 && res.data !== null) {
           setUnreadCount(res.data);
         }
-      } catch {
-      }
+      } catch {}
     };
     fetchUnread();
   }, [isAuthenticated]);
@@ -64,7 +77,7 @@ export function Header() {
   const getImageUrl = (imageUrl: string | null | undefined) => {
     if (!imageUrl) return null;
     // If it's a data URL (base64) or full URL, return as-is
-    if (imageUrl.startsWith('data:') || imageUrl.startsWith('http')) {
+    if (imageUrl.startsWith("data:") || imageUrl.startsWith("http")) {
       return imageUrl;
     }
     // Otherwise, prepend API_BASE for local backend images
@@ -76,14 +89,10 @@ export function Header() {
       {/* ================= TOP BAR ================= */}
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex h-16 items-center justify-between">
-
           {/* ===== LEFT ===== */}
           <div className="flex items-center gap-3">
             {/* Mobile menu */}
-            <button
-              className="lg:hidden"
-              onClick={() => setOpenMenu(true)}
-            >
+            <button className="lg:hidden" onClick={() => setOpenMenu(true)}>
               <Menu size={22} />
             </button>
 
@@ -92,9 +101,7 @@ export function Header() {
               <div className="flex h-9 w-9 items-center justify-center rounded bg-white">
                 <span className="text-lg font-bold text-[#FF6B35]">👑</span>
               </div>
-              <span className="text-lg font-bold tracking-wide">
-                LorKingdom
-              </span>
+              <span className="text-lg font-bold tracking-wide">LorKingdom</span>
             </Link>
           </div>
 
@@ -144,7 +151,7 @@ export function Header() {
                     <div className="w-8 h-8 rounded-full overflow-hidden bg-white/20 flex items-center justify-center">
                       {user?.image && getImageUrl(user.image) ? (
                         <img
-                          src={getImageUrl(user.image) || ''}
+                          src={getImageUrl(user.image) || ""}
                           alt={user.accountName}
                           className="w-full h-full object-cover"
                         />
@@ -160,7 +167,12 @@ export function Header() {
                   </button>
 
                   {/* bridge gap so mouse doesn't lose hover when moving to dropdown */}
-                  {openUserMenu && <div className="absolute right-0 top-full w-full h-2" onMouseEnter={handleUserMenuEnter} />}
+                  {openUserMenu && (
+                    <div
+                      className="absolute right-0 top-full w-full h-2"
+                      onMouseEnter={handleUserMenuEnter}
+                    />
+                  )}
 
                   {openUserMenu && (
                     <div
@@ -179,7 +191,10 @@ export function Header() {
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <User size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <User
+                          size={17}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
                         Tài Khoản Của Tôi
                       </Link>
                       <Link
@@ -187,7 +202,10 @@ export function Header() {
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <ClipboardList size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <ClipboardList
+                          size={17}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
                         Đơn Mua
                       </Link>
 
@@ -196,7 +214,10 @@ export function Header() {
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <MapPin size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <MapPin
+                          size={17}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
                         Địa Chỉ Của Tôi
                       </Link>
 
@@ -205,16 +226,37 @@ export function Header() {
                         onClick={() => setOpenUserMenu(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
                       >
-                        <Ticket size={17} className="text-gray-400 group-hover:text-orange-500 transition-colors" />
+                        <Ticket
+                          size={17}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
                         Quản Lý Voucher
+                      </Link>
+
+                      <Link
+                        href="/profile/wallet"
+                        onClick={() => setOpenUserMenu(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-600 transition-colors group"
+                      >
+                        <Wallet
+                          size={17}
+                          className="text-gray-400 group-hover:text-orange-500 transition-colors"
+                        />
+                        Ví Của Tôi
                       </Link>
 
                       <div className="border-t border-gray-100 mt-1 pt-1">
                         <button
-                          onClick={() => { setOpenUserMenu(false); handleLogout(); }}
+                          onClick={() => {
+                            setOpenUserMenu(false);
+                            handleLogout();
+                          }}
                           className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors group"
                         >
-                          <LogOut size={17} className="text-red-400 group-hover:text-red-500 transition-colors" />
+                          <LogOut
+                            size={17}
+                            className="text-red-400 group-hover:text-red-500 transition-colors"
+                          />
                           Đăng Xuất
                         </button>
                       </div>
@@ -223,10 +265,7 @@ export function Header() {
                 </div>
               ) : (
                 <>
-                  <Link
-                    href="/login"
-                    className="text-sm font-medium hover:opacity-80 transition"
-                  >
+                  <Link href="/login" className="text-sm font-medium hover:opacity-80 transition">
                     Đăng nhập
                   </Link>
                   <Link
@@ -265,10 +304,18 @@ export function Header() {
             </div>
 
             <nav className="flex flex-col gap-4 text-sm font-medium">
-              <Link href="/" onClick={() => setOpenMenu(false)}>Trang chủ</Link>
-              <Link href="/products" onClick={() => setOpenMenu(false)}>Sản phẩm</Link>
-              <Link href="/blog" onClick={() => setOpenMenu(false)}>Blog</Link>
-              <Link href="/promotions" onClick={() => setOpenMenu(false)}>Khuyến mãi</Link>
+              <Link href="/" onClick={() => setOpenMenu(false)}>
+                Trang chủ
+              </Link>
+              <Link href="/products" onClick={() => setOpenMenu(false)}>
+                Sản phẩm
+              </Link>
+              <Link href="/blog" onClick={() => setOpenMenu(false)}>
+                Blog
+              </Link>
+              <Link href="/promotions" onClick={() => setOpenMenu(false)}>
+                Khuyến mãi
+              </Link>
 
               <div className="border-t pt-4 mt-4">
                 {isAuthenticated ? (
@@ -277,7 +324,7 @@ export function Header() {
                       <div className="w-10 h-10 rounded-full overflow-hidden bg-[#FF6B35]/20 flex items-center justify-center">
                         {user?.image && getImageUrl(user.image) ? (
                           <img
-                            src={getImageUrl(user.image) || ''}
+                            src={getImageUrl(user.image) || ""}
                             alt={user.accountName}
                             className="w-full h-full object-cover"
                           />
@@ -336,7 +383,10 @@ export function Header() {
                       Quản Lý Voucher
                     </Link>
                     <button
-                      onClick={() => { setOpenMenu(false); handleLogout(); }}
+                      onClick={() => {
+                        setOpenMenu(false);
+                        handleLogout();
+                      }}
                       className="flex items-center gap-2 text-red-500 font-medium"
                     >
                       <LogOut size={17} />
