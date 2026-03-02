@@ -59,6 +59,16 @@ export const API_ENDPOINTS = {
   ADMIN_ORDER_STATUS: (id: number) => `${API_BASE}/api/admin/orders/${id}/status`,
   ADMIN_ORDERS_EXPORT: `${API_BASE}/api/admin/orders/export`,
 
+  // ===== ADMIN REFUNDS =====
+  ADMIN_REFUNDS: `${API_BASE}/api/admin/refunds`,
+  ADMIN_REFUND_BY_ID: (id: number) => `${API_BASE}/api/admin/refunds/${id}`,
+  ADMIN_REFUND_PROCESS: (id: number) => `${API_BASE}/api/admin/refunds/${id}/process`,
+
+  // ===== CUSTOMER REFUNDS =====
+  ORDER_REFUND_REQUEST: `${API_BASE}/api/COrder/refund/request`,
+  ORDER_MY_REFUNDS: `${API_BASE}/api/COrder/refund/my-refunds`,
+  ORDER_REFUND_BY_ID: (id: number) => `${API_BASE}/api/COrder/refund/${id}`,
+
   // ===== ADMIN VOUCHERS =====
   ADMIN_VOUCHERS: `${API_BASE}/api/admin/vouchers`,
   ADMIN_VOUCHER_BY_ID: (id: number) => `${API_BASE}/api/admin/vouchers/${id}`,
@@ -84,10 +94,32 @@ export const API_ENDPOINTS = {
   // ===== CUSTOMER PRODUCTS =====
   PRODUCTS: `${API_BASE}/api/products`,
 
+    // ===== CUSTOMER WALLET =====
+  WALLET_BALANCE: `${API_BASE}/api/CWallet/balance`,
+  WALLET_TRANSACTIONS: `${API_BASE}/api/CWallet/transactions`,
+  WALLET_TOPUP: `${API_BASE}/api/CWallet/topup`,
+
   // ===== CUSTOMER BLOG =====
-  BLOGS: `${API_BASE}/api/blogs`,
-  BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
-  BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
-  BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
-  BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+    BLOGS: `${API_BASE}/api/blogs`,
+    BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
+    BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
+    BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
+    BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+
+  // ===== BLOG REVIEWS =====
+  BLOG_REVIEWS: `${API_BASE}/api/blog-reviews`,
+  BLOG_REVIEWS_BY_BLOG: (blogId: number) => `${API_BASE}/api/blog-reviews/blog/${blogId}`,
+
+  // ===== ADMIN REVIEW BLOG =====
+  ADMIN_REVIEW_BLOGS: `${API_BASE}/api/admin/reviews-blog`,
+  ADMIN_REVIEW_BLOG_BLOCK: (id: number) => `${API_BASE}/api/admin/reviews-blog/${id}/block`,
+
+  // ===== ADMIN STATISTICS =====
+  ADMIN_STATISTICS_REVENUE: `${API_BASE}/api/admin/statistics/revenue`,
+  ADMIN_STATISTICS_PRODUCTS: `${API_BASE}/api/admin/statistics/products`,
+
+  // ===== BLOG REVIEW REACTIONS =====
+  BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
+  BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
+    `${API_BASE}/api/blog-review-reactions/${reviewId}`,
 };

@@ -70,6 +70,13 @@ export interface AdminOrderQuery {
 export interface UpdateOrderStatusRequest {
   statusId: number;
   note?: string;
+  /** Pass true when transitioning to Confirmed or Processing to auto-push to GHN */
+  autoCreateShipping?: boolean;
+  /** GHN service ID (53321 = Standard, 53322 = Express). Defaults to 53321 on backend. */
+  shippingServiceId?: number;
+  /** Required note for GHN: CHOTHUHANG | CHOXEMHANGKHONGTHU | KHONGCHOXEMHANG */
+  shippingRequiredNote?: 'CHOTHUHANG' | 'CHOXEMHANGKHONGTHU' | 'KHONGCHOXEMHANG';
+  shippingNote?: string;
 }
 
 export const AdminOrderService = {

@@ -18,8 +18,8 @@ import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import {
   CustomerNotificationService,
-  NotificationDto,
 } from "@/services/customer_services/customer.notification.service";
+import type { NotificationDto } from "@/types/notification";
 import toast from "react-hot-toast";
 import Link from "next/link";
 import { NotificationCategory } from "@/types/notification";

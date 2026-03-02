@@ -67,3 +67,14 @@ export interface ApiResponse<T> {
   data: T;
 }
 export type UpdateBlogRequest = CreateBlogRequest
+
+export interface ReviewBlog {
+  reviewBlogId: number;
+  customerName: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  likeCount: number;
+  dislikeCount: number;
+  userReaction?: "Like" | "Dislike" | null;
+}

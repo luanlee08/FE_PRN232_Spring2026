@@ -135,7 +135,7 @@ export function ProductReviews() {
 
       <hr className="border-[#E8E8E8] mb-8" />
 
-      {/* Middle Section: Filters */}
+      {/* Middle Section: Filters
       <div className="flex flex-wrap gap-3 mb-8">
         <button className="px-6 py-2 bg-[#FFF5F0] text-[#FF6B35] border border-[#FF6B35] rounded-lg font-medium transition">
           Tất cả
@@ -158,7 +158,7 @@ export function ProductReviews() {
         <button className="px-6 py-2 bg-white border border-[#E8E8E8] text-gray-600 rounded-lg hover:bg-gray-50 transition">
           Có hình ảnh (450)
         </button>
-      </div>
+      </div> */}
 
       {/* Bottom Section: Review List */}
       <div className="space-y-8">

@@ -33,7 +33,8 @@ axiosInstance.interceptors.response.use(
     // Bỏ qua refresh token logic cho auth endpoints
     const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
                           originalRequest.url?.includes('/auth/register') ||
-                          originalRequest.url?.includes('/auth/verify-otp');
+                          originalRequest.url?.includes('/auth/verify-otp') ||
+                          originalRequest.url?.includes('/auth/refresh-token');;
     
     if (isAuthEndpoint) {
       return Promise.reject(error);
