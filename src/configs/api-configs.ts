@@ -1,6 +1,5 @@
-// export const API_BASE =
-//   process.env.NEXT_PUBLIC_API_URL!;
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
+export const API_BASE = rawApiBase.replace(/\/+$/, "").replace(/\/api$/, "");
 export const API_ENDPOINTS = {
   // ===== AUTH =====
 
@@ -87,22 +86,25 @@ export const API_ENDPOINTS = {
   // ===== ADMIN BLOG =====
   ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
   ADMIN_BLOG_SEARCH: `${API_BASE}/api/admin/blogs/search`,
-  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE}/api/admin/blogs/${id}`,
+  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE} /api/admin/blogs/${id}`,
 
   // ===== ADMIN BLOG CATEGORIES =====
   ADMIN_BLOG_CATEGORIES: `${API_BASE}/api/admin/blog-categories`,
 
-  // ===== CUSTOMER WALLET =====
+  // ===== CUSTOMER PRODUCTS =====
+  PRODUCTS: `${API_BASE}/api/products`,
+
+    // ===== CUSTOMER WALLET =====
   WALLET_BALANCE: `${API_BASE}/api/CWallet/balance`,
   WALLET_TRANSACTIONS: `${API_BASE}/api/CWallet/transactions`,
   WALLET_TOPUP: `${API_BASE}/api/CWallet/topup`,
 
   // ===== CUSTOMER BLOG =====
-  BLOGS: `${API_BASE}/api/blogs`,
-  BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
-  BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
-  BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
-  BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+    BLOGS: `${API_BASE}/api/blogs`,
+    BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
+    BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
+    BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
+    BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
 
   // ===== BLOG REVIEWS =====
   BLOG_REVIEWS: `${API_BASE}/api/blog-reviews`,
