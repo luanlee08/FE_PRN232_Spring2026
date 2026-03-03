@@ -161,20 +161,20 @@ export default function BlogDetailPage() {
   };
 
   const handleReact = async (
-  reviewBlogId: number,
-  type: "Like" | "Dislike"
-) => {
-  try {
-    await customerBlogReactionService.react(reviewBlogId, type);
+    reviewBlogId: number,
+    type: "Like" | "Dislike"
+  ) => {
+    try {
+      await customerBlogReactionService.react(reviewBlogId, type);
 
-    // 🔥 reload lại reviews từ backend
-    await loadReviews(blog!.blogPostId);
+      // 🔥 reload lại reviews từ backend
+      await loadReviews(blog!.blogPostId);
 
-  } catch (err) {
-    console.error(err);
-    alert("Vui lòng đăng nhập để react");
-  }
-};
+    } catch (err) {
+      console.error(err);
+      alert("Vui lòng đăng nhập để react");
+    }
+  };
 
   return (
     <main className="min-h-screen bg-[#fafafa]">
@@ -265,24 +265,22 @@ export default function BlogDetailPage() {
                       </div>
 
                       <div className="flex-1">
+
+                        {/* ===== REVIEW HEADER ===== */}
                         <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
                           <span>
                             {r.customerName} •{" "}
                             {new Date(r.createdAt).toLocaleDateString("vi-VN")}
                           </span>
-
-                          {/* <span className="text-yellow-500">
-                            {"★".repeat(r.rating)}
-                            {"☆".repeat(5 - r.rating)}
-                          </span> */}
                         </div>
 
-                        <p className="text-sm text-gray-700">
-                          {r.comment} {/* SỬA Ở ĐÂY */}
+                        {/* ===== REVIEW CONTENT ===== */}
+                        <p className="text-sm text-gray-700 mb-2">
+                          {r.comment}
                         </p>
 
-                        <div className="flex gap-4 mt-2 text-sm">
-
+                        {/* ===== REACTION (NGAY DƯỚI REVIEW) ===== */}
+                        <div className="flex gap-4 text-sm mb-3">
                           <button
                             onClick={() => handleReact(r.reviewBlogId, "Like")}
                             className={`flex items-center gap-1 ${r.userReaction === "Like"
@@ -302,8 +300,32 @@ export default function BlogDetailPage() {
                           >
                             👎 {r.dislikeCount}
                           </button>
-
                         </div>
+
+                        {/* ===== REPLIES (SAU REACTION) ===== */}
+                        {r.replies && r.replies.length > 0 && (
+                          <div className="space-y-2 border-l-2 border-orange-200 pl-4">
+                            {r.replies.map((reply) => (
+                              <div
+                                key={reply.replyBlogId}
+                                className="bg-white p-3 rounded-lg shadow-sm"
+                              >
+                                <div className="text-xs text-gray-500 mb-1">
+                                  <span className="font-semibold text-orange-600">
+                                    {reply.accountName}
+                                  </span>{" "}
+                                  •{" "}
+                                  {new Date(reply.createdAt).toLocaleDateString("vi-VN")}
+                                </div>
+
+                                <p className="text-sm text-gray-700">
+                                  {reply.content}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
                       </div>
                     </div>
                   ))}
