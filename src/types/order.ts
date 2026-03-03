@@ -222,3 +222,55 @@ export interface OrderDto {
     createdAt: string;
     updatedAt?: string;
 }
+
+// -------------------------------------------------------------------
+// Refund DTOs
+// -------------------------------------------------------------------
+export const REFUND_STATUS = {
+    NONE: 'None',
+    REQUESTED: 'Requested',
+    APPROVED: 'Approved',
+    PROCESSING: 'Processing',
+    COMPLETED: 'Completed',
+    REJECTED: 'Rejected',
+    PARTIAL_REFUND: 'PartialRefund',
+    FULL_REFUND: 'FullRefund',
+} as const;
+
+export type RefundStatusType = (typeof REFUND_STATUS)[keyof typeof REFUND_STATUS];
+
+export const REFUND_MODE = {
+    WALLET: 'Wallet',
+    ORIGINAL: 'Original',
+} as const;
+
+export interface RefundDto {
+    refundId: number;
+    orderId: number;
+    orderCode: string;
+    accountId: number;
+    customerName?: string;
+    customerEmail?: string;
+    refundMode: string;
+    refundStatus: string;
+    totalAmount: number;
+    refundAmount: number;
+    reason: string;
+    createdAt: string;
+    approvedAt?: string;
+    processedAt?: string;
+    approvedByName?: string;
+}
+
+export interface CreateRefundRequest {
+    orderId: number;
+    refundAmount: number;
+    refundMode: string;
+    reason: string;
+}
+
+export interface ApproveRefundRequest {
+    refundId: number;
+    isApproved: boolean;
+    note?: string;
+}

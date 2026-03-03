@@ -23,6 +23,15 @@ const ORDER_STATUS_OPTIONS = [
   { id: 7, name: "Refunded" },
 ];
 
+const EDIT_STATUS_OPTIONS = [
+  { id: 1, name: "Pending" },
+  { id: 2, name: "Confirmed" },
+  { id: 3, name: "Shipped" },
+  { id: 4, name: "Delivered" },
+  { id: 5, name: "Completed" },
+  { id: 6, name: "Cancelled" },
+];
+
 export default function OrderManagementUI() {
   const [data, setData] = useState<AdminOrderListItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,11 +49,17 @@ export default function OrderManagementUI() {
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
   const [openDetail, setOpenDetail] = useState(false);
 
-  const [cancelModal, setCancelModal] = useState<{ isOpen: boolean; orderId: number | null }>({
+  const [editModal, setEditModal] = useState<{
+    isOpen: boolean;
+    order: AdminOrderListItem | null;
+    newStatusId: number;
+    note: string;
+  }>({
     isOpen: false,
-    orderId: null,
+    order: null,
+    newStatusId: 0,
+    note: "",
   });
-  const [cancelNote, setCancelNote] = useState("");
   const [updating, setUpdating] = useState(false);
 
   const fetchData = async () => {
@@ -120,11 +135,47 @@ export default function OrderManagementUI() {
     }
   };
 
-  const handleConfirmCancel = async () => {
-    if (!cancelModal.orderId || !cancelNote.trim()) return;
-    await handleUpdateStatus(cancelModal.orderId, 6, cancelNote.trim());
-    setCancelModal({ isOpen: false, orderId: null });
-    setCancelNote("");
+  const handleOpenEditModal = (item: AdminOrderListItem) => {
+    setEditModal({
+      isOpen: true,
+      order: item,
+      newStatusId: item.statusId,
+      note: "",
+    });
+  };
+
+  const handleConfirmEdit = async () => {
+    const { order, newStatusId, note } = editModal;
+    if (!order) return;
+    if (newStatusId === order.statusId) {
+      setEditModal((prev) => ({ ...prev, isOpen: false }));
+      return;
+    }
+    if (newStatusId === 6 && !note.trim()) return;
+    const autoNote =
+      newStatusId === 6
+        ? note.trim()
+        : note.trim() ||
+          (() => {
+            switch (newStatusId) {
+              case 2:
+                return "Đơn hàng đã được xác nhận.";
+              case 3:
+                return "Đơn hàng đang được giao.";
+              case 4:
+                return "Đơn hàng đã giao thành công.";
+              case 5:
+                return "Đơn hàng đã hoàn thành.";
+              default:
+                return "Cập nhật trạng thái đơn hàng.";
+            }
+          })();
+    await handleUpdateStatus(order.orderId, newStatusId, autoNote);
+    setEditModal({ isOpen: false, order: null, newStatusId: 0, note: "" });
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModal({ isOpen: false, order: null, newStatusId: 0, note: "" });
   };
 
   const totalPages = Math.ceil(total / pageSize);
@@ -214,8 +265,7 @@ export default function OrderManagementUI() {
           setSelectedOrderId(item.orderId);
           setOpenDetail(true);
         }}
-        onUpdateStatus={handleUpdateStatus}
-        onRequestCancel={(orderId) => setCancelModal({ isOpen: true, orderId })}
+        onEditStatus={handleOpenEditModal}
       />
 
       {/* PAGINATION */}
@@ -251,41 +301,71 @@ export default function OrderManagementUI() {
         onStatusUpdated={fetchData}
       />
 
-      {/* CANCEL MODAL */}
+      {/* EDIT STATUS MODAL */}
       <Modal
-        isOpen={cancelModal.isOpen}
-        onClose={() => {
-          setCancelModal({ isOpen: false, orderId: null });
-          setCancelNote("");
-        }}
+        isOpen={editModal.isOpen}
+        onClose={handleCloseEditModal}
         className="max-w-md rounded-2xl bg-white p-6 shadow-2xl"
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Hủy đơn hàng</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Vui lòng nhập lý do hủy đơn hàng. Lý do này sẽ được lưu lại trong lịch sử đơn hàng.
-        </p>
-        <textarea
-          value={cancelNote}
-          onChange={(e) => setCancelNote(e.target.value)}
-          placeholder="Nhập lý do hủy..."
-          className="w-full rounded-lg border px-3 py-2 text-sm min-h-[100px] mb-4"
-        />
+        <h3 className="text-lg font-semibold text-gray-900 mb-1">Cập nhật trạng thái đơn hàng</h3>
+        {editModal.order && (
+          <p className="text-sm text-gray-500 mb-4">
+            Đơn <span className="font-semibold text-indigo-600">{editModal.order.orderCode}</span> —{" "}
+            {editModal.order.customerName}
+          </p>
+        )}
+
+        <label className="block text-sm font-medium text-gray-700 mb-1">Trạng thái mới</label>
+        <select
+          value={editModal.newStatusId}
+          onChange={(e) =>
+            setEditModal((prev) => ({
+              ...prev,
+              newStatusId: Number(e.target.value),
+              note: "",
+            }))
+          }
+          className="w-full rounded-lg border px-3 py-2 text-sm mb-4"
+        >
+          {EDIT_STATUS_OPTIONS.map((s) => (
+            <option key={s.id} value={s.id} disabled={s.id < (editModal.order?.statusId ?? 0)}>
+              {s.name}
+              {s.id === (editModal.order?.statusId ?? 0) ? " (hiện tại)" : ""}
+            </option>
+          ))}
+        </select>
+
+        {editModal.newStatusId === 6 && (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Lý do hủy <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              value={editModal.note}
+              onChange={(e) => setEditModal((prev) => ({ ...prev, note: e.target.value }))}
+              placeholder="Nhập lý do hủy..."
+              className="w-full rounded-lg border px-3 py-2 text-sm min-h-[90px] resize-y mb-4"
+            />
+          </>
+        )}
+
         <div className="flex justify-end gap-3">
           <button
-            onClick={() => {
-              setCancelModal({ isOpen: false, orderId: null });
-              setCancelNote("");
-            }}
+            onClick={handleCloseEditModal}
             className="rounded-lg px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100"
           >
-            Đóng
+            Hủy bỏ
           </button>
           <button
-            onClick={handleConfirmCancel}
-            disabled={!cancelNote.trim() || updating}
-            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            onClick={handleConfirmEdit}
+            disabled={
+              updating ||
+              editModal.newStatusId === (editModal.order?.statusId ?? 0) ||
+              (editModal.newStatusId === 6 && !editModal.note.trim())
+            }
+            className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50"
           >
-            {updating ? "Đang xử lý..." : "Xác nhận hủy"}
+            {updating ? "Đang xử lý..." : "Xác nhận"}
           </button>
         </div>
       </Modal>

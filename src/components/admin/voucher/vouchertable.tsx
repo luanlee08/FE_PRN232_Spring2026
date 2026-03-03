@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil } from "lucide-react";
+import { Edit } from "lucide-react";
 import { VoucherAdmin } from "@/services/admin_services/admin.voucher.service";
 
 interface Props {
@@ -140,13 +140,15 @@ export default function VoucherTable({
               <td className="px-4 py-3">{getStatusBadge(item.status, item.isDeleted)}</td>
 
               <td className="px-4 py-3 text-center">
-                <button
-                  onClick={() => onEdit?.(item)}
-                  className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600"
-                >
-                  <Pencil size={14} />
-                  Sửa
-                </button>
+                <div className="flex items-center justify-center gap-2">
+                  <button
+                    title="Chỉnh sửa"
+                    onClick={() => onEdit?.(item)}
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 hover:bg-blue-100"
+                  >
+                    <Edit size={16} />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

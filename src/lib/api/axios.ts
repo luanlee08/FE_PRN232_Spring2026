@@ -1,9 +1,10 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { refreshAccessToken } from '../auth/auth-service';
+import { API_BASE } from '@/configs/api-configs';
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://localhost:7219/api',
+  baseURL: `${API_BASE}/api`,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -32,7 +33,8 @@ axiosInstance.interceptors.response.use(
     // Bỏ qua refresh token logic cho auth endpoints
     const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
                           originalRequest.url?.includes('/auth/register') ||
-                          originalRequest.url?.includes('/auth/verify-otp');
+                          originalRequest.url?.includes('/auth/verify-otp') ||
+                          originalRequest.url?.includes('/auth/refresh-token');;
     
     if (isAuthEndpoint) {
       return Promise.reject(error);

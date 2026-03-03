@@ -5,6 +5,7 @@ import {
   BlogCategory,
   PagedResponse,
   ApiResponse,
+  ReviewBlog,
 } from "@/types/blog";
 
 export const customerBlogService = {
@@ -86,4 +87,44 @@ export const customerBlogService = {
 
     return res.json();
   },
+
+  // ===== BLOG REVIEWS =====
+  getReviewsByBlog: async (
+    blogId: number
+  ): Promise<ApiResponse<ReviewBlog[]>> => {
+    const res = await fetch(
+      `${API_ENDPOINTS.BLOG_REVIEWS_BY_BLOG(blogId)}`,
+      { cache: "no-store", credentials: "include" }
+    );
+
+    return res.json();
+  },
+
+  createReview: async (
+  blogId: number,
+  content: string,
+  rating: number
+) => {
+  const token = localStorage.getItem("accessToken");
+
+  const res = await fetch(
+    API_ENDPOINTS.BLOG_REVIEWS,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        blogPostId: blogId,
+        content,
+        rating,
+      }),
+    }
+  );
+
+  if (!res.ok) throw new Error("Create review failed");
+
+  return res.json();
+},
 };
