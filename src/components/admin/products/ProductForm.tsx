@@ -1,32 +1,39 @@
 "use client";
 
-
 import { useEffect, useState } from "react";
-import { ProductFormData } from "@/types/products";
 import { LookupItem } from "@/services/admin_services/admin.lookup.service";
 import { AdminProductService } from "@/services/admin_services/admin.product.service";
-import { CreateProductPayload } from "@/types/products";
-
+import { CreateProductPayload, ProductFormData } from "@/types/products";
 
 interface ProductFormProps {
   submitText?: string;
   product?: ProductFormData | null;
-
-
   categories: LookupItem[];
   brands: LookupItem[];
   materials: LookupItem[];
   origins: LookupItem[];
   ages: LookupItem[];
   sexes: LookupItem[];
-
-
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-
-
+const buildInitialForm = (product?: ProductFormData | null): ProductFormData => ({
+  id: product?.id,
+  name: product?.name ?? "",
+  description: product?.description ?? "",
+  price: product?.price ?? 0,
+  quantity: product?.quantity ?? 0,
+  status: product?.status ?? "Available",
+  categoryId: product?.categoryId,
+  brandId: product?.brandId,
+  materialId: product?.materialId,
+  originId: product?.originId,
+  sexId: product?.sexId,
+  ageId: product?.ageId,
+  mainImageUrl: product?.mainImageUrl,
+  secondaryImageUrls: product?.secondaryImageUrls ?? [],
+});
 
 export default function ProductForm({
   submitText = "Lưu sản phẩm",
@@ -40,72 +47,69 @@ export default function ProductForm({
   onSuccess,
   onCancel,
 }: ProductFormProps) {
-
-
-  /* ================= STATE ================= */
-  const [form, setForm] = useState<ProductFormData>(() => ({
-    id: product?.id,
-    name: product?.name ?? "",
-    description: product?.description ?? "",
-    price: product?.price ?? 0,
-    quantity: product?.quantity ?? 0,
-    status: product?.status ?? "Available",
-    categoryId: product?.categoryId,
-    brandId: product?.brandId,
-    materialId: product?.materialId,
-    originId: product?.originId,
-    sexId: product?.sexId,
-    ageId: product?.ageId,
-  }));
-
-
-
-
-
-
+  const [form, setForm] = useState<ProductFormData>(() => buildInitialForm(product));
   const [mainImage, setMainImage] = useState<File | null>(null);
   const [subImages, setSubImages] = useState<File[]>([]);
+  const [mainImagePreviewUrl, setMainImagePreviewUrl] = useState<string | null>(
+    product?.mainImageUrl ?? null
+  );
+  const [subImagePreviewUrls, setSubImagePreviewUrls] = useState<string[]>(
+    product?.secondaryImageUrls ?? []
+  );
 
-
-  /* ================= EDIT MODE ================= */
   useEffect(() => {
-    if (!product) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setForm(product);
-  }, [product]);
+    return () => {
+      if (mainImagePreviewUrl?.startsWith("blob:")) {
+        URL.revokeObjectURL(mainImagePreviewUrl);
+      }
 
+      subImagePreviewUrls.forEach((url) => {
+        if (url.startsWith("blob:")) {
+          URL.revokeObjectURL(url);
+        }
+      });
+    };
+  }, [mainImagePreviewUrl, subImagePreviewUrls]);
 
-  /* ================= HANDLERS ================= */
-  const updateField = <K extends keyof ProductFormData>(
-    key: K,
-    value: ProductFormData[K]
-  ) => {
+  const updateField = <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => {
     setForm((prev) => ({
       ...prev,
       [key]: value,
     }));
   };
 
+  const handleMainImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] ?? null;
+    setMainImage(file);
+    setMainImagePreviewUrl(file ? URL.createObjectURL(file) : form.mainImageUrl ?? null);
+  };
 
-  /* ================= SUBMIT ================= */
+  const handleSubImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    setSubImages(files);
+    setSubImagePreviewUrls(
+      files.length > 0
+        ? files.map((file) => URL.createObjectURL(file))
+        : form.secondaryImageUrls ?? []
+    );
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
 
     try {
       const payload: CreateProductPayload = {
         ...form,
         mainImage,
         subImages,
+        keepSecondaryUrls: form.secondaryImageUrls ?? [],
       };
 
-
-      if (product && product.id) {
+      if (product?.id) {
         await AdminProductService.update(product.id, payload);
       } else {
         await AdminProductService.create(payload);
       }
-
 
       onSuccess?.();
     } catch (error) {
@@ -114,19 +118,9 @@ export default function ProductForm({
     }
   };
 
-
-
-
-  /* ================= UI ================= */
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="space-y-6 text-sm max-h-[75vh] overflow-y-auto pr-2"
-    >
-
-
-      {/* ================= BASIC INFO ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <form onSubmit={handleSubmit} className="space-y-6 max-h-[75vh] overflow-y-auto pr-2 text-sm">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
           <label className="mb-1 block font-medium">Tên sản phẩm</label>
           <input
@@ -139,49 +133,37 @@ export default function ProductForm({
         </div>
       </div>
 
-
-      {/* ================= DESCRIPTION ================= */}
       <div>
         <label className="mb-1 block font-medium">Mô tả</label>
         <textarea
           rows={4}
           value={form.description}
-          onChange={(e) =>
-            updateField("description", e.target.value)
-          }
+          onChange={(e) => updateField("description", e.target.value)}
           placeholder="Mô tả chi tiết sản phẩm..."
           className="w-full rounded-lg border px-3 py-2"
         />
       </div>
 
-
-      {/* ================= PRICE & QUANTITY ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div>
           <label className="mb-1 block font-medium">Giá</label>
           <input
             type="number"
             value={form.price}
-            onChange={(e) =>
-              updateField("price", Number(e.target.value))
-            }
+            onChange={(e) => updateField("price", Number(e.target.value))}
             className="w-full rounded-lg border px-3 py-2"
           />
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Số lượng</label>
           <input
             type="number"
             value={form.quantity}
-            onChange={(e) =>
-              updateField("quantity", Number(e.target.value))
-            }
+            onChange={(e) => updateField("quantity", Number(e.target.value))}
             className="w-full rounded-lg border px-3 py-2"
           />
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Trạng thái</label>
@@ -198,24 +180,17 @@ export default function ProductForm({
             <option value="Available">Đang bán</option>
             <option value="OutOfStock">Hết hàng</option>
             <option value="Discontinued">Ngừng kinh doanh</option>
-
-
           </select>
         </div>
       </div>
 
-
-      {/* ================= ATTRIBUTES ================= */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <div>
           <label className="mb-1 block font-medium">Danh mục</label>
           <select
             value={form.categoryId ?? ""}
             onChange={(e) =>
-              updateField(
-                "categoryId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+              updateField("categoryId", e.target.value ? Number(e.target.value) : undefined)
             }
             className="w-full rounded-lg border px-3 py-2"
           >
@@ -226,20 +201,14 @@ export default function ProductForm({
               </option>
             ))}
           </select>
-
-
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Thương hiệu</label>
           <select
             value={form.brandId ?? ""}
             onChange={(e) =>
-              updateField(
-                "brandId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+              updateField("brandId", e.target.value ? Number(e.target.value) : undefined)
             }
             className="w-full rounded-lg border px-3 py-2"
           >
@@ -250,20 +219,14 @@ export default function ProductForm({
               </option>
             ))}
           </select>
-
-
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Chất liệu</label>
           <select
             value={form.materialId ?? ""}
             onChange={(e) =>
-              updateField(
-                "materialId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+              updateField("materialId", e.target.value ? Number(e.target.value) : undefined)
             }
             className="w-full rounded-lg border px-3 py-2"
           >
@@ -272,24 +235,16 @@ export default function ProductForm({
               <option key={m.id} value={m.id}>
                 {m.name}
               </option>
-
-
             ))}
           </select>
-
-
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Xuất xứ</label>
           <select
             value={form.originId ?? ""}
             onChange={(e) =>
-              updateField(
-                "originId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+              updateField("originId", e.target.value ? Number(e.target.value) : undefined)
             }
             className="w-full rounded-lg border px-3 py-2"
           >
@@ -300,23 +255,15 @@ export default function ProductForm({
               </option>
             ))}
           </select>
-
-
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Giới tính</label>
           <select
             value={form.sexId ?? ""}
             onChange={(e) =>
-              updateField(
-                "sexId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
+              updateField("sexId", e.target.value ? Number(e.target.value) : undefined)
             }
-
-
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn giới tính --</option>
@@ -324,27 +271,15 @@ export default function ProductForm({
               <option key={s.id} value={s.id}>
                 {s.name}
               </option>
-
-
             ))}
           </select>
-
-
         </div>
-
 
         <div>
           <label className="mb-1 block font-medium">Độ tuổi</label>
           <select
             value={form.ageId ?? ""}
-            onChange={(e) =>
-              updateField(
-                "ageId",
-                e.target.value ? Number(e.target.value) : undefined
-              )
-            }
-
-
+            onChange={(e) => updateField("ageId", e.target.value ? Number(e.target.value) : undefined)}
             className="w-full rounded-lg border px-3 py-2"
           >
             <option value="">-- Chọn độ tuổi --</option>
@@ -352,83 +287,52 @@ export default function ProductForm({
               <option key={a.id} value={a.id}>
                 {a.name}
               </option>
-
-
             ))}
           </select>
-
-
         </div>
       </div>
 
-
-      {/* ================= IMAGES ================= */}
       <div>
         <label className="mb-2 block font-medium">Ảnh sản phẩm</label>
 
+        <input type="file" accept="image/*" onChange={handleMainImageChange} />
 
-        {/* MAIN IMAGE */}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) =>
-            setMainImage(e.target.files?.[0] ?? null)
-          }
-        />
-
-
-        {mainImage && (
+        {mainImagePreviewUrl && (
           <div className="mt-3">
             <img
-              src={URL.createObjectURL(mainImage)}
-              alt="Preview"
-              className="h-24 w-24 rounded object-cover border"
+              src={mainImagePreviewUrl}
+              alt="Main preview"
+              className="h-24 w-24 rounded border object-cover"
             />
           </div>
         )}
 
-
-        {/* SUB IMAGES */}
         <input
           type="file"
           accept="image/*"
           multiple
           className="mt-2"
-          onChange={(e) =>
-            setSubImages(Array.from(e.target.files ?? []))
-          }
+          onChange={handleSubImagesChange}
         />
 
-
-        {subImages.length > 0 && (
-          <div className="mt-3 flex gap-2 flex-wrap">
-            {subImages.map((file, index) => (
+        {subImagePreviewUrls.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {subImagePreviewUrls.map((url, index) => (
               <img
-                key={index}
-                src={URL.createObjectURL(file)}
-                alt="Sub Preview"
-                className="h-20 w-20 rounded object-cover border"
+                key={`${url}-${index}`}
+                src={url}
+                alt="Sub preview"
+                className="h-20 w-20 rounded border object-cover"
               />
             ))}
           </div>
         )}
-
-
       </div>
 
-
-
-
-      {/* ================= ACTIONS ================= */}
       <div className="flex justify-end gap-3 border-t pt-4">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="rounded-lg border px-4 py-2"
-        >
+        <button type="button" onClick={onCancel} className="rounded-lg border px-4 py-2">
           Hủy
         </button>
-
 
         <button
           type="submit"
@@ -436,16 +340,7 @@ export default function ProductForm({
         >
           {submitText}
         </button>
-
-
-
-
       </div>
     </form>
   );
 }
-
-
-
-
-
