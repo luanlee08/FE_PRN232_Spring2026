@@ -10,120 +10,38 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
+import { CustomerProductService }
+  from "@/services/customer_services/customer.product.service";
+import { API_BASE } from "@/configs/api-configs";
 
-const PRODUCTS = [
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Gấu Bông Gối Ôm Ngủ Dễ Thương Siêu Mềm",
-    price: 45000,
-    originalPrice: 90000,
-    sold: 2500,
-    badge: "Yêu thích",
-    badgeColor: "bg-orange-400",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Bộ Lego 500 Chi Tiết Xây Dựng Sáng Tạo",
-    price: 84599,
-    originalPrice: 98000,
-    sold: 3100,
-    badge: "Rẻ Vô Địch",
-    badgeColor: "bg-red-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Xe Điều Khiển Từ Xa 4WD Địa Hình Cực Mạnh",
-    price: 74000,
-    originalPrice: 98000,
-    sold: 20000,
-    discount: 25,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1606665503444-ab4bc9017371?w=300&q=80",
-    name: "Mua 1 Tặng 1 Robot Khoa Học Lập Trình",
-    price: 159000,
-    originalPrice: 299000,
-    sold: 1000,
-    badge: "Mua 1 Tặng 1",
-    badgeColor: "bg-purple-500",
-    hasVideo: true,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Hộp 120 Bút Vẽ Acrylic Nhiều Màu Sắc",
-    price: 50997,
-    originalPrice: 85000,
-    sold: 5000,
-    badge: "Giảm 30k",
-    badgeColor: "bg-green-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Búp Bê Công Chúa Tương Tác Thông Minh",
-    price: 65000,
-    originalPrice: 130000,
-    sold: 47,
-    discount: 50,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Loa Bluetooth Hình Thú Không Dây Xinh Xắn",
-    price: 69000,
-    originalPrice: 99000,
-    sold: 10000,
-    badge: "Giảm 30k",
-    badgeColor: "bg-yellow-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Trượt Patin LED Phát Sáng An Toàn",
-    price: 159000,
-    originalPrice: 299000,
-    sold: 3200,
-    discount: 47,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1606665503444-ab4bc9017371?w=300&q=80",
-    name: "Bộ Tô Màu 360 Chi Tiết Sáng Tạo Nghệ Thuật",
-    price: 109760,
-    originalPrice: 200000,
-    sold: 4,
-    badge: "Rẻ Vô Địch",
-    badgeColor: "bg-red-600",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Trò Chơi Board Game Gia Đình Vui Nhộn",
-    price: 32999,
-    originalPrice: 65000,
-    sold: 20000,
-    badge: "Mua 1 Tặng 1",
-    badgeColor: "bg-indigo-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Xe Đạp Trẻ Em Kiểu Dáng Hiện Đại",
-    price: 49000,
-    originalPrice: 99000,
-    sold: 20000,
-    discount: 11,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Mô Hình Tàu Vũ Trụ Khoa Học Sáng Tạo",
-    price: 49999,
-    originalPrice: 99000,
-    sold: 10000,
-    discount: 28,
-  },
-];
+import { ProductStorefront }
+  from "@/types/products";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
-  const [displayedProducts] = useState(PRODUCTS);
+  const [products, setProducts] = useState<ProductStorefront[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { user, logout } = useAuth();
-  const router = useRouter();
 
+  const router = useRouter();
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const result = await CustomerProductService.getProducts({
+          page: page,
+          pageSize: 8,
+        });
+
+        setProducts(result.items);
+        setTotalPages(result.totalPages);
+      } catch (err) {
+        console.error("Fetch products failed", err);
+      }
+    };
+
+    fetchProducts();
+  }, [page]);
   // Bảo vệ trang - chỉ cho Customer vào
   useEffect(() => {
     if (user && user.roleName !== "Customer") {
@@ -169,19 +87,19 @@ export default function Home() {
           </div>
 
           {/* Products Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {displayedProducts.map((product, index) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-3">
+            {products.map((product) => (
               <ProductCard
-                key={index}
-                image={product.image}
-                name={product.name}
+                key={product.id}
+                id={product.id}
+                image={
+                  product.mainImageUrl
+                    ? `${API_BASE}${product.mainImageUrl}`
+                    : "/placeholder.svg"
+                }
+                name={product.productName}
                 price={product.price}
-                originalPrice={product.originalPrice}
-                discount={product.discount}
-                sold={product.sold}
-                badge={product.badge}
-                badgeColor={product.badgeColor}
-                hasVideo={product.hasVideo}
+              // sold={0}
               />
             ))}
           </div>
@@ -194,7 +112,33 @@ export default function Home() {
           </div> */}
         </div>
       </div>
+      <div className="mt-8 flex justify-center items-center gap-4">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((prev) => prev - 1)}
+          className={`px-4 py-2 border rounded ${page === 1
+              ? "bg-gray-200 cursor-not-allowed"
+              : "bg-white hover:bg-gray-100"
+            }`}
+        >
+          ← Trước
+        </button>
 
+        <span className="font-medium">
+          Trang {page} / {totalPages}
+        </span>
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage((prev) => prev + 1)}
+          className={`px-4 py-2 border rounded ${page === totalPages
+              ? "bg-gray-200 cursor-not-allowed"
+              : "bg-white hover:bg-gray-100"
+            }`}
+        >
+          Sau →
+        </button>
+      </div>
       <Footer />
     </div>
   );

@@ -11,6 +11,8 @@ interface ProductAdminResponse {
   sku: string;
   productName: string;
   price: number;
+  stockQuantity: number;
+  descriptionHtml?: string | null;
   productStatus: "Available" | "OutOfStock" | "Discontinued";
   createdAt: string;
   updatedAt: string | null;
@@ -33,6 +35,8 @@ export interface ProductAdmin {
   sku: string;
   name: string;
   price: number;
+  quantity: number;       // thêm
+  description?: string;   // thêm
   status: "Available" | "OutOfStock" | "Discontinued";
   createdAt: string;
   updatedAt: string | null;
@@ -94,6 +98,8 @@ export const AdminProductService = {
           sku: p.sku,
           name: p.productName,
           price: p.price,
+          quantity: p.stockQuantity,       // thêm
+          description: p.descriptionHtml ?? undefined,
           status: p.productStatus,
           createdAt: p.createdAt,
           updatedAt: p.updatedAt,
