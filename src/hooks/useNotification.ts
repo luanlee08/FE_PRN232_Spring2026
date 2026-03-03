@@ -30,11 +30,11 @@ export const notificationKeys = {
  * Passes status + pageSize filters to the API.
  */
 export function useNotifications(query: NotificationQuery = {}) {
-  const { status, pageSize = 20 } = query;
+  const { status, pageSize = 20, page = 1 } = query;
 
   return useQuery({
     queryKey: notificationKeys.list(query),
-    queryFn: () => CustomerNotificationService.getNotifications(status, pageSize),
+    queryFn: () => CustomerNotificationService.getNotifications(status, pageSize, page),
     staleTime: 0, // Always re-fetch — notifications should feel real-time
     select: (res) => res.data,
   });

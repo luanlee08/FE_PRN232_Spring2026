@@ -1,30 +1,52 @@
 // services/admin_services/admin.notification.service.ts
 
-import { API_BASE, API_ENDPOINTS } from "@/configs/api-configs";
+import { API_ENDPOINTS } from "@/configs/api-configs";
 import axiosInstance from '@/lib/api/axios';
+import type { ActionType, AdminNotificationType } from '@/types/notification';
 
 /* ================= TYPES ================= */
 
-export type TargetType = "All" | "Specific" | "Condition";
+export type TargetType = "All" | "User" | "Role" | "Condition";
 
 export interface SendNotificationRequest {
+  templateCode?: string;           // Optional: auto-fills title/message from DB template
+  title: string;
+  message: string;
+  imageUrl?: string;               // Optional image for notification card
+  actionType?: ActionType;         // 'product' | 'voucher' | 'url' | 'none'
+  actionTarget?: string;           // productId, voucherCode, or URL
+  payload?: string;                // Legacy JSON payload (backward compat)
+  targetType: TargetType;
+  targetUserIds?: number[];        // For TargetType = "User" (multi-select)
+  scheduledFor?: string;           // ISO datetime string for scheduled delivery
+}
+
+export interface TemplateOptionDto {
   templateCode: string;
   title: string;
   message: string;
-  payload?: string; // JSON string
-  targetType: TargetType;
-  targetUserIds?: number[]; // For Specific target type
-  conditionJson?: string; // For Condition target type (optional/advanced)
-  scheduledFor?: string; // ISO datetime string for scheduled notifications
+}
+
+export interface AccountSearchResultDto {
+  accountId: number;
+  accountName: string;
+  email: string;
+  phoneNumber?: string;
+  image?: string;
 }
 
 export interface NotificationDeliveryDto {
   deliveryId: number;
   accountId: number;
+  accountName?: string;   // resolved by mapper from Account join
+  accountEmail?: string;  // resolved by mapper from Account join
   templateCode: string;
   title: string;
   message: string;
   payload?: string;
+  imageUrl?: string;
+  actionType?: string;
+  actionTarget?: string;
   status: "Unread" | "Read";
   createdAt: string;
   createdByJobId?: number;
@@ -77,7 +99,19 @@ export const AdminNotificationService = {
   async sendNotification(
     request: SendNotificationRequest
   ): Promise<ApiResponse<any>> {
-    const res = await axiosInstance.post(API_ENDPOINTS.ADMIN_NOTIFICATIONS, request);
+    // Map FE request to BE expected format
+    const payload = {
+      templateCode: request.templateCode || undefined,
+      title: request.title,
+      message: request.message,
+      imageUrl: request.imageUrl || undefined,
+      actionType: request.actionType && request.actionType !== 'none' ? request.actionType : undefined,
+      actionTarget: request.actionTarget || undefined,
+      targetType: request.targetType,
+      targetUserIds: request.targetType === 'User' ? request.targetUserIds : undefined,
+      scheduledAt: request.scheduledFor || undefined,
+    };
+    const res = await axiosInstance.post(API_ENDPOINTS.ADMIN_NOTIFICATIONS, payload);
     return res.data;
   },
 
@@ -114,6 +148,24 @@ export const AdminNotificationService = {
    */
   async deleteNotification(id: number): Promise<ApiResponse<void>> {
     const res = await axiosInstance.delete(API_ENDPOINTS.ADMIN_NOTIFICATION_BY_ID(id));
+    return res.data;
+  },
+
+  /**
+   * Get all admin-allowed templates for dropdown (with auto-fill support)
+   */
+  async getTemplates(): Promise<ApiResponse<TemplateOptionDto[]>> {
+    const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS_TEMPLATES);
+    return res.data;
+  },
+
+  /**
+   * Search users by name / email / phone for multi-select targeting
+   */
+  async searchUsers(q: string, pageSize = 10): Promise<ApiResponse<AccountSearchResultDto[]>> {
+    const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS_USER_SEARCH, {
+      params: { q, pageSize }
+    });
     return res.data;
   },
 };

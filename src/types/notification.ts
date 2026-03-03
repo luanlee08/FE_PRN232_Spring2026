@@ -9,6 +9,17 @@ export enum NotificationCategory {
   OTHER = "OTHER",
 }
 
+/** Admin-facing notification type used in the send form */
+export type AdminNotificationType =
+  | 'new_product'
+  | 'voucher'
+  | 'promotion'
+  | 'system'
+  | 'custom';
+
+/** Action type for click navigation */
+export type ActionType = 'product' | 'voucher' | 'url' | 'none';
+
 // Mapping from Template Code to Category
 export const TemplateCategoryMap: Record<string, NotificationCategory> = {
   // Order related templates
@@ -36,7 +47,7 @@ export const TemplateCategoryMap: Record<string, NotificationCategory> = {
   ACCOUNT_UPDATE: NotificationCategory.SYSTEM,
 };
 
-// Notification Payload Interfaces for deep linking (future use)
+// Notification Payload Interfaces for deep linking (legacy / backward-compat)
 export interface BaseNotificationPayload {
   type: string;
   link?: string; // Deep link path
@@ -87,7 +98,10 @@ export interface NotificationDto {
   templateCode: string;
   title: string;
   message: string;
-  payload?: string; // JSON string — deserialize with NotificationPayload union
+  payload?: string; // JSON string — deserialize with NotificationPayload union (legacy)
+  imageUrl?: string | null;
+  actionType?: ActionType | null;   // 'product' | 'voucher' | 'url' | 'none'
+  actionTarget?: string | null;     // productId, voucherCode, or URL
   status: 'Unread' | 'Read';
   createdAt: string;
 }

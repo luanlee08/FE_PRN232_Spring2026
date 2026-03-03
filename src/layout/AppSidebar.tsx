@@ -48,8 +48,13 @@ const navItems: NavItem[] = [
 
   {
     icon: <Bell />,
-    name: "Quản lý thông báo",
-    path: "/admin/notifications",
+    name: "Thông báo",
+    subItems: [
+      { name: "Gửi nhanh / Lịch sử", path: "/admin/notifications", pro: false },
+      { name: "Chiến dịch", path: "/admin/campaigns", pro: false },
+      { name: "Tạo chiến dịch", path: "/admin/campaigns/create", pro: false },
+      { name: "Template", path: "/admin/templates", pro: false },
+    ],
   },
   {
     name: "Quản lý đánh giá",

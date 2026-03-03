@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Eye, Trash2, Calendar, User, Users } from "lucide-react";
+import { Eye, Trash2, Calendar, User, Users, Image as ImageIcon, Link2, Tag } from "lucide-react";
 import { NotificationDeliveryDto } from "@/services/admin_services/admin.notification.service";
 import { getCategoryFromTemplate, getCategoryLabel, getCategoryColor } from "@/utils/notification.helpers";
 import { Modal } from "../ui/modal";
@@ -11,15 +11,19 @@ interface NotificationHistoryTableProps {
   notifications: NotificationDeliveryDto[];
   isLoading?: boolean;
   onRefresh?: () => void;
+  onDelete?: (id: number) => Promise<void>;
 }
 
 const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
   notifications,
   isLoading = false,
   onRefresh,
+  onDelete,
 }) => {
   const [selectedNotification, setSelectedNotification] = useState<NotificationDeliveryDto | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   // Format date
   const formatDate = (dateStr: string) => {
@@ -44,6 +48,24 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
   const handleViewDetail = (notification: NotificationDeliveryDto) => {
     setSelectedNotification(notification);
     setIsDetailModalOpen(true);
+  };
+
+  // Delete with confirmation
+  const handleDeleteClick = (id: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmDeleteId(id);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!confirmDeleteId || !onDelete) return;
+    setDeletingId(confirmDeleteId);
+    setConfirmDeleteId(null);
+    try {
+      await onDelete(confirmDeleteId);
+      onRefresh?.();
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // Parse payload safely
@@ -83,7 +105,7 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
                 Tiêu đề
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
-                User ID
+                Người nhận
               </th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Trạng thái
@@ -129,8 +151,15 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
                     <td className="px-4 py-3 text-sm font-medium text-gray-800 dark:text-gray-200 max-w-xs truncate">
                       {notification.title}
                     </td>
-                    <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
-                      {notification.accountId}
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                          {notification.accountName ?? `Người dùng #${notification.accountId}`}
+                        </span>
+                        {notification.accountEmail && (
+                          <span className="text-xs text-gray-400">{notification.accountEmail}</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span
@@ -155,14 +184,27 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
                       )}
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <button
-                        onClick={() => handleViewDetail(notification)}
-                        className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 transition dark:bg-blue-600 dark:hover:bg-blue-700"
-                        title="Xem chi tiết"
-                      >
-                        <Eye size={14} />
-                        Chi tiết
-                      </button>
+                      <div className="flex items-center justify-center gap-2">
+                        <button
+                          onClick={() => handleViewDetail(notification)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-blue-500 px-3 py-1.5 text-sm text-white hover:bg-blue-600 transition dark:bg-blue-600 dark:hover:bg-blue-700"
+                          title="Xem chi tiết"
+                        >
+                          <Eye size={14} />
+                          Chi tiết
+                        </button>
+                        {onDelete && (
+                          <button
+                            onClick={(e) => handleDeleteClick(notification.deliveryId, e)}
+                            disabled={deletingId === notification.deliveryId}
+                            className="inline-flex items-center gap-1 rounded-lg bg-red-50 px-3 py-1.5 text-sm text-red-600 hover:bg-red-100 transition dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 disabled:opacity-50"
+                            title="Xóa thông báo"
+                          >
+                            <Trash2 size={14} />
+                            Xóa
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -260,11 +302,14 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    User ID
+                    Người nhận
                   </label>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    {selectedNotification.accountId}
+                  <p className="text-sm text-gray-800 dark:text-gray-200 mt-1 font-medium">
+                    {selectedNotification.accountName ?? `#${selectedNotification.accountId}`}
                   </p>
+                  {selectedNotification.accountEmail && (
+                    <p className="text-xs text-gray-400 mt-0.5">{selectedNotification.accountEmail}</p>
+                  )}
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -281,6 +326,45 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
                   </div>
                 </div>
               </div>
+
+              {/* Rich fields */}
+              {(selectedNotification.imageUrl || selectedNotification.actionType) && (
+                <div className="space-y-3 rounded-lg bg-gray-50 dark:bg-gray-800/50 p-3">
+                  {selectedNotification.imageUrl && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-1">
+                        <ImageIcon className="w-3.5 h-3.5" /> Ảnh
+                      </label>
+                      <div className="rounded-lg overflow-hidden h-32 bg-gray-200 dark:bg-gray-700">
+                        <img
+                          src={selectedNotification.imageUrl}
+                          alt="notification image"
+                          className="w-full h-full object-cover"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                        />
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1 truncate">{selectedNotification.imageUrl}</p>
+                    </div>
+                  )}
+                  {selectedNotification.actionType && selectedNotification.actionType !== "none" && (
+                    <div>
+                      <label className="text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-1">
+                        <Link2 className="w-3.5 h-3.5" /> Hành động khi click
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                          {selectedNotification.actionType === "product" && "🛒 Sản phẩm"}
+                          {selectedNotification.actionType === "voucher" && "🎟️ Voucher"}
+                          {selectedNotification.actionType === "url" && "🔗 URL"}
+                        </span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                          {selectedNotification.actionTarget}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Time Info */}
               <div className="grid grid-cols-2 gap-4">
@@ -317,6 +401,35 @@ const NotificationHistoryTable: React.FC<NotificationHistoryTableProps> = ({
               >
                 Đóng
               </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      {/* Confirm Delete Dialog */}
+      {confirmDeleteId !== null && (
+        <Modal
+          isOpen={confirmDeleteId !== null}
+          onClose={() => setConfirmDeleteId(null)}
+          className="max-w-sm mx-4"
+        >
+          <div className="p-6 text-center">
+            <div className="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mx-auto mb-4">
+              <Trash2 className="w-6 h-6 text-red-600 dark:text-red-400" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Xóa thông báo?</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+              Hành động này không thể hoàn tác. Thông báo sẽ bị xóa vĩnh viễn.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button size="md" variant="outline" onClick={() => setConfirmDeleteId(null)}>
+                Hủy
+              </Button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-semibold rounded-lg transition"
+              >
+                Xóa
+              </button>
             </div>
           </div>
         </Modal>
