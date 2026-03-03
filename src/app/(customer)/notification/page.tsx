@@ -11,9 +11,10 @@ import {
   Package,
   Tag,
   Wallet,
-  Info,
+  ChevronDown,
+  Loader2,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter } from "next/navigation";
 import {
@@ -26,10 +27,14 @@ import { NotificationCategory } from "@/types/notification";
 import {
   getCategoryFromTemplate,
   getCategoryLabel,
-  getCategoryIcon,
   getCategoryColor,
   parseNotificationPayload,
 } from "@/utils/notification.helpers";
+import {
+  useMarkAsRead,
+  useMarkAllAsRead,
+  useDeleteNotification,
+} from "@/hooks/useNotification";
 
 type TabKey = "all" | "unread" | "read";
 
@@ -38,6 +43,8 @@ const TABS: { key: TabKey; label: string; status?: string }[] = [
   { key: "unread", label: "Chưa đọc", status: "Unread" },
   { key: "read", label: "Đã đọc", status: "Read" },
 ];
+
+const PAGE_SIZE = 20;
 
 // Category filter options
 const CATEGORY_FILTERS = [
@@ -63,13 +70,21 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function NotificationPage() {
-  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
+  const [allItems, setAllItems] = useState<NotificationDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetchingMore, setIsFetchingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [page, setPage] = useState(1);
   const [activeTab, setActiveTab] = useState<TabKey>("all");
   const [activeCategory, setActiveCategory] = useState<string>("all");
-  const [deletingIds, setDeletingIds] = useState<Set<number>>(new Set());
+
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
+
+  // React Query mutations — these auto-invalidate ['notifications'] so the navbar badge syncs
+  const markAsReadMutation = useMarkAsRead();
+  const markAllAsReadMutation = useMarkAllAsRead();
+  const deleteNotificationMutation = useDeleteNotification();
 
   // Auth guard
   useEffect(() => {
@@ -79,139 +94,164 @@ export default function NotificationPage() {
     }
   }, [isAuthenticated, authLoading, router]);
 
-  // Fetch notifications
-  const fetchNotifications = useCallback(
-    async (tab: TabKey = activeTab) => {
+  // ─── Core fetch: fetch a single page, optionally append ──────────
+  const fetchPage = useCallback(
+    async (tab: TabKey, pageNum: number, append: boolean) => {
+      const status = TABS.find((t) => t.key === tab)?.status;
+
+      if (!append) setIsLoading(true);
+      else setIsFetchingMore(true);
+
       try {
-        setIsLoading(true);
-        const status = TABS.find((t) => t.key === tab)?.status;
-        const res = await CustomerNotificationService.getNotifications(status);
+        const res = await CustomerNotificationService.getNotifications(
+          status,
+          PAGE_SIZE,
+          pageNum,
+        );
         if (res.status === 200 && res.data) {
-          // Ensure we always set an array
-          const items = Array.isArray(res.data.items) ? res.data.items : [];
-          setNotifications(items);
+          const items: NotificationDto[] = Array.isArray(res.data.items)
+            ? res.data.items
+            : [];
+          const totalCount: number = res.data.totalCount ?? 0;
+
+          setAllItems((prev) => (append ? [...prev, ...items] : items));
+          setPage(pageNum);
+          setHasMore(items.length === PAGE_SIZE && pageNum * PAGE_SIZE < totalCount);
         }
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-        setNotifications([]); // Reset to empty array on error
+      } catch {
+        if (!append) setAllItems([]);
       } finally {
-        setIsLoading(false);
+        if (!append) setIsLoading(false);
+        else setIsFetchingMore(false);
       }
     },
-    [activeTab],
+    [],
   );
 
+  // Re-fetch from page 1 whenever isAuthenticated or activeTab changes (no double-fetch)
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchNotifications();
-    }
-  }, [isAuthenticated, fetchNotifications]);
+    if (!isAuthenticated) return;
+    fetchPage(activeTab, 1, false);
+  }, [isAuthenticated, activeTab, fetchPage]);
 
-  // Tab change
+  // Tab change — just update state; the useEffect above handles fetch
   const handleTabChange = (tab: TabKey) => {
+    if (tab === activeTab) return;
+    setAllItems([]);
+    setHasMore(false);
+    setPage(1);
     setActiveTab(tab);
-    fetchNotifications(tab);
   };
 
-  // Mark one as read
+  // ─── Load more ───────────────────────────────────────────────────
+  const handleLoadMore = () => {
+    if (isFetchingMore || !hasMore) return;
+    fetchPage(activeTab, page + 1, true);
+  };
+
+  // ─── Mark one as read ─────────────────────────────────────────────
   const handleMarkRead = async (notif: NotificationDto) => {
     if (notif.status === "Read") return;
     try {
-      const res = await CustomerNotificationService.markAsRead(notif.deliveryId);
-      if (res.status === 200) {
-        setNotifications((prev) =>
-          prev.map((n) => (n.deliveryId === notif.deliveryId ? { ...n, status: "Read" } : n)),
-        );
-      }
+      await markAsReadMutation.mutateAsync(notif.deliveryId);
+      setAllItems((prev) =>
+        prev.map((n) =>
+          n.deliveryId === notif.deliveryId ? { ...n, status: "Read" } : n,
+        ),
+      );
     } catch {
       toast.error("Không thể đánh dấu đã đọc");
     }
   };
 
-  // Handle notification click (mark as read + navigate to link from payload)
+  // ─── Notification click: mark read + navigate ─────────────────────
   const handleNotificationClick = async (notif: NotificationDto) => {
-    // Mark as read if unread
     if (notif.status === "Unread") {
       try {
-        await CustomerNotificationService.markAsRead(notif.deliveryId);
-        setNotifications((prev) =>
-          prev.map((n) => (n.deliveryId === notif.deliveryId ? { ...n, status: "Read" } : n)),
+        await markAsReadMutation.mutateAsync(notif.deliveryId);
+        setAllItems((prev) =>
+          prev.map((n) =>
+            n.deliveryId === notif.deliveryId ? { ...n, status: "Read" } : n,
+          ),
         );
-      } catch (error) {
-        console.error("Failed to mark notification as read:", error);
+      } catch {
+        // silent — still navigate
+      }
+    }
+    if (notif.actionType && notif.actionType !== "none" && notif.actionTarget) {
+      if (notif.actionType === "product") {
+        router.push(`/products/${notif.actionTarget}`);
+        return;
+      }
+      if (notif.actionType === "voucher") {
+        router.push(`/vouchers?code=${encodeURIComponent(notif.actionTarget)}`);
+        return;
+      }
+      if (notif.actionType === "url") {
+        // Internal path → use router; external → window.open
+        if (notif.actionTarget.startsWith("/")) {
+          router.push(notif.actionTarget);
+        } else {
+          window.open(notif.actionTarget, "_blank", "noopener,noreferrer");
+        }
+        return;
       }
     }
 
-    // Parse payload and navigate to link
+    // ── Fallback: legacy JSON payload link ──
     if (notif.payload) {
       const payload = parseNotificationPayload(notif.payload);
       if (payload?.link) {
         router.push(payload.link);
       } else if (payload) {
-        // Fallback: Determine default link based on notification category
         const category = getCategoryFromTemplate(notif.templateCode);
         if (category === NotificationCategory.ORDER && payload.type === "order") {
-          router.push(`/orders/${payload.orderId}`);
+          router.push(`/orders/${(payload as any).orderId}`);
         } else if (
           category === NotificationCategory.PROMOTION &&
           payload.type === "promotion" &&
-          payload.voucherId
+          (payload as any).voucherId
         ) {
-          router.push(`/vouchers/${payload.voucherId}`);
+          router.push(`/vouchers/${(payload as any).voucherId}`);
         } else if (category === NotificationCategory.PAYMENT && payload.type === "payment") {
-          // Payment notifications usually link back to order
-          const paymentPayload = payload as any;
-          if (paymentPayload.orderId) {
-            router.push(`/orders/${paymentPayload.orderId}`);
-          }
+          const p = payload as any;
+          if (p.orderId) router.push(`/orders/${p.orderId}`);
         }
       }
     }
   };
 
-  // Mark all as read
+  // ─── Mark all as read ─────────────────────────────────────────────
   const handleMarkAllRead = async () => {
     try {
-      const res = await CustomerNotificationService.markAllAsRead();
-      if (res.status === 200) {
-        setNotifications((prev) => prev.map((n) => ({ ...n, status: "Read" })));
-        toast.success("Đã đánh dấu tất cả là đã đọc");
-      }
+      await markAllAsReadMutation.mutateAsync();
+      setAllItems((prev) => prev.map((n) => ({ ...n, status: "Read" })));
+      toast.success("Đã đánh dấu tất cả là đã đọc");
     } catch {
       toast.error("Không thể đánh dấu tất cả");
     }
   };
 
-  // Delete one
+  // ─── Delete one ───────────────────────────────────────────────────
   const handleDelete = async (id: number) => {
-    setDeletingIds((prev) => new Set(prev).add(id));
     try {
-      const res = await CustomerNotificationService.deleteNotification(id);
-      if (res.status === 200) {
-        setNotifications((prev) => prev.filter((n) => n.deliveryId !== id));
-        toast.success("Đã xóa thông báo");
-      }
+      await deleteNotificationMutation.mutateAsync(id);
+      setAllItems((prev) => prev.filter((n) => n.deliveryId !== id));
+      toast.success("Đã xóa thông báo");
     } catch {
       toast.error("Không thể xóa thông báo");
-    } finally {
-      setDeletingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(id);
-        return next;
-      });
     }
   };
 
-  const unreadCount = Array.isArray(notifications)
-    ? notifications.filter((n) => n.status === "Unread").length
-    : 0;
+  // ─── Derived values ───────────────────────────────────────────────
+  const unreadCount = allItems.filter((n) => n.status === "Unread").length;
 
-  // Filter notifications by category
-  const filteredNotifications = !Array.isArray(notifications)
-    ? []
-    : activeCategory === "all"
-      ? notifications
-      : notifications.filter((n) => getCategoryFromTemplate(n.templateCode) === activeCategory);
+  const filteredNotifications =
+    activeCategory === "all"
+      ? allItems
+      : allItems.filter(
+          (n) => getCategoryFromTemplate(n.templateCode) === activeCategory,
+        );
 
   // Get icon component for notification category
   const getCategoryIconComponent = (category: NotificationCategory) => {
@@ -253,12 +293,17 @@ export default function NotificationPage() {
               </span>
             )}
           </h1>
-          {Array.isArray(notifications) && notifications.some((n) => n.status === "Unread") && (
+          {allItems.some((n) => n.status === "Unread") && (
             <button
               onClick={handleMarkAllRead}
-              className="flex items-center gap-1.5 text-sm font-medium text-[#FF6B35] hover:text-[#E55A24] transition"
+              disabled={markAllAsReadMutation.isPending}
+              className="flex items-center gap-1.5 text-sm font-medium text-[#FF6B35] hover:text-[#E55A24] transition disabled:opacity-50"
             >
-              <CheckCheck className="w-4 h-4" />
+              {markAllAsReadMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCheck className="w-4 h-4" />
+              )}
               Đọc tất cả
             </button>
           )}
@@ -321,15 +366,17 @@ export default function NotificationPage() {
               </div>
             ))}
           </div>
-        ) : notifications.length === 0 ? (
-          /* Empty state */
+        ) : allItems.length === 0 ? (
+          /* Empty state — tab-aware */
           <div className="bg-white rounded-lg p-12 text-center">
             <BellOff className="w-20 h-20 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-[#222] mb-2">Không có thông báo</h2>
             <p className="text-gray-500 mb-6">
               {activeTab === "unread"
-                ? "Bạn đã đọc hết tất cả thông báo!"
-                : "Bạn chưa có thông báo nào."}
+                ? "Bạn đã đọc hết tất cả thông báo rồi! 🎉"
+                : activeTab === "read"
+                  ? "Bạn chưa đọc thông báo nào."
+                  : "Bạn chưa có thông báo nào."}
             </p>
             <Link
               href="/"
@@ -340,94 +387,155 @@ export default function NotificationPage() {
             </Link>
           </div>
         ) : filteredNotifications.length === 0 ? (
-          /* Empty state for filtered results */
+          /* Empty state — category-aware */
           <div className="bg-white rounded-lg p-12 text-center">
             <BellOff className="w-20 h-20 text-gray-300 mx-auto mb-4" />
             <h2 className="text-xl font-bold text-[#222] mb-2">Không có thông báo</h2>
             <p className="text-gray-500 mb-6">
-              Không tìm thấy thông báo{" "}
-              {getCategoryLabel(activeCategory as NotificationCategory).toLowerCase()} nào.
+              Không có thông báo{" "}
+              {getCategoryLabel(activeCategory as NotificationCategory).toLowerCase()} nào
+              {activeTab !== "all"
+                ? ` ${activeTab === "unread" ? "chưa đọc" : "đã đọc"}`
+                : ""}.
             </p>
           </div>
         ) : (
-          /* Notification list */
-          <div className="space-y-2">
-            {filteredNotifications.map((notif) => {
-              const isUnread = notif.status === "Unread";
-              const isDeleting = deletingIds.has(notif.deliveryId);
-              const category = getCategoryFromTemplate(notif.templateCode);
-              const { IconComponent, colors } = getCategoryIconComponent(category);
+          <>
+            {/* Notification list */}
+            <div className="space-y-2">
+              {filteredNotifications.map((notif) => {
+                const isUnread = notif.status === "Unread";
+                const isDeleting =
+                  deleteNotificationMutation.isPending &&
+                  deleteNotificationMutation.variables === notif.deliveryId;
+                const category = getCategoryFromTemplate(notif.templateCode);
+                const { IconComponent, colors } = getCategoryIconComponent(category);
 
-              return (
-                <div
-                  key={notif.deliveryId}
-                  onClick={() => handleNotificationClick(notif)}
-                  className={`bg-white rounded-lg p-4 flex gap-4 cursor-pointer transition group hover:shadow-md ${
-                    isUnread
-                      ? "border-l-4 border-[#FF6B35] bg-orange-50/40"
-                      : "border-l-4 border-transparent"
-                  } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
-                >
-                  {/* Icon */}
+                return (
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                      isUnread ? `${colors.bg} ${colors.text}` : "bg-gray-100 text-gray-400"
-                    }`}
+                    key={notif.deliveryId}
+                    onClick={() => handleNotificationClick(notif)}
+                    className={`bg-white rounded-lg p-4 flex gap-4 cursor-pointer transition group hover:shadow-md ${
+                      isUnread
+                        ? "border-l-4 border-[#FF6B35] bg-orange-50/40"
+                        : "border-l-4 border-transparent"
+                    } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
                   >
-                    <IconComponent className="w-5 h-5" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3
-                        className={`text-sm leading-5 line-clamp-1 ${
-                          isUnread ? "font-bold text-[#222]" : "font-medium text-gray-600"
-                        }`}
-                      >
-                        {notif.title}
-                      </h3>
-                      {isUnread && (
-                        <span className="w-2 h-2 rounded-full bg-[#FF6B35] shrink-0 mt-1.5" />
-                      )}
+                    {/* Icon */}
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                        isUnread ? `${colors.bg} ${colors.text}` : "bg-gray-100 text-gray-400"
+                      }`}
+                    >
+                      <IconComponent className="w-5 h-5" />
                     </div>
-                    <p className="text-sm text-gray-500 line-clamp-2 mt-1 leading-5">
-                      {notif.message}
-                    </p>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className="text-xs text-gray-400" suppressHydrationWarning>
-                        {timeAgo(notif.createdAt)}
-                      </span>
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      {/* Optional image */}
+                      {notif.imageUrl && (
+                        <div className="mb-2 rounded-lg overflow-hidden h-24 bg-gray-100">
+                          <img
+                            src={notif.imageUrl}
+                            alt=""
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="flex items-start justify-between gap-2">
+                        <h3
+                          className={`text-sm leading-5 line-clamp-1 ${
+                            isUnread ? "font-bold text-[#222]" : "font-medium text-gray-600"
+                          }`}
+                        >
+                          {notif.title}
+                        </h3>
                         {isUnread && (
+                          <span className="w-2 h-2 rounded-full bg-[#FF6B35] shrink-0 mt-1.5" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500 line-clamp-2 mt-1 leading-5">
+                        {notif.message}
+                      </p>
+                      {/* Action indicator */}
+                      {notif.actionType && notif.actionType !== "none" && notif.actionTarget && (
+                        <span className="inline-flex items-center gap-1 mt-1.5 text-xs font-medium text-[#FF6B35]">
+                          {notif.actionType === "product" && "🛒 Xem sản phẩm"}
+                          {notif.actionType === "voucher" && "🎟️ Dùng voucher"}
+                          {notif.actionType === "url" && "🔗 Xem thêm"}
+                          <span className="text-gray-400">→</span>
+                        </span>
+                      )}
+                      <div className="flex items-center justify-between mt-2">
+                        <span
+                          className="text-xs text-gray-400"
+                          suppressHydrationWarning
+                        >
+                          {timeAgo(notif.createdAt)}
+                        </span>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition">
+                          {isUnread && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleMarkRead(notif);
+                              }}
+                              disabled={markAsReadMutation.isPending}
+                              className="p-1 text-gray-400 hover:text-[#FF6B35] transition disabled:opacity-50"
+                              title="Đánh dấu đã đọc"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleMarkRead(notif);
+                              handleDelete(notif.deliveryId);
                             }}
-                            className="p-1 text-gray-400 hover:text-[#FF6B35] transition"
-                            title="Đánh dấu đã đọc"
+                            disabled={isDeleting}
+                            className="p-1 text-gray-400 hover:text-red-500 transition disabled:opacity-50"
+                            title="Xóa thông báo"
                           >
-                            <Check className="w-4 h-4" />
+                            {isDeleting ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-4 h-4" />
+                            )}
                           </button>
-                        )}
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete(notif.deliveryId);
-                          }}
-                          className="p-1 text-gray-400 hover:text-red-500 transition"
-                          title="Xóa thông báo"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+
+            {/* Load more */}
+            {hasMore && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={handleLoadMore}
+                  disabled={isFetchingMore}
+                  className="inline-flex items-center gap-2 px-6 py-2.5 bg-white border border-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition shadow-sm disabled:opacity-50"
+                >
+                  {isFetchingMore ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Đang tải...
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="w-4 h-4" />
+                      Xem thêm
+                    </>
+                  )}
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 

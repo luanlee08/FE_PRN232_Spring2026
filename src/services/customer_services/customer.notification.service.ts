@@ -11,11 +11,13 @@ export const CustomerNotificationService = {
     // Lấy danh sách thông báo
     async getNotifications(
         status?: string,
-        limit: number = 50
+        pageSize: number = 20,
+        page: number = 1
     ): Promise<ApiResponse<PagedResult<NotificationDto>>> {
         const params = new URLSearchParams();
         if (status) params.append('status', status);
-        params.append('limit', limit.toString());
+        params.append('pageSize', pageSize.toString());
+        params.append('page', page.toString());
         const res = await axiosInstance.get(
             `${API_ENDPOINTS.NOTIFICATIONS}?${params.toString()}`
         );

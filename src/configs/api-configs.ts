@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
   NOTIFICATION_MARK_READ: (id: number) => `${API_BASE}/api/notifications/${id}/read`,
   NOTIFICATIONS_READ_ALL: `${API_BASE}/api/notifications/read-all`,
   NOTIFICATION_DELETE: (id: number) => `${API_BASE}/api/notifications/${id}`,
+  RECORD_DELIVERY_ACTION: `${API_BASE}/api/notifications/action`,
 
   // ===== ADMIN ORDERS =====
   ADMIN_ORDERS: `${API_BASE}/api/admin/orders`,
@@ -68,6 +69,20 @@ export const API_ENDPOINTS = {
   ADMIN_NOTIFICATIONS: `${API_BASE}/api/admin/notifications`,
   ADMIN_NOTIFICATION_BY_ID: (id: number) => `${API_BASE}/api/admin/notifications/${id}`,
   ADMIN_NOTIFICATIONS_STATS: `${API_BASE}/api/admin/notifications/stats`,
+  ADMIN_NOTIFICATIONS_TEMPLATES: `${API_BASE}/api/admin/notifications/templates`,
+  ADMIN_NOTIFICATIONS_USER_SEARCH: `${API_BASE}/api/admin/notifications/users/search`,
+
+  // ===== ADMIN CAMPAIGNS =====
+  ADMIN_CAMPAIGNS: `${API_BASE}/api/admin/campaigns`,
+  ADMIN_CAMPAIGN_BY_ID: (id: number) => `${API_BASE}/api/admin/campaigns/${id}`,
+  ADMIN_CAMPAIGN_SEND: (id: number) => `${API_BASE}/api/admin/campaigns/${id}/send`,
+  ADMIN_CAMPAIGN_DUPLICATE: (id: number) => `${API_BASE}/api/admin/campaigns/${id}/duplicate`,
+
+  // ===== ADMIN TEMPLATES =====
+  ADMIN_TEMPLATES: `${API_BASE}/api/admin/templates`,
+  ADMIN_TEMPLATE_BY_ID: (id: number) => `${API_BASE}/api/admin/templates/${id}`,
+  ADMIN_TEMPLATES_ACTIVE: `${API_BASE}/api/admin/templates/active`,
+  ADMIN_TEMPLATE_TOGGLE: (id: number) => `${API_BASE}/api/admin/templates/${id}/toggle-status`,
 
   // ===== ADMIN REVIEWS =====
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
