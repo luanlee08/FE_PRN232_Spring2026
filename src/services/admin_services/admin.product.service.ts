@@ -4,6 +4,17 @@ import axiosInstance from "@/lib/api/axios";
 import { API_BASE, API_ENDPOINTS } from "@/configs/api-configs";
 import { CreateProductPayload } from "@/types/products";
 
+const toRelativeImageUrl = (url: string): string => {
+  if (!url) return "";
+  if (url.startsWith("/")) return url;
+
+  try {
+    return new URL(url).pathname;
+  } catch {
+    return url.replace(API_BASE, "");
+  }
+};
+
 /* ================= BACKEND DTO ================= */
 
 interface ProductAdminResponse {
@@ -11,6 +22,8 @@ interface ProductAdminResponse {
   sku: string;
   productName: string;
   price: number;
+  stockQuantity: number;
+  descriptionHtml?: string | null;
   productStatus: "Available" | "OutOfStock" | "Discontinued";
   createdAt: string;
   updatedAt: string | null;
@@ -33,6 +46,8 @@ export interface ProductAdmin {
   sku: string;
   name: string;
   price: number;
+  quantity: number;       // thêm
+  description?: string;   // thêm
   status: "Available" | "OutOfStock" | "Discontinued";
   createdAt: string;
   updatedAt: string | null;
@@ -94,6 +109,8 @@ export const AdminProductService = {
           sku: p.sku,
           name: p.productName,
           price: p.price,
+          quantity: p.stockQuantity,       // thêm
+          description: p.descriptionHtml ?? undefined,
           status: p.productStatus,
           createdAt: p.createdAt,
           updatedAt: p.updatedAt,
@@ -199,6 +216,15 @@ export const AdminProductService = {
       form.subImages.forEach((file) => {
         formData.append("NewSecondaryImages", file);
       });
+    }
+
+    if (form.keepSecondaryUrls?.length) {
+      form.keepSecondaryUrls
+        .map(toRelativeImageUrl)
+        .filter((url) => !!url)
+        .forEach((url) => {
+          formData.append("KeepSecondaryUrls", url);
+        });
     }
 
     const res = await axiosInstance.put(

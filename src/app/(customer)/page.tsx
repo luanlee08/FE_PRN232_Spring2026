@@ -1,130 +1,46 @@
 "use client";
 
-import { SidebarCategories } from "@/components/customer/sidebar-categories";
 import { CarouselBanner } from "@/components/customer/carousel-banner";
-import { BrandsMarquee } from "@/components/customer/brands-marquee";
 import { ProductCard } from "@/components/customer/product-card";
 import { LoadingScreen } from "@/components/customer/loading-screen";
 import { Footer } from "@/components/customer/footer";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-
-const PRODUCTS = [
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Gấu Bông Gối Ôm Ngủ Dễ Thương Siêu Mềm",
-    price: 45000,
-    originalPrice: 90000,
-    sold: 2500,
-    badge: "Yêu thích",
-    badgeColor: "bg-orange-400",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Bộ Lego 500 Chi Tiết Xây Dựng Sáng Tạo",
-    price: 84599,
-    originalPrice: 98000,
-    sold: 3100,
-    badge: "Rẻ Vô Địch",
-    badgeColor: "bg-red-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Xe Điều Khiển Từ Xa 4WD Địa Hình Cực Mạnh",
-    price: 74000,
-    originalPrice: 98000,
-    sold: 20000,
-    discount: 25,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1606665503444-ab4bc9017371?w=300&q=80",
-    name: "Mua 1 Tặng 1 Robot Khoa Học Lập Trình",
-    price: 159000,
-    originalPrice: 299000,
-    sold: 1000,
-    badge: "Mua 1 Tặng 1",
-    badgeColor: "bg-purple-500",
-    hasVideo: true,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Hộp 120 Bút Vẽ Acrylic Nhiều Màu Sắc",
-    price: 50997,
-    originalPrice: 85000,
-    sold: 5000,
-    badge: "Giảm 30k",
-    badgeColor: "bg-green-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Búp Bê Công Chúa Tương Tác Thông Minh",
-    price: 65000,
-    originalPrice: 130000,
-    sold: 47,
-    discount: 50,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Loa Bluetooth Hình Thú Không Dây Xinh Xắn",
-    price: 69000,
-    originalPrice: 99000,
-    sold: 10000,
-    badge: "Giảm 30k",
-    badgeColor: "bg-yellow-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Trượt Patin LED Phát Sáng An Toàn",
-    price: 159000,
-    originalPrice: 299000,
-    sold: 3200,
-    discount: 47,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1606665503444-ab4bc9017371?w=300&q=80",
-    name: "Bộ Tô Màu 360 Chi Tiết Sáng Tạo Nghệ Thuật",
-    price: 109760,
-    originalPrice: 200000,
-    sold: 4,
-    badge: "Rẻ Vô Địch",
-    badgeColor: "bg-red-600",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1594787318286-3d835c1cab83?w=300&q=80",
-    name: "Trò Chơi Board Game Gia Đình Vui Nhộn",
-    price: 32999,
-    originalPrice: 65000,
-    sold: 20000,
-    badge: "Mua 1 Tặng 1",
-    badgeColor: "bg-indigo-500",
-  },
-  {
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80",
-    name: "Xe Đạp Trẻ Em Kiểu Dáng Hiện Đại",
-    price: 49000,
-    originalPrice: 99000,
-    sold: 20000,
-    discount: 11,
-  },
-  {
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d03b3?w=300&q=80",
-    name: "Mô Hình Tàu Vũ Trụ Khoa Học Sáng Tạo",
-    price: 49999,
-    originalPrice: 99000,
-    sold: 10000,
-    discount: 28,
-  },
-];
+import { CustomerProductService } from "@/services/customer_services/customer.product.service";
+import { API_BASE } from "@/configs/api-configs";
+import { ProductStorefront } from "@/types/products";
 
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
-  const [displayedProducts] = useState(PRODUCTS);
+  const [products, setProducts] = useState<ProductStorefront[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const { user, logout } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const keyword = (searchParams.get("keyword") ?? "").trim();
 
-  // Bảo vệ trang - chỉ cho Customer vào
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const result = await CustomerProductService.getProducts({
+          page,
+          pageSize: 8,
+          keyword: keyword || undefined,
+        });
+
+        setProducts(result.items);
+        setTotalPages(result.totalPages);
+      } catch (err) {
+        console.error("Fetch products failed", err);
+      }
+    };
+
+    fetchProducts();
+  }, [page, keyword]);
+
   useEffect(() => {
     if (user && user.roleName !== "Customer") {
       toast.error("Tài khoản này không có quyền truy cập trang người dùng");
@@ -147,52 +63,64 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#F5F5F5]">
-      {/* <Header /> */}
-
-      {/* Banner */}
-      <div className="pt-6 px-6">
+      <div className="px-6 pt-6">
         <CarouselBanner />
       </div>
-      {/*       
-      <BrandsMarquee /> */}
 
-      <div className="flex max-w-7xl mx-auto gap-0 bg-[#F5F5F5] min-h-screen">
-        {/* <SidebarCategories /> */}
-
-        {/* Main Content */}
+      <div className="mx-auto flex min-h-screen max-w-7xl gap-0 bg-[#F5F5F5]">
         <div className="flex-1 px-6 py-6">
-          {/* Section Title */}
           <div className="mb-6">
-            <h2 className="text-sm font-bold text-[#222] uppercase tracking-wider">
-              Gợi Ý Hôm Nay
+            <h2 className="text-sm font-bold uppercase tracking-wider text-[#222]">
+              {keyword ? `Kết quả tìm kiếm: "${keyword}"` : "Gợi ý hôm nay"}
             </h2>
           </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {displayedProducts.map((product, index) => (
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+            {products.map((product) => (
               <ProductCard
-                key={index}
-                image={product.image}
-                name={product.name}
+                key={product.id}
+                id={product.id}
+                image={
+                  product.mainImageUrl ? `${API_BASE}${product.mainImageUrl}` : "/placeholder.svg"
+                }
+                name={product.productName}
                 price={product.price}
-                originalPrice={product.originalPrice}
-                discount={product.discount}
-                sold={product.sold}
-                badge={product.badge}
-                badgeColor={product.badgeColor}
-                hasVideo={product.hasVideo}
               />
             ))}
           </div>
 
-          {/* Load More */}
-          {/* <div className="mt-8 text-center">
-            <button className="px-12 py-3 bg-white border-2 border-[#FF6B35] text-[#FF6B35] font-medium rounded hover:bg-[#FFF5F0] transition">
-              Xem Thêm Sản Phẩm
-            </button>
-          </div> */}
+          {products.length === 0 && (
+            <div className="mt-8 rounded-md bg-white p-4 text-center text-gray-500">
+              Không tìm thấy sản phẩm phù hợp.
+            </div>
+          )}
         </div>
+      </div>
+
+      <div className="mt-8 flex items-center justify-center gap-4">
+        <button
+          disabled={page === 1}
+          onClick={() => setPage((prev) => prev - 1)}
+          className={`rounded border px-4 py-2 ${
+            page === 1 ? "cursor-not-allowed bg-gray-200" : "bg-white hover:bg-gray-100"
+          }`}
+        >
+          ← Trước
+        </button>
+
+        <span className="font-medium">
+          Trang {page} / {totalPages}
+        </span>
+
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage((prev) => prev + 1)}
+          className={`rounded border px-4 py-2 ${
+            page === totalPages ? "cursor-not-allowed bg-gray-200" : "bg-white hover:bg-gray-100"
+          }`}
+        >
+          Sau →
+        </button>
       </div>
 
       <Footer />

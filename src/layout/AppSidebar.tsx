@@ -18,7 +18,7 @@ import {
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Package, Box, Receipt, TicketPercent, Bell } from "lucide-react";
+import { Package, Box, Receipt, TicketPercent, Bell, BarChart2 } from "lucide-react";
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -54,15 +54,21 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đánh giá",
     icon: <ListIcon />,
-    subItems: [{ name: "Quản lý review sản phẩm", path: "/admin/reviews", pro: false }],
+    subItems: [
+      {
+        name: "Quản lý đánh giá bài viết",
+        path: "/admin/reviews-blog",
+        pro: false,
+      },
+      { name: "Quản lý đánh giá sản phẩm", path: "/admin/reviews-product", pro: false },
+    ],
   },
   {
-    name: "Quản lý bài đăng",
+    name: "Quản lý bài viết",
     icon: <PageIcon />,
     subItems: [
-      { name: "Quan lý Blog", path: "/admin/blogs", pro: false },
-      { name: "Quan lý Review Blog", path: "/admin/blogs", pro: false },
-      { name: "Quan lý Reply Comment Blog", path: "/admin/blogs", pro: false },
+      { name: "Quản lý bài viết", path: "/admin/blogs", pro: false },
+      { name: "Quản lý phản hồi đánh giá", path: "/admin/blogs", pro: false },
     ],
   },
   {
@@ -89,7 +95,18 @@ const navItems: NavItem[] = [
   {
     name: "Quản lý đơn hàng",
     icon: <Receipt size={18} />,
-    subItems: [{ name: "Danh sách đơn hàng", path: "/admin/orders", pro: false }],
+    subItems: [
+      { name: "Danh sách đơn hàng", path: "/admin/orders", pro: false },
+      { name: "Quản lý hoàn trả", path: "/admin/refunds", pro: false },
+    ],
+  },
+  {
+    name: "Thống kê",
+    icon: <BarChart2 size={18} />,
+    subItems: [
+      { name: "Doanh thu", path: "/admin/statistics/revenue", pro: false },
+      { name: "Sản phẩm", path: "/admin/statistics/products", pro: false },
+    ],
   },
 ];
 

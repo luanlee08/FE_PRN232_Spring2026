@@ -7,9 +7,9 @@ export const mapAdminToFormData = (
 ): ProductFormData => ({
   id: p.id,
   name: p.name,
-  description: "",
+  description: p.description ?? "",
   price: p.price,
-  quantity: 0,
+  quantity: p.quantity ?? 0,
   status: p.status,
   categoryId: p.categoryId,
   brandId: p.brandId,
@@ -17,6 +17,8 @@ export const mapAdminToFormData = (
   materialId: p.materialId,
   originId: p.originId,
   sexId: p.sexId,
+  mainImageUrl: p.imageUrl,
+  secondaryImageUrls: p.secondaryImages ?? [],
 });
 
 

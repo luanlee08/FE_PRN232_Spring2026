@@ -1,14 +1,13 @@
-// export const API_BASE =
-//   process.env.NEXT_PUBLIC_API_URL!;
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
+const rawApiBase = process.env.NEXT_PUBLIC_API_URL || "https://localhost:7219";
+export const API_BASE = rawApiBase.replace(/\/+$/, "").replace(/\/api$/, "");
 export const API_ENDPOINTS = {
   // ===== AUTH =====
 
   // ===== ADMIN PRODUCTS =====
   ADMIN_PRODUCTS: `${API_BASE}/api/admin/products`,
+  ADMIN_ORIGINS: `${API_BASE}/api/admin/origins`,
   ADMIN_BRANDS: `${API_BASE}/api/admin/brands/active`,
   ADMIN_MATERIALS: `${API_BASE}/api/admin/materials/active`,
-  ADMIN_ORIGINS: `${API_BASE}/api/admin/origins`,
   ADMIN_AGES: `${API_BASE}/api/admin/ages`,
   ADMIN_SEXES: `${API_BASE}/api/admin/sexes`,
   ADMIN_SUPER_CATEGORIES: `${API_BASE}/api/admin/super-categories`,
@@ -17,7 +16,14 @@ export const API_ENDPOINTS = {
   ADMIN_CATEGORIES: `${API_BASE}/api/admin/categories`,
   ADMIN_CATEGORIES_ACTIVE: `${API_BASE}/api/admin/categories/active`,
   ADMIN_CATEGORY_BY_ID: (id: number) => `${API_BASE}/api/admin/categories/${id}`,
+  ADMIN_BRANDS_LIST: `${API_BASE}/api/admin/brands`,
+  ADMIN_MATERIALS_LIST: `${API_BASE}/api/admin/materials`,
 
+  ADMIN_BRAND_BY_ID: (id: number) =>
+    `${API_BASE}/api/admin/brands/${id}`,
+
+  ADMIN_MATERIAL_BY_ID: (id: number) =>
+    `${API_BASE}/api/admin/materials/${id}`,
   // ===== ADMIN ACCOUNTS =====
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
   ADMIN_CUSTOMER_ACCOUNTS: `${API_BASE}/api/admin/customer-accounts`,
@@ -60,6 +66,16 @@ export const API_ENDPOINTS = {
   ADMIN_ORDER_STATUS: (id: number) => `${API_BASE}/api/admin/orders/${id}/status`,
   ADMIN_ORDERS_EXPORT: `${API_BASE}/api/admin/orders/export`,
 
+  // ===== ADMIN REFUNDS =====
+  ADMIN_REFUNDS: `${API_BASE}/api/admin/refunds`,
+  ADMIN_REFUND_BY_ID: (id: number) => `${API_BASE}/api/admin/refunds/${id}`,
+  ADMIN_REFUND_PROCESS: (id: number) => `${API_BASE}/api/admin/refunds/${id}/process`,
+
+  // ===== CUSTOMER REFUNDS =====
+  ORDER_REFUND_REQUEST: `${API_BASE}/api/COrder/refund/request`,
+  ORDER_MY_REFUNDS: `${API_BASE}/api/COrder/refund/my-refunds`,
+  ORDER_REFUND_BY_ID: (id: number) => `${API_BASE}/api/COrder/refund/${id}`,
+
   // ===== ADMIN VOUCHERS =====
   ADMIN_VOUCHERS: `${API_BASE}/api/admin/vouchers`,
   ADMIN_VOUCHER_BY_ID: (id: number) => `${API_BASE}/api/admin/vouchers/${id}`,
@@ -72,20 +88,47 @@ export const API_ENDPOINTS = {
   // ===== ADMIN REVIEWS =====
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
   ADMIN_REVIEW_BY_ID: (id: number) => `${API_BASE}/api/admin/reviews/${id}`,
-  ADMIN_REVIEW_REPLIES: `${API_BASE}/api/admin/reviews/replies`,
+  ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
 
   // ===== ADMIN BLOG =====
   ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
   ADMIN_BLOG_SEARCH: `${API_BASE}/api/admin/blogs/search`,
-  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE}/api/admin/blogs/${id}`,
+  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE} /api/admin/blogs/${id}`,
 
   // ===== ADMIN BLOG CATEGORIES =====
   ADMIN_BLOG_CATEGORIES: `${API_BASE}/api/admin/blog-categories`,
 
-// ===== CUSTOMER BLOG =====
-BLOGS: `${API_BASE}/api/blogs`,
-BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
-BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
-BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
-BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+  // ===== CUSTOMER PRODUCTS =====
+  PRODUCTS: `${API_BASE}/api/products`,
+
+  // ===== CUSTOMER WALLET =====
+  WALLET_BALANCE: `${API_BASE}/api/CWallet/balance`,
+  WALLET_TRANSACTIONS: `${API_BASE}/api/CWallet/transactions`,
+  WALLET_TOPUP: `${API_BASE}/api/CWallet/topup`,
+
+  // ===== CUSTOMER BLOG =====
+  BLOGS: `${API_BASE}/api/blogs`,
+  BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
+  BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
+  BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
+  BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+
+  // ===== BLOG REVIEWS =====
+  BLOG_REVIEWS: `${API_BASE}/api/blog-reviews`,
+  BLOG_REVIEWS_BY_BLOG: (blogId: number) => `${API_BASE}/api/blog-reviews/blog/${blogId}`,
+
+  // ===== ADMIN REVIEW BLOG =====
+  ADMIN_REVIEW_BLOGS: `${API_BASE}/api/admin/reviews-blog`,
+  ADMIN_REVIEW_BLOG_BLOCK: (id: number) => `${API_BASE}/api/admin/reviews-blog/${id}/block`,
+
+  // ===== ADMIN STATISTICS =====
+  ADMIN_STATISTICS_REVENUE: `${API_BASE}/api/admin/statistics/revenue`,
+  ADMIN_STATISTICS_PRODUCTS: `${API_BASE}/api/admin/statistics/products`,
+
+  // ===== BLOG REVIEW REACTIONS =====
+  BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
+  BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
+    `${API_BASE}/api/blog-review-reactions/${reviewId}`,
+
+
 };

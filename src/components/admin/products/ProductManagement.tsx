@@ -39,7 +39,6 @@ export default function ProductManagementUI() {
   const [origins, setOrigins] = useState<LookupItem[]>([]);
   const [ages, setAges] = useState<LookupItem[]>([]);
   const [sexes, setSexes] = useState<LookupItem[]>([]);
-  const [editingProduct, setEditingProduct] = useState<ProductFormData | null>(null);
 
 
   const loadLookups = async () => {
@@ -196,6 +195,7 @@ export default function ProductManagementUI() {
         className="max-w-[700px] w-full rounded-xl bg-white p-6"
       >
         <ProductForm
+          key={selectedProduct?.id ?? "new-product"}
           submitText={selectedProduct ? "Cập nhật sản phẩm" : "Thêm sản phẩm"}
           product={selectedProduct}
           categories={categories}
