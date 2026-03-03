@@ -10,25 +10,22 @@
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { useState } from 'react';
 
+const GOOGLE_CLIENT_ID = '999395574521-h9smm3s0efmst08iumlqm01rirgkest5.apps.googleusercontent.com';
+
 export function Providers({ children }: { children: React.ReactNode }) {
-  // Create the QueryClient once per browser session (stable across re-renders).
-  // Do NOT create it outside the component — that would be shared across SSR requests.
   const [queryClient] = useState(
     () =>
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Data is considered fresh for 30 seconds by default
             staleTime: 30_000,
-            // Retry failed requests once before showing error
             retry: 1,
-            // Don't refetch on window focus for user-sensitive data
             refetchOnWindowFocus: false,
           },
           mutations: {
-            // Don't retry mutations by default (they may have side effects)
             retry: 0,
           },
         },
@@ -36,12 +33,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-      {/* Show React Query Devtools only in development */}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
-      )}
-    </QueryClientProvider>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <QueryClientProvider client={queryClient}>
+        {children}
+        {process.env.NODE_ENV === 'development' && (
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-right" />
+        )}
+      </QueryClientProvider>
+    </GoogleOAuthProvider>
   );
 }
