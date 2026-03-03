@@ -3,10 +3,12 @@ import { API_ENDPOINTS } from "@/configs/api-configs";
 
 export interface ReviewBlogAdmin {
   reviewBlogId: number;
+  accountId: number;
+  accountName: string;
+  accountEmail: string;
   blogTitle: string;
-  customerName: string;
   rating: number;
-  content: string;
+  comment: string;
   isBlocked: boolean;
   createdAt: string;
 }

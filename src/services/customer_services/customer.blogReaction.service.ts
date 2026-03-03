@@ -29,14 +29,6 @@ export const customerBlogReactionService = {
 
     return res.data;
   },
-
-  getSummary: async (
-  reviewBlogId: number
-) => {
-  const res = await axiosInstance.get(
-    API_ENDPOINTS.BLOG_REVIEW_REACTION_BY_ID(reviewBlogId)
-  );
-  return res.data;
-},
+  
 };
 

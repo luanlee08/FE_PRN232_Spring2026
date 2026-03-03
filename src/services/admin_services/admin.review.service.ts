@@ -36,10 +36,9 @@ export const AdminReviewService = {
     return res.data;
   },
 
-  /** POST /api/admin/reviews/replies — add staff / admin reply */
   async reply(body: AddReplyRequest) {
     const res = await axiosInstance.post<ApiResponse<ReviewReply>>(
-      API_ENDPOINTS.ADMIN_REVIEW_REPLIES,
+      API_ENDPOINTS.ADMIN_REVIEW_BLOG_REPLIES,
       body,
     );
     return res.data;

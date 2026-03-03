@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import ReviewBlogTable from "./ReviewBlogTable";
-import { reviewBlogService, ReviewBlogAdmin } from "@/services/admin_services/admin.blogReview.service";
+import ViewReviewBlogModal from "./ViewReviewBlogModal"; // 🔥 thêm dòng này
+import {
+  reviewBlogService,
+  ReviewBlogAdmin,
+} from "@/services/admin_services/admin.blogReview.service";
+import EditReviewBlogModal from "./EditReviewBlogModal";
+import ReplyReviewBlogModal from "./ReplyReviewBlogModal";
 
 export default function ReviewBlogManagementUI() {
   const [data, setData] = useState<ReviewBlogAdmin[]>([]);
@@ -10,11 +16,19 @@ export default function ReviewBlogManagementUI() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(10);
   const [total, setTotal] = useState(0);
-
+  const [viewTarget, setViewTarget] =
+    useState<ReviewBlogAdmin | null>(null);
+  const [editTarget, setEditTarget] =
+    useState<ReviewBlogAdmin | null>(null);
+  const [replyTarget, setReplyTarget] =
+    useState<ReviewBlogAdmin | null>(null);
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await reviewBlogService.getAll(page, pageSize);
+      const res = await reviewBlogService.getAll(
+        page,
+        pageSize
+      );
       setData(res?.data?.items ?? []);
       setTotal(res?.data?.totalCount ?? 0);
     } finally {
@@ -22,11 +36,21 @@ export default function ReviewBlogManagementUI() {
     }
   };
 
+  const handleSave = async (
+    id: number,
+    isBlocked: boolean
+  ) => {
+    await reviewBlogService.block(id, isBlocked);
+    setEditTarget(null);
+    fetchData();
+  };
   useEffect(() => {
     fetchData();
   }, [page]);
 
-  const handleToggleBlock = async (item: ReviewBlogAdmin) => {
+  const handleToggleBlock = async (
+    item: ReviewBlogAdmin
+  ) => {
     await reviewBlogService.block(
       item.reviewBlogId,
       !item.isBlocked
@@ -47,10 +71,12 @@ export default function ReviewBlogManagementUI() {
         </p>
       </div>
 
+      {/* TABLE */}
       <ReviewBlogTable
         data={data}
         loading={loading}
-        onToggleBlock={handleToggleBlock}
+        onView={(item) => setEditTarget(item)}
+        onReply={(item) => setReplyTarget(item)}
       />
 
       {/* PAGINATION */}
@@ -77,6 +103,25 @@ export default function ReviewBlogManagementUI() {
           </button>
         </div>
       </div>
+
+      <ViewReviewBlogModal
+        review={viewTarget}
+        isOpen={viewTarget !== null}
+        onClose={() => setViewTarget(null)}
+      />
+      <EditReviewBlogModal
+        key={editTarget?.reviewBlogId}
+        review={editTarget}
+        isOpen={editTarget !== null}
+        onClose={() => setEditTarget(null)}
+        onSave={handleSave}
+      />
+      <ReplyReviewBlogModal
+        review={replyTarget}
+        isOpen={replyTarget !== null}
+        onClose={() => setReplyTarget(null)}
+        onSuccess={fetchData}
+      />
     </div>
   );
 }

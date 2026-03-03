@@ -81,7 +81,7 @@ export const API_ENDPOINTS = {
   // ===== ADMIN REVIEWS =====
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
   ADMIN_REVIEW_BY_ID: (id: number) => `${API_BASE}/api/admin/reviews/${id}`,
-  ADMIN_REVIEW_REPLIES: `${API_BASE}/api/admin/reviews/replies`,
+ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
 
   // ===== ADMIN BLOG =====
   ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
