@@ -5,9 +5,9 @@ export const API_ENDPOINTS = {
 
   // ===== ADMIN PRODUCTS =====
   ADMIN_PRODUCTS: `${API_BASE}/api/admin/products`,
+  ADMIN_ORIGINS: `${API_BASE}/api/admin/origins`,
   ADMIN_BRANDS: `${API_BASE}/api/admin/brands/active`,
   ADMIN_MATERIALS: `${API_BASE}/api/admin/materials/active`,
-  ADMIN_ORIGINS: `${API_BASE}/api/admin/origins`,
   ADMIN_AGES: `${API_BASE}/api/admin/ages`,
   ADMIN_SEXES: `${API_BASE}/api/admin/sexes`,
   ADMIN_SUPER_CATEGORIES: `${API_BASE}/api/admin/super-categories`,
@@ -16,7 +16,14 @@ export const API_ENDPOINTS = {
   ADMIN_CATEGORIES: `${API_BASE}/api/admin/categories`,
   ADMIN_CATEGORIES_ACTIVE: `${API_BASE}/api/admin/categories/active`,
   ADMIN_CATEGORY_BY_ID: (id: number) => `${API_BASE}/api/admin/categories/${id}`,
+  ADMIN_BRANDS_LIST: `${API_BASE}/api/admin/brands`,
+  ADMIN_MATERIALS_LIST: `${API_BASE}/api/admin/materials`,
 
+  ADMIN_BRAND_BY_ID: (id: number) =>
+    `${API_BASE}/api/admin/brands/${id}`,
+
+  ADMIN_MATERIAL_BY_ID: (id: number) =>
+    `${API_BASE}/api/admin/materials/${id}`,
   // ===== ADMIN ACCOUNTS =====
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
   ADMIN_CUSTOMER_ACCOUNTS: `${API_BASE}/api/admin/customer-accounts`,
@@ -81,7 +88,7 @@ export const API_ENDPOINTS = {
   // ===== ADMIN REVIEWS =====
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
   ADMIN_REVIEW_BY_ID: (id: number) => `${API_BASE}/api/admin/reviews/${id}`,
-ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
+  ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
 
   // ===== ADMIN BLOG =====
   ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
@@ -94,17 +101,17 @@ ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
   // ===== CUSTOMER PRODUCTS =====
   PRODUCTS: `${API_BASE}/api/products`,
 
-    // ===== CUSTOMER WALLET =====
+  // ===== CUSTOMER WALLET =====
   WALLET_BALANCE: `${API_BASE}/api/CWallet/balance`,
   WALLET_TRANSACTIONS: `${API_BASE}/api/CWallet/transactions`,
   WALLET_TOPUP: `${API_BASE}/api/CWallet/topup`,
 
   // ===== CUSTOMER BLOG =====
-    BLOGS: `${API_BASE}/api/blogs`,
-    BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
-    BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
-    BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
-    BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
+  BLOGS: `${API_BASE}/api/blogs`,
+  BLOG_BY_ID: (id: number) => `${API_BASE}/api/blogs/${id}`,
+  BLOG_RECENT: `${API_BASE}/api/blogs/recent`,
+  BLOG_CATEGORIES: `${API_BASE}/api/blog-categories`,
+  BLOG_FEATURED: `${API_BASE}/api/blogs/featured`,
 
   // ===== BLOG REVIEWS =====
   BLOG_REVIEWS: `${API_BASE}/api/blog-reviews`,
@@ -122,4 +129,6 @@ ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
   BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
   BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
     `${API_BASE}/api/blog-review-reactions/${reviewId}`,
+
+
 };

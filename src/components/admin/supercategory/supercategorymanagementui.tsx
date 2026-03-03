@@ -82,7 +82,7 @@ export default function SuperCategoryManagementUI() {
               placeholder="Tìm theo tên..."
               className="h-10 rounded-lg border pl-9 pr-4 text-sm"
               onChange={(e) => {
-                setKeyword(e.target.value);
+                setKeyword(e.target.value.trim());
                 setPage(1);
               }}
             />

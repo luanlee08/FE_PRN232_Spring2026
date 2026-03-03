@@ -79,8 +79,9 @@ export default function CategoryManagementUI() {
               placeholder="Tìm theo tên..."
               className="h-10 rounded-lg border pl-9 pr-4 text-sm"
               onChange={(e) => {
-                setKeyword(e.target.value);
-                setPage(1);
+               const value = e.target.value.trim();
+              setKeyword(value);
+              setPage(1);
               }}
             />
           </div>
