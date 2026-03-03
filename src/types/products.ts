@@ -16,6 +16,8 @@ export interface ProductFormData {
   materialId?: number;
   originId?: number;
   sexId?: number;
+  mainImageUrl?: string;
+  secondaryImageUrls?: string[];
 
 
 
@@ -24,6 +26,7 @@ export interface ProductFormData {
 export interface CreateProductPayload extends ProductFormData {
   mainImage?: File | null;
   subImages?: File[];
+  keepSecondaryUrls?: string[];
 }
 export interface ProductStorefront {
   id: number | string;

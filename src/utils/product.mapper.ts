@@ -17,6 +17,8 @@ export const mapAdminToFormData = (
   materialId: p.materialId,
   originId: p.originId,
   sexId: p.sexId,
+  mainImageUrl: p.imageUrl,
+  secondaryImageUrls: p.secondaryImages ?? [],
 });
 
 
