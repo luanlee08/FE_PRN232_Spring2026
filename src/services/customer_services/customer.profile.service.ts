@@ -9,6 +9,7 @@ export interface ProfileResponse {
   image?: string;
   roleId?: number;
   roleName?: string;
+  provider?: string;
   createdAt: string;
   updatedAt?: string;
 }

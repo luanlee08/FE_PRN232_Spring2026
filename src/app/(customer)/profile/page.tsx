@@ -44,6 +44,7 @@ import { AddressResponse, AddressRequest, AddressUpdateRequest } from "@/types/a
 import { OrderDto, RefundDto, CreateRefundRequest, REFUND_STATUS } from "@/types/order";
 import { LocationService, Province, District, Ward } from "@/services/location.service";
 import { useAuth } from "@/lib/auth/auth-context";
+import { authService } from "@/lib/auth/auth-service";
 import { Footer } from "@/components/customer/footer";
 import { API_BASE } from "@/configs/api-configs";
 import Cookies from "js-cookie";
@@ -358,6 +359,11 @@ export default function CustomerProfilePage() {
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
+  /* ── change password state ── */
+  const [changePwForm, setChangePwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [changePwLoading, setChangePwLoading] = useState(false);
+  const [googlePwChanged, setGooglePwChanged] = useState(false);
+
   /* ── addresses state ── */
   const [addresses, setAddresses] = useState<AddressResponse[]>([]);
   const [loadingAddr, setLoadingAddr] = useState(false);
@@ -541,7 +547,7 @@ export default function CustomerProfilePage() {
   }, [tab, fetchWalletTxns]);
 
   /* ── profile handlers ── */
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -552,17 +558,54 @@ export default function CustomerProfilePage() {
       toast.error("Ảnh < 5 MB");
       return;
     }
-    setSelectedFile(file);
     const reader = new FileReader();
     reader.onloadend = () => setAvatarPreview(reader.result as string);
     reader.readAsDataURL(file);
+    try {
+      setSaving(true);
+      await CustomerProfileService.updateAvatar(file);
+      toast.success("Cập nhật ảnh thành công 🎉");
+      await fetchProfile();
+      refreshUser();
+    } catch {
+      toast.error("Cập nhật ảnh thất bại");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (changePwForm.newPassword !== changePwForm.confirmPassword) {
+      toast.error("Mật khẩu xác nhận không khớp");
+      return;
+    }
+    if (changePwForm.newPassword.length < 6) {
+      toast.error("Mật khẩu mới phải có ít nhất 6 ký tự");
+      return;
+    }
+    try {
+      setChangePwLoading(true);
+      const res = await authService.changePassword(changePwForm.currentPassword, changePwForm.newPassword);
+      if (res.status === 200) {
+        toast.success("Đổi mật khẩu thành công!");
+        setChangePwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setGooglePwChanged(true);
+        setProfile((prev) => prev ? { ...prev, provider: undefined } : prev);
+      } else {
+        toast.error(res.message || "Đổi mật khẩu thất bại");
+      }
+    } catch {
+      toast.error("Đã xảy ra lỗi, vui lòng thử lại");
+    } finally {
+      setChangePwLoading(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setSaving(true);
-      if (selectedFile) await CustomerProfileService.updateAvatar(selectedFile);
       const r = await CustomerProfileService.updateProfile(form);
       if (r.status === 200) {
         toast.success("Cập nhật thành công 🎉");
@@ -1012,6 +1055,70 @@ export default function CustomerProfilePage() {
                     </p>
                   </div>
                   <div className="px-8 py-7">
+                    {profile?.provider === "Google" && !googlePwChanged && (
+                      <div className="mb-6 space-y-4">
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
+                          <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-semibold text-blue-800 mb-1">Tài khoản đăng ký bằng Google</p>
+                            <p className="text-sm text-blue-700">
+                              Mật khẩu mặc định của tài khoản bạn là: <strong className="font-mono bg-blue-100 px-1.5 py-0.5 rounded">Customer123@</strong>
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">Vui lòng đổi mật khẩu bên dưới để bảo vệ tài khoản của bạn.</p>
+                          </div>
+                        </div>
+                        <div className="bg-white border border-gray-200 rounded-lg p-5">
+                          <h3 className="text-sm font-semibold text-gray-800 mb-4">Đặt mật khẩu mới</h3>
+                          <form onSubmit={handleChangePassword} className="space-y-3">
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Mật khẩu hiện tại</label>
+                              <input
+                                type="password"
+                                value={changePwForm.currentPassword}
+                                onChange={(e) => setChangePwForm((f) => ({ ...f, currentPassword: e.target.value }))}
+                                placeholder="Nhập mật khẩu hiện tại"
+                                required
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Mật khẩu mới</label>
+                              <input
+                                type="password"
+                                value={changePwForm.newPassword}
+                                onChange={(e) => setChangePwForm((f) => ({ ...f, newPassword: e.target.value }))}
+                                placeholder="Nhập mật khẩu mới"
+                                required
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-xs text-gray-500 mb-1">Xác nhận mật khẩu mới</label>
+                              <input
+                                type="password"
+                                value={changePwForm.confirmPassword}
+                                onChange={(e) => setChangePwForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                                placeholder="Nhập lại mật khẩu mới"
+                                required
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                              />
+                            </div>
+                            <button
+                              type="submit"
+                              disabled={changePwLoading}
+                              className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+                            >
+                              {changePwLoading ? "Đang lưu..." : "Đổi mật khẩu"}
+                            </button>
+                          </form>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex gap-10">
                       <form onSubmit={handleSave} className="flex-1 space-y-5">
                         {(
