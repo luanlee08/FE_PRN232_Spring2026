@@ -2,7 +2,7 @@
 
 import { API_ENDPOINTS } from "@/configs/api-configs";
 import axiosInstance from '@/lib/api/axios';
-import type { ActionType, AdminNotificationType } from '@/types/notification';
+import type { ActionType } from '@/types/notification';
 
 /* ================= TYPES ================= */
 
@@ -71,7 +71,8 @@ export interface NotificationQuery {
   toDate?: string;
 }
 
-interface PagedResponse<T> {
+// Types specific to admin notification service responses
+interface PagedNotificationResponse<T> {
   status: number;
   statusMessage: string;
   message: string;
@@ -83,7 +84,7 @@ interface PagedResponse<T> {
   };
 }
 
-interface ApiResponse<T> {
+interface AdminApiResponse<T> {
   status: number;
   statusMessage: string;
   message: string;
@@ -98,7 +99,7 @@ export const AdminNotificationService = {
    */
   async sendNotification(
     request: SendNotificationRequest
-  ): Promise<ApiResponse<any>> {
+  ): Promise<AdminApiResponse<any>> {
     // Map FE request to BE expected format
     const payload = {
       templateCode: request.templateCode || undefined,
@@ -120,7 +121,7 @@ export const AdminNotificationService = {
    */
   async getNotifications(
     query: NotificationQuery = {}
-  ): Promise<PagedResponse<NotificationDeliveryDto>> {
+  ): Promise<PagedNotificationResponse<NotificationDeliveryDto>> {
     const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS, {
       params: query
     });
@@ -130,7 +131,7 @@ export const AdminNotificationService = {
   /**
    * Get notification by ID
    */
-  async getNotificationById(id: number): Promise<ApiResponse<NotificationDeliveryDto>> {
+  async getNotificationById(id: number): Promise<AdminApiResponse<NotificationDeliveryDto>> {
     const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATION_BY_ID(id));
     return res.data;
   },
@@ -138,7 +139,7 @@ export const AdminNotificationService = {
   /**
    * Get notification statistics
    */
-  async getStats(): Promise<ApiResponse<NotificationStatsDto>> {
+  async getStats(): Promise<AdminApiResponse<NotificationStatsDto>> {
     const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS_STATS);
     return res.data;
   },
@@ -146,7 +147,7 @@ export const AdminNotificationService = {
   /**
    * Delete notification (admin can delete any notification)
    */
-  async deleteNotification(id: number): Promise<ApiResponse<void>> {
+  async deleteNotification(id: number): Promise<AdminApiResponse<void>> {
     const res = await axiosInstance.delete(API_ENDPOINTS.ADMIN_NOTIFICATION_BY_ID(id));
     return res.data;
   },
@@ -154,7 +155,7 @@ export const AdminNotificationService = {
   /**
    * Get all admin-allowed templates for dropdown (with auto-fill support)
    */
-  async getTemplates(): Promise<ApiResponse<TemplateOptionDto[]>> {
+  async getTemplates(): Promise<AdminApiResponse<TemplateOptionDto[]>> {
     const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS_TEMPLATES);
     return res.data;
   },
@@ -162,7 +163,7 @@ export const AdminNotificationService = {
   /**
    * Search users by name / email / phone for multi-select targeting
    */
-  async searchUsers(q: string, pageSize = 10): Promise<ApiResponse<AccountSearchResultDto[]>> {
+  async searchUsers(q: string, pageSize = 10): Promise<AdminApiResponse<AccountSearchResultDto[]>> {
     const res = await axiosInstance.get(API_ENDPOINTS.ADMIN_NOTIFICATIONS_USER_SEARCH, {
       params: { q, pageSize }
     });

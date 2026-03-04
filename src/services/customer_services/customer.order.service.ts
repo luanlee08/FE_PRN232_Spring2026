@@ -3,12 +3,10 @@
 import axiosInstance from '@/lib/api/axios';
 import { API_ENDPOINTS } from '@/configs/api-configs';
 import { ApiResponse, PagedResult } from '@/types/common';
-import { 
-    CreateOrderRequest, 
-    CreateOrderResponse, 
-    PaymentMethodDTO,
+import {
+    CreateOrderRequest,
+    CreateOrderResponse,
     GetPaymentMethodsResponse,
-    OrderResponse,
     OrderDto,
     RefundDto,
     CreateRefundRequest,
