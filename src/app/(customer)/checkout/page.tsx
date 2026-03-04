@@ -18,6 +18,7 @@ import { CustomerCartService, CartDto } from "@/services/customer_services/custo
 import { CustomerAddressService } from "@/services/customer_services/customer.address.service";
 import { CustomerOrderService } from "@/services/customer_services/customer.order.service";
 import { CustomerShippingService } from "@/services/customer_services/customer.shipping.service";
+import { CustomerWalletService } from "@/services/customer_services/customer.wallet.service";
 import { AddressResponse } from "@/types/address";
 import {
   PaymentMethodDTO,
@@ -44,6 +45,8 @@ export default function CheckoutPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingShipping, setIsLoadingShipping] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [loadingWallet, setLoadingWallet] = useState(false);
 
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -173,6 +176,19 @@ export default function CheckoutPage() {
         setPaymentMethods(paymentRes.data.paymentMethods || []);
       }
 
+      // Fetch wallet balance for Wallet payment option
+      try {
+        setLoadingWallet(true);
+        const walletRes = await CustomerWalletService.getWallet();
+        if (walletRes.status === 200 && walletRes.data) {
+          setWalletBalance(walletRes.data.balance);
+        }
+      } catch {
+        // wallet may not exist yet
+      } finally {
+        setLoadingWallet(false);
+      }
+
       // Note: Shipping methods will be fetched separately based on selected address
     } catch (error) {
       console.error("Failed to fetch checkout data:", error);
@@ -268,6 +284,16 @@ export default function CheckoutPage() {
       return;
     }
 
+    // Wallet balance validation
+    if (selectedPaymentMethod === "Wallet") {
+      if (walletBalance === null || walletBalance < totalAmount) {
+        toast.error(
+          `Số dư ví không đủ. Cần ${formatCurrency(totalAmount)}, hiện có ${formatCurrency(walletBalance ?? 0)}. Vui lòng nạp thêm tiền.`,
+        );
+        return;
+      }
+    }
+
     // Check payment method limits
     if (selectedPayment) {
       if (totalAmount < selectedPayment.minAmount) {
@@ -329,9 +355,8 @@ export default function CheckoutPage() {
         } else {
           // COD or Wallet - success
           toast.success("Đặt hàng thành công!");
-          // Redirect to order details or success page
           setTimeout(() => {
-            router.push("/cart"); // Or `/orders/${orderResponse.orderId}`
+            router.push("/profile?tab=orders");
           }, 1000);
         }
       }
@@ -598,11 +623,16 @@ export default function CheckoutPage() {
                     totalAmount < method.minAmount ||
                     totalAmount > method.maxAmount;
 
+                  const isWallet = method.code === "Wallet";
+                  const walletInsufficient =
+                    isWallet && walletBalance !== null && walletBalance < totalAmount;
+                  const effectiveDisabled = isDisabled || walletInsufficient;
+
                   return (
                     <label
                       key={method.code}
                       className={`flex items-start gap-3 p-4 border-2 rounded-lg transition-all ${
-                        isDisabled
+                        effectiveDisabled
                           ? "opacity-50 cursor-not-allowed bg-gray-50"
                           : selectedPaymentMethod === method.code
                             ? "border-[#FF6B35] bg-[#FFF5F2] cursor-pointer"
@@ -614,15 +644,35 @@ export default function CheckoutPage() {
                         name="payment"
                         value={method.code}
                         checked={selectedPaymentMethod === method.code}
-                        onChange={() => !isDisabled && setSelectedPaymentMethod(method.code)}
-                        disabled={isDisabled}
+                        onChange={() => !effectiveDisabled && setSelectedPaymentMethod(method.code)}
+                        disabled={effectiveDisabled}
                         className="mt-1 text-[#FF6B35] focus:ring-[#FF6B35]"
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-[#222]">{method.name}</span>
+                          {isWallet && (
+                            <span className="ml-auto text-sm font-semibold text-gray-700">
+                              {loadingWallet ? (
+                                <span className="text-gray-400 text-xs">Đang tải...</span>
+                              ) : walletBalance !== null ? (
+                                <span
+                                  className={
+                                    walletInsufficient ? "text-red-500" : "text-emerald-600"
+                                  }
+                                >
+                                  {formatCurrency(walletBalance)}
+                                </span>
+                              ) : (
+                                <span className="text-gray-400 text-xs">Chưa kích hoạt</span>
+                              )}
+                            </span>
+                          )}
                         </div>
                         <p className="text-sm text-gray-600 mt-1">{method.description}</p>
+                        {isWallet && walletBalance !== null && (
+                          <p className="text-xs text-gray-500 mt-0.5">Số dư hiện tại</p>
+                        )}
                         {method.transactionFee > 0 && (
                           <p className="text-xs text-gray-500 mt-1">
                             Phí giao dịch:{" "}
@@ -631,13 +681,25 @@ export default function CheckoutPage() {
                               : formatCurrency(method.transactionFee)}
                           </p>
                         )}
-                        {isDisabled && (
+                        {effectiveDisabled && (
                           <p className="text-xs text-red-600 mt-1">
                             {!method.isAvailable && "Không khả dụng"}
                             {totalAmount < method.minAmount &&
                               `Tối thiểu ${formatCurrency(method.minAmount)}`}
                             {totalAmount > method.maxAmount &&
                               `Tối đa ${formatCurrency(method.maxAmount)}`}
+                            {walletInsufficient && (
+                              <>
+                                Số dư không đủ.{" "}
+                                <a
+                                  href="/profile?tab=wallet"
+                                  className="underline hover:text-red-700"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  Nạp thêm tiền
+                                </a>
+                              </>
+                            )}
                           </p>
                         )}
                       </div>

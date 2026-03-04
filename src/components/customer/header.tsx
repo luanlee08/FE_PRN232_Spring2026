@@ -259,7 +259,7 @@ export function Header() {
                         Quản Lý Voucher
                       </Link>
                       <Link
-                        href="/profile/wallet"
+                        href="/profile?tab=wallet"
                         onClick={() => setOpenUserMenu(false)}
                         className="group flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-600"
                       >
@@ -293,7 +293,10 @@ export function Header() {
                   <Link href="/login" className="text-sm font-medium transition hover:opacity-80">
                     Đăng nhập
                   </Link>
-                  <Link href="/register" className="text-sm font-medium transition hover:opacity-80">
+                  <Link
+                    href="/register"
+                    className="text-sm font-medium transition hover:opacity-80"
+                  >
                     Đăng ký
                   </Link>
                 </>
@@ -402,10 +405,18 @@ export function Header() {
                     <Link
                       href="/profile?tab=vouchers"
                       onClick={() => setOpenMenu(false)}
-                      className="mb-3 flex items-center gap-2 font-medium text-gray-700"
+                      className="mb-2 flex items-center gap-2 font-medium text-gray-700"
                     >
                       <Ticket size={17} />
                       Quản Lý Voucher
+                    </Link>
+                    <Link
+                      href="/profile?tab=wallet"
+                      onClick={() => setOpenMenu(false)}
+                      className="mb-3 flex items-center gap-2 font-medium text-gray-700"
+                    >
+                      <Wallet size={17} />
+                      Ví Của Tôi
                     </Link>
                     <button
                       onClick={() => {

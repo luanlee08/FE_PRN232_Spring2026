@@ -122,14 +122,20 @@ export default function OrderTable({ data, loading, onViewDetail, onEditStatus }
                 <div className="flex items-center justify-center gap-2">
                   <button
                     title="Xem chi tiết"
-                    onClick={() => onViewDetail?.(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewDetail?.(item);
+                    }}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-cyan-600 hover:bg-sky-100"
                   >
                     <Eye size={16} />
                   </button>
                   <button
                     title="Cập nhật trạng thái"
-                    onClick={() => onEditStatus?.(item)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditStatus?.(item);
+                    }}
                     className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-blue-600 hover:bg-blue-100"
                   >
                     <Edit size={16} />

@@ -118,24 +118,26 @@ export default function OrderManagementUI() {
         note,
         autoCreateShipping: shouldCreateShipping,
         shippingServiceId: 53321,
-        shippingRequiredNote: 'KHONGCHOXEMHANG',
+        shippingRequiredNote: "KHONGCHOXEMHANG",
       });
       fetchData();
       // Surface GHN warning or success from backend response
-      if (res.message?.includes('⚠️')) {
+      if (res.message?.includes("⚠️")) {
         toast.error(res.message, { duration: 6000 });
       } else {
-        toast.success(res.message || 'Cập nhật trạng thái thành công');
+        toast.success(res.message || "Cập nhật trạng thái thành công");
       }
     } catch (err: any) {
-
-      toast.error(err?.response?.data?.message || 'Cập nhật thất bại');
+      console.error("Update status error:", err);
+      toast.error(err?.response?.data?.message || "Cập nhật thất bại");
     } finally {
       setUpdating(false);
     }
   };
 
   const handleOpenEditModal = (item: AdminOrderListItem) => {
+    setOpenDetail(false);
+    setSelectedOrderId(null);
     setEditModal({
       isOpen: true,
       order: item,
@@ -156,20 +158,20 @@ export default function OrderManagementUI() {
       newStatusId === 6
         ? note.trim()
         : note.trim() ||
-        (() => {
-          switch (newStatusId) {
-            case 2:
-              return "Đơn hàng đã được xác nhận.";
-            case 3:
-              return "Đơn hàng đang được giao.";
-            case 4:
-              return "Đơn hàng đã giao thành công.";
-            case 5:
-              return "Đơn hàng đã hoàn thành.";
-            default:
-              return "Cập nhật trạng thái đơn hàng.";
-          }
-        })();
+          (() => {
+            switch (newStatusId) {
+              case 2:
+                return "Đơn hàng đã được xác nhận.";
+              case 3:
+                return "Đơn hàng đang được giao.";
+              case 4:
+                return "Đơn hàng đã giao thành công.";
+              case 5:
+                return "Đơn hàng đã hoàn thành.";
+              default:
+                return "Cập nhật trạng thái đơn hàng.";
+            }
+          })();
     await handleUpdateStatus(order.orderId, newStatusId, autoNote);
     setEditModal({ isOpen: false, order: null, newStatusId: 0, note: "" });
   };
