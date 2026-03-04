@@ -79,7 +79,7 @@ export default function OrderManagementUI() {
       setData(result?.items ?? []);
       setTotal(result?.totalCount ?? 0);
     } catch (err) {
-      console.error("Load orders error:", err);
+      toast.error("Không thể tải danh sách đơn hàng");
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function OrderManagementUI() {
         sortDesc: true,
       });
     } catch (err) {
-      console.error("Export error:", err);
+      toast.error("Xuất Excel thất bại");
     } finally {
       setExporting(false);
     }
@@ -128,7 +128,7 @@ export default function OrderManagementUI() {
         toast.success(res.message || 'Cập nhật trạng thái thành công');
       }
     } catch (err: any) {
-      console.error("Update status error:", err);
+
       toast.error(err?.response?.data?.message || 'Cập nhật thất bại');
     } finally {
       setUpdating(false);
@@ -156,20 +156,20 @@ export default function OrderManagementUI() {
       newStatusId === 6
         ? note.trim()
         : note.trim() ||
-          (() => {
-            switch (newStatusId) {
-              case 2:
-                return "Đơn hàng đã được xác nhận.";
-              case 3:
-                return "Đơn hàng đang được giao.";
-              case 4:
-                return "Đơn hàng đã giao thành công.";
-              case 5:
-                return "Đơn hàng đã hoàn thành.";
-              default:
-                return "Cập nhật trạng thái đơn hàng.";
-            }
-          })();
+        (() => {
+          switch (newStatusId) {
+            case 2:
+              return "Đơn hàng đã được xác nhận.";
+            case 3:
+              return "Đơn hàng đang được giao.";
+            case 4:
+              return "Đơn hàng đã giao thành công.";
+            case 5:
+              return "Đơn hàng đã hoàn thành.";
+            default:
+              return "Cập nhật trạng thái đơn hàng.";
+          }
+        })();
     await handleUpdateStatus(order.orderId, newStatusId, autoNote);
     setEditModal({ isOpen: false, order: null, newStatusId: 0, note: "" });
   };
