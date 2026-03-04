@@ -40,7 +40,7 @@ export default function OrderDetailModal({ orderId, isOpen, onClose, onStatusUpd
         const data = await AdminOrderService.getDetail(orderId);
         setDetail(data);
       } catch (err) {
-        console.error("Load order detail error:", err);
+        // Error handled by loading state
       } finally {
         setLoadingDetail(false);
       }

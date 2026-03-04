@@ -79,7 +79,7 @@ export default function OrderManagementUI() {
       setData(result?.items ?? []);
       setTotal(result?.totalCount ?? 0);
     } catch (err) {
-      console.error("Load orders error:", err);
+      toast.error("Không thể tải danh sách đơn hàng");
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ export default function OrderManagementUI() {
         sortDesc: true,
       });
     } catch (err) {
-      console.error("Export error:", err);
+      toast.error("Xuất Excel thất bại");
     } finally {
       setExporting(false);
     }
