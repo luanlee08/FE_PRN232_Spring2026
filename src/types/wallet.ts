@@ -28,7 +28,7 @@ export interface WalletTransactionResponse {
 
 export interface TopUpRequest {
   amount: number;
-  gateway: "VNPay" | "MoMo" | "Sepay";
+  gateway: "VNPay" | "Sepay";
   returnUrl: string;
 }
 

@@ -4,35 +4,35 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import {
-User,
-MapPin,
-ClipboardList,
-Ticket,
-LogOut,
-Camera,
-X,
-Plus,
-Trash2,
-Star,
-Package,
-ChevronRight,
-ChevronLeft,
-Edit2,
-Check,
-Search,
-Clock,
-Truck,
-CheckCircle,
-XCircle,
-RefreshCw,
-CreditCard,
-Calendar,
-Phone,
-FileText,
-Inbox,
-ArrowDownCircle,
-ArrowUpCircle,
-Wallet,
+  User,
+  MapPin,
+  ClipboardList,
+  Ticket,
+  LogOut,
+  Camera,
+  X,
+  Plus,
+  Trash2,
+  Star,
+  Package,
+  ChevronRight,
+  ChevronLeft,
+  Edit2,
+  Check,
+  Search,
+  Clock,
+  Truck,
+  CheckCircle,
+  XCircle,
+  RefreshCw,
+  CreditCard,
+  Calendar,
+  Phone,
+  FileText,
+  Inbox,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Wallet,
 } from "lucide-react";
 import {
   CustomerProfileService,
@@ -52,7 +52,16 @@ import { CustomerWalletService } from "@/services/customer_services/customer.wal
 import { WalletResponse, WalletTransactionResponse, TopUpRequest } from "@/types/wallet";
 
 type Tab = "profile" | "addresses" | "orders" | "vouchers" | "wallet";
-type StatusKey = "all" | "pending" | "processing" | "confirmed" | "shipped" | "delivered" | "completed" | "cancelled" | "refunded";
+type StatusKey =
+  | "all"
+  | "pending"
+  | "processing"
+  | "confirmed"
+  | "shipped"
+  | "delivered"
+  | "completed"
+  | "cancelled"
+  | "refunded";
 
 /* ── helpers ── */
 const imgUrl = (url?: string | null) => {
@@ -135,7 +144,6 @@ const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 
 const GATEWAY_OPTIONS = [
   { value: "VNPay" as const, label: "VNPay", icon: "🏦", description: "Thẻ ATM, Visa, MasterCard" },
-  { value: "MoMo" as const, label: "MoMo", icon: "📱", description: "Ví điện tử MoMo" },
   { value: "Sepay" as const, label: "Sepay", icon: "🏧", description: "Chuyển khoản ngân hàng" },
 ];
 const QUICK_AMOUNTS = [50000, 100000, 200000, 500000, 1000000, 2000000];
@@ -261,28 +269,36 @@ function OrderTrackingStepper({ order }: { order: OrderDto }) {
   else if (s === "shipped") activeIdx = 2;
   else if (s === "delivered") activeIdx = 3;
   else if (s === "completed") activeIdx = 4;
-  
+
   const isFailed = ["cancelled", "refunded"].includes(s);
 
   const getDate = (stepKey: string) => {
     if (stepKey === "Pending") return order.orderDate;
-    if (stepKey === "Confirmed") return order.paymentCompletedAt || order.statusHistory?.find(h => ["Confirmed", "Processing"].includes(h.statusName || ""))?.changedAt;
-    return order.statusHistory?.find(h => h.statusName === stepKey)?.changedAt;
+    if (stepKey === "Confirmed")
+      return (
+        order.paymentCompletedAt ||
+        order.statusHistory?.find((h) => ["Confirmed", "Processing"].includes(h.statusName || ""))
+          ?.changedAt
+      );
+    return order.statusHistory?.find((h) => h.statusName === stepKey)?.changedAt;
   };
 
-  const fmtDate = (s: string) => new Date(s).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }); // Redefine just in case context is weird, but actually it is defined above. Wait, if I use the one above, I don't need this.
+  const fmtDate = (s: string) =>
+    new Date(s).toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }); // Redefine just in case context is weird, but actually it is defined above. Wait, if I use the one above, I don't need this.
   // Actually, let's just use the one from scope if available.
-  
+
   return (
     <div className="w-full px-4 pt-10 pb-6">
       <div className="relative flex items-center justify-between">
         {/* Background Line */}
         <div className="absolute top-5 left-0 w-full h-1 bg-gray-200 -z-10 rounded-full" />
-        
+
         {/* Active Line */}
-        <div 
+        <div
           className={`absolute top-5 left-0 h-1 rounded-full transition-all duration-500 -z-10 ${isFailed ? "bg-red-500" : "bg-green-600"}`}
-          style={{ width: isFailed ? "100%" : `${Math.min(100, (activeIdx / (steps.length - 1)) * 100)}%` }}
+          style={{
+            width: isFailed ? "100%" : `${Math.min(100, (activeIdx / (steps.length - 1)) * 100)}%`,
+          }}
         />
 
         {steps.map((step, index) => {
@@ -296,42 +312,68 @@ function OrderTrackingStepper({ order }: { order: OrderDto }) {
           let iconSize = 18;
 
           if (isFailed) {
-             circleClass = "border-red-500 bg-white text-red-500";
-             labelClass = "text-red-500";
+            circleClass = "border-red-500 bg-white text-red-500";
+            labelClass = "text-red-500";
           } else if (isCompleted) {
-             circleClass = "border-green-600 bg-green-600 text-white shadow-md shadow-green-200 scale-110";
-             labelClass = "text-green-700 font-semibold";
-             iconSize = 20;
+            circleClass =
+              "border-green-600 bg-green-600 text-white shadow-md shadow-green-200 scale-110";
+            labelClass = "text-green-700 font-semibold";
+            iconSize = 20;
           } else if (isCurrent) {
-             circleClass = "border-green-600 bg-white text-green-600 ring-4 ring-green-50 scale-110";
-             labelClass = "text-green-600 font-medium";
-             iconSize = 20;
+            circleClass = "border-green-600 bg-white text-green-600 ring-4 ring-green-50 scale-110";
+            labelClass = "text-green-600 font-medium";
+            iconSize = 20;
           }
 
           return (
-            <div key={step.key} className="flex flex-col items-center relative group" style={{ width: "20%" }}>
-              <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 ${circleClass}`}>
-                {isFailed && index === steps.length -1 ? <XCircle size={18} /> : 
-                 (isCompleted && !isFailed ? <Check size={iconSize} strokeWidth={3} /> : <Icon size={iconSize} />)}
+            <div
+              key={step.key}
+              className="flex flex-col items-center relative group"
+              style={{ width: "20%" }}
+            >
+              <div
+                className={`w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all duration-300 z-10 ${circleClass}`}
+              >
+                {isFailed && index === steps.length - 1 ? (
+                  <XCircle size={18} />
+                ) : isCompleted && !isFailed ? (
+                  <Check size={iconSize} strokeWidth={3} />
+                ) : (
+                  <Icon size={iconSize} />
+                )}
               </div>
-              <p className={`text-[11px] mt-3 text-center transition-all duration-300 px-1 leading-tight ${labelClass}`}>
+              <p
+                className={`text-[11px] mt-3 text-center transition-all duration-300 px-1 leading-tight ${labelClass}`}
+              >
                 {step.label}
               </p>
               <div className="h-8 flex flex-col items-center justify-start mt-1">
                 <p className="text-[10px] text-gray-400 font-medium leading-none">
-                    {date ? new Date(date).toLocaleDateString("vi-VN", {day:"2-digit", month:"2-digit"}) : ""}
+                  {date
+                    ? new Date(date).toLocaleDateString("vi-VN", {
+                        day: "2-digit",
+                        month: "2-digit",
+                      })
+                    : ""}
                 </p>
                 {date && (
-                    <p className="text-[9px] text-gray-400 leading-none mt-0.5">
-                    {new Date(date).toLocaleTimeString("vi-VN", {hour:"2-digit", minute:"2-digit"})}
-                    </p>
+                  <p className="text-[9px] text-gray-400 leading-none mt-0.5">
+                    {new Date(date).toLocaleTimeString("vi-VN", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </p>
                 )}
               </div>
             </div>
           );
         })}
       </div>
-      {isFailed && <p className="text-center text-red-500 font-medium mt-2 bg-red-50 py-2 rounded-lg border border-red-100">Đơn hàng đã bị huỷ</p>}
+      {isFailed && (
+        <p className="text-center text-red-500 font-medium mt-2 bg-red-50 py-2 rounded-lg border border-red-100">
+          Đơn hàng đã bị huỷ
+        </p>
+      )}
     </div>
   );
 }
@@ -345,7 +387,7 @@ export default function CustomerProfilePage() {
 
   /* ── deep-link: /profile?tab=orders — reactive to URL changes ── */
   useEffect(() => {
-    const validTabs: Tab[] = ["profile", "addresses", "orders", "vouchers"];
+    const validTabs: Tab[] = ["profile", "addresses", "orders", "vouchers", "wallet"];
     const t = searchParams.get("tab") as Tab | null;
     if (t && validTabs.includes(t)) setTab(t);
   }, [searchParams]);
@@ -360,7 +402,11 @@ export default function CustomerProfilePage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   /* ── change password state ── */
-  const [changePwForm, setChangePwForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  const [changePwForm, setChangePwForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
   const [changePwLoading, setChangePwLoading] = useState(false);
   const [googlePwChanged, setGooglePwChanged] = useState(false);
 
@@ -420,7 +466,7 @@ export default function CustomerProfilePage() {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [topUpAmountInput, setTopUpAmountInput] = useState("");
-  const [selectedGateway, setSelectedGateway] = useState<"VNPay" | "MoMo" | "Sepay">("VNPay");
+  const [selectedGateway, setSelectedGateway] = useState<"VNPay" | "Sepay">("VNPay");
   const [submittingTopUp, setSubmittingTopUp] = useState(false);
 
   /* ── auth guard ── */
@@ -438,7 +484,11 @@ export default function CustomerProfilePage() {
     if (tab === "wallet") {
       fetchWallet();
     }
-    if (tab === "orders") { setOrderTab("all"); setOrderPage(1); fetchOrders("all", 1); }
+    if (tab === "orders") {
+      setOrderTab("all");
+      setOrderPage(1);
+      fetchOrders("all", 1);
+    }
   }, [tab]);
 
   // Handle top-up callback redirect from gateway
@@ -502,13 +552,18 @@ export default function CustomerProfilePage() {
   const fetchOrders = useCallback(async (status: StatusKey = "all", page = 1) => {
     try {
       setLoadingOrders(true);
-      const statusParam = status === "all" ? undefined : status.charAt(0).toUpperCase() + status.slice(1);
+      const statusParam =
+        status === "all" ? undefined : status.charAt(0).toUpperCase() + status.slice(1);
       const r = await CustomerOrderService.getMyOrders(statusParam, page, ORDER_PAGE_SIZE);
       if (r.status === 200 && r.data) {
         setOrders(r.data.items ?? []);
         setOrderTotalCount(r.data.totalCount ?? 0);
       }
-    } catch { toast.error("Không thể tải đơn hàng"); } finally { setLoadingOrders(false); }
+    } catch {
+      toast.error("Không thể tải đơn hàng");
+    } finally {
+      setLoadingOrders(false);
+    }
   }, []);
 
   const fetchWallet = async () => {
@@ -586,12 +641,15 @@ export default function CustomerProfilePage() {
     }
     try {
       setChangePwLoading(true);
-      const res = await authService.changePassword(changePwForm.currentPassword, changePwForm.newPassword);
+      const res = await authService.changePassword(
+        changePwForm.currentPassword,
+        changePwForm.newPassword,
+      );
       if (res.status === 200) {
         toast.success("Đổi mật khẩu thành công!");
         setChangePwForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
         setGooglePwChanged(true);
-        setProfile((prev) => prev ? { ...prev, provider: undefined } : prev);
+        setProfile((prev) => (prev ? { ...prev, provider: undefined } : prev));
       } else {
         toast.error(res.message || "Đổi mật khẩu thất bại");
       }
@@ -911,7 +969,9 @@ export default function CustomerProfilePage() {
       };
       const res = await CustomerOrderService.createRefundRequest(req);
       if (res.status === 201 || res.status === 200) {
-        toast.success("Gửi yêu cầu hoàn tiền thành công! Chúng tôi sẽ xử lý trong 1–3 ngày làm việc.");
+        toast.success(
+          "Gửi yêu cầu hoàn tiền thành công! Chúng tôi sẽ xử lý trong 1–3 ngày làm việc.",
+        );
         setShowRefundModal(false);
         fetchOrders(orderTab, orderPage);
       } else {
@@ -949,13 +1009,13 @@ export default function CustomerProfilePage() {
     fetchOrders(orderTab, page);
   };
 
-  const filteredOrders = orders.filter(o => {
+  const filteredOrders = orders.filter((o) => {
     if (!orderSearch.trim()) return true;
     const q = orderSearch.toLowerCase();
     return o.orderCode?.toLowerCase().includes(q) || o.shippingName?.toLowerCase().includes(q);
   });
 
-  const orderTabCount = (key: StatusKey) => key === orderTab ? orderTotalCount : 0;
+  const orderTabCount = (key: StatusKey) => (key === orderTab ? orderTotalCount : 0);
   const totalOrderPages = Math.ceil(orderTotalCount / ORDER_PAGE_SIZE);
 
   /* ── nav ── */
@@ -1058,51 +1118,93 @@ export default function CustomerProfilePage() {
                     {profile?.provider === "Google" && !googlePwChanged && (
                       <div className="mb-6 space-y-4">
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-                          <svg className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" viewBox="0 0 24 24">
-                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
-                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+                          <svg
+                            className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              fill="#4285F4"
+                              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                            />
+                            <path
+                              fill="#34A853"
+                              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                            />
+                            <path
+                              fill="#FBBC05"
+                              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                            />
+                            <path
+                              fill="#EA4335"
+                              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                            />
                           </svg>
                           <div>
-                            <p className="text-sm font-semibold text-blue-800 mb-1">Tài khoản đăng ký bằng Google</p>
-                            <p className="text-sm text-blue-700">
-                              Mật khẩu mặc định của tài khoản bạn là: <strong className="font-mono bg-blue-100 px-1.5 py-0.5 rounded">Customer123@</strong>
+                            <p className="text-sm font-semibold text-blue-800 mb-1">
+                              Tài khoản đăng ký bằng Google
                             </p>
-                            <p className="text-xs text-blue-600 mt-1">Vui lòng đổi mật khẩu bên dưới để bảo vệ tài khoản của bạn.</p>
+                            <p className="text-sm text-blue-700">
+                              Mật khẩu mặc định của tài khoản bạn là:{" "}
+                              <strong className="font-mono bg-blue-100 px-1.5 py-0.5 rounded">
+                                Customer123@
+                              </strong>
+                            </p>
+                            <p className="text-xs text-blue-600 mt-1">
+                              Vui lòng đổi mật khẩu bên dưới để bảo vệ tài khoản của bạn.
+                            </p>
                           </div>
                         </div>
                         <div className="bg-white border border-gray-200 rounded-lg p-5">
-                          <h3 className="text-sm font-semibold text-gray-800 mb-4">Đặt mật khẩu mới</h3>
+                          <h3 className="text-sm font-semibold text-gray-800 mb-4">
+                            Đặt mật khẩu mới
+                          </h3>
                           <form onSubmit={handleChangePassword} className="space-y-3">
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Mật khẩu hiện tại</label>
+                              <label className="block text-xs text-gray-500 mb-1">
+                                Mật khẩu hiện tại
+                              </label>
                               <input
                                 type="password"
                                 value={changePwForm.currentPassword}
-                                onChange={(e) => setChangePwForm((f) => ({ ...f, currentPassword: e.target.value }))}
+                                onChange={(e) =>
+                                  setChangePwForm((f) => ({
+                                    ...f,
+                                    currentPassword: e.target.value,
+                                  }))
+                                }
                                 placeholder="Nhập mật khẩu hiện tại"
                                 required
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Mật khẩu mới</label>
+                              <label className="block text-xs text-gray-500 mb-1">
+                                Mật khẩu mới
+                              </label>
                               <input
                                 type="password"
                                 value={changePwForm.newPassword}
-                                onChange={(e) => setChangePwForm((f) => ({ ...f, newPassword: e.target.value }))}
+                                onChange={(e) =>
+                                  setChangePwForm((f) => ({ ...f, newPassword: e.target.value }))
+                                }
                                 placeholder="Nhập mật khẩu mới"
                                 required
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
                               />
                             </div>
                             <div>
-                              <label className="block text-xs text-gray-500 mb-1">Xác nhận mật khẩu mới</label>
+                              <label className="block text-xs text-gray-500 mb-1">
+                                Xác nhận mật khẩu mới
+                              </label>
                               <input
                                 type="password"
                                 value={changePwForm.confirmPassword}
-                                onChange={(e) => setChangePwForm((f) => ({ ...f, confirmPassword: e.target.value }))}
+                                onChange={(e) =>
+                                  setChangePwForm((f) => ({
+                                    ...f,
+                                    confirmPassword: e.target.value,
+                                  }))
+                                }
                                 placeholder="Nhập lại mật khẩu mới"
                                 required
                                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
@@ -1367,232 +1469,273 @@ export default function CustomerProfilePage() {
               {/* ─── ĐƠN MUA ─── */}
               {tab === "orders" && (
                 <>
-                <div className="bg-white rounded-sm">
-                  {/* sticky header + tabs */}
-                  <div className="sticky top-16 z-20 bg-white rounded-t-sm">
-                    {/* header */}
-                    <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
-                      <div>
-                        <h1 className="text-lg font-medium text-gray-800">Đơn Mua</h1>
-                        <p className="text-xs text-gray-400 mt-0.5">{orderTotalCount} đơn hàng</p>
+                  <div className="bg-white rounded-sm">
+                    {/* sticky header + tabs */}
+                    <div className="sticky top-16 z-20 bg-white rounded-t-sm">
+                      {/* header */}
+                      <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between gap-3">
+                        <div>
+                          <h1 className="text-lg font-medium text-gray-800">Đơn Mua</h1>
+                          <p className="text-xs text-gray-400 mt-0.5">{orderTotalCount} đơn hàng</p>
+                        </div>
+                        <div className="relative flex-shrink-0 w-52">
+                          <Search
+                            size={13}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                          />
+                          <input
+                            type="text"
+                            value={orderSearch}
+                            onChange={(e) => setOrderSearch(e.target.value)}
+                            placeholder="Tìm mã đơn..."
+                            className="w-full pl-8 pr-8 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-orange-400 transition"
+                          />
+                          {orderSearch && (
+                            <button
+                              onClick={() => setOrderSearch("")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            >
+                              <X size={13} />
+                            </button>
+                          )}
+                        </div>
                       </div>
-                      <div className="relative flex-shrink-0 w-52">
-                        <Search size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                        <input type="text" value={orderSearch} onChange={e => setOrderSearch(e.target.value)}
-                          placeholder="Tìm mã đơn..."
-                          className="w-full pl-8 pr-8 py-2 border border-gray-200 rounded text-sm focus:outline-none focus:border-orange-400 transition" />
-                        {orderSearch && (
-                          <button onClick={() => setOrderSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"><X size={13} /></button>
-                        )}
-                      </div>
-                    </div>
 
-                    {/* status tabs */}
-                    <div className="flex border-b border-gray-100 overflow-x-auto">
-                      {ORDER_TABS.map(t => {
-                        const cnt = orderTabCount(t.key);
-                        const active = orderTab === t.key;
-                        return (
-                          <button key={t.key} onClick={() => handleOrderTab(t.key)}
-                            className={`flex-shrink-0 flex items-center gap-1 px-4 py-3 text-xs font-medium border-b-2 transition-colors ${active ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500 hover:text-gray-700"}`}>
-                            {t.label}
-                            {cnt > 0 && (
-                              <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500"}`}>{cnt}</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* order list */}
-                  <div className="divide-y divide-gray-100">
-                    {loadingOrders ? (
-                      <div className="p-6 space-y-3">
-                        {[1, 2, 3].map((i) => (
-                          <div key={i} className="h-28 bg-gray-50 rounded animate-pulse" />
-                        ))}
-                      </div>
-                    ) : filteredOrders.length === 0 ? (
-                      <div className="text-center py-16">
-                        <Package size={40} className="text-gray-200 mx-auto mb-2" />
-                        <p className="text-gray-400 text-sm">
-                          {orderSearch
-                            ? `Không tìm thấy "${orderSearch}"`
-                            : "Không có đơn hàng nào"}
-                        </p>
-                      </div>
-                    ) : (
-                      filteredOrders.map((order) => {
-                        const skey = order.statusName?.toLowerCase() as string;
-                        const st = STATUS_MAP[skey] ?? {
-                          label: order.statusName,
-                          color: "text-gray-500",
-                          bg: "bg-gray-50 border-gray-200",
-                          icon: Package,
-                        };
-                        const Icon = st.icon;
-                        const canCancel = skey === "pending";
-                        const canRefund = skey === "completed" && order.refundStatus === "None";
-                        const hasRefundRequest = order.refundStatus !== "None" && order.refundStatus !== "" && skey === "completed";
-                        return (
-                          <div
-                            key={order.orderId}
-                            onClick={() => setSelectedOrder(order)}
-                            className="px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
-                          >
-                            {/* order meta */}
-                            <div className="flex items-center justify-between mb-3">
-                              <div className="flex items-center gap-2">
-                                <Package size={13} className="text-orange-400" />
-                                <span className="text-xs font-medium text-gray-600">
-                                  #{order.orderCode}
+                      {/* status tabs */}
+                      <div className="flex border-b border-gray-100 overflow-x-auto">
+                        {ORDER_TABS.map((t) => {
+                          const cnt = orderTabCount(t.key);
+                          const active = orderTab === t.key;
+                          return (
+                            <button
+                              key={t.key}
+                              onClick={() => handleOrderTab(t.key)}
+                              className={`flex-shrink-0 flex items-center gap-1 px-4 py-3 text-xs font-medium border-b-2 transition-colors ${active ? "border-orange-500 text-orange-500" : "border-transparent text-gray-500 hover:text-gray-700"}`}
+                            >
+                              {t.label}
+                              {cnt > 0 && (
+                                <span
+                                  className={`text-[10px] px-1.5 py-0.5 rounded-full ${active ? "bg-orange-100 text-orange-600" : "bg-gray-100 text-gray-500"}`}
+                                >
+                                  {cnt}
                                 </span>
-                                {order.orderDate && (
-                                  <span className="text-xs text-gray-400">
-                                    {fmtDate(order.orderDate)}
-                                  </span>
-                                )}
-                              </div>
-                              <div
-                                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${st.bg} ${st.color}`}
-                              >
-                                <Icon size={11} />
-                                {st.label}
-                              </div>
-                            </div>
-                            {/* items */}
-                            <div className="space-y-2">
-                              {order.orderDetails?.slice(0, 2).map((item) => (
-                                <div key={item.orderDetailId} className="flex items-center gap-3">
-                                  <div className="w-12 h-12 rounded border border-gray-100 overflow-hidden flex-shrink-0 bg-gray-50">
-                                    {item.productImage ? (
-                                      <img
-                                        src={imgUrl(item.productImage)!}
-                                        alt={item.productName}
-                                        className="w-full h-full object-cover"
-                                      />
-                                    ) : (
-                                      <div className="w-full h-full flex items-center justify-center">
-                                        <Package size={14} className="text-gray-300" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-sm text-gray-700 truncate">
-                                      {item.productName}
-                                    </p>
-                                    <p className="text-xs text-gray-400">x{item.quantity}</p>
-                                  </div>
-                                  <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.total)}</p>
-                                </div>
-                              ))}
-                              {(order.orderDetails?.length ?? 0) > 2 && (
-                                <p className="text-xs text-gray-400 italic pl-15">
-                                  +{order.orderDetails.length - 2} sản phẩm khác
-                                </p>
                               )}
-                            </div>
-                            {/* footer */}
-                            <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
-                              <div className="flex items-center gap-2">
-                                {canCancel && (
-                                  <button
-                                    onClick={(e) => handleCancelOrder(order.orderId, e)}
-                                    disabled={cancelling === order.orderId}
-                                    className="px-3 py-1 border border-gray-200 text-gray-500 text-xs rounded hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
-                                  >
-                                    {cancelling === order.orderId ? "Đang huỷ..." : "Huỷ đơn"}
-                                  </button>
-                                )}
-                                {canRefund && (
-                                  <button
-                                    onClick={(e) => handleOpenRefundModal(order, e)}
-                                    className="flex items-center gap-1 px-3 py-1 border border-orange-200 text-orange-600 text-xs rounded hover:bg-orange-50 hover:border-orange-400 transition-colors"
-                                  >
-                                    <ArrowDownCircle size={11} />
-                                    Yêu cầu hoàn tiền
-                                  </button>
-                                )}
-                                {hasRefundRequest && (
-                                  <span className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full border border-indigo-100">
-                                    <RefreshCw size={10} />
-                                    Đã gửi YC hoàn tiền
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* order list */}
+                    <div className="divide-y divide-gray-100">
+                      {loadingOrders ? (
+                        <div className="p-6 space-y-3">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="h-28 bg-gray-50 rounded animate-pulse" />
+                          ))}
+                        </div>
+                      ) : filteredOrders.length === 0 ? (
+                        <div className="text-center py-16">
+                          <Package size={40} className="text-gray-200 mx-auto mb-2" />
+                          <p className="text-gray-400 text-sm">
+                            {orderSearch
+                              ? `Không tìm thấy "${orderSearch}"`
+                              : "Không có đơn hàng nào"}
+                          </p>
+                        </div>
+                      ) : (
+                        filteredOrders.map((order) => {
+                          const skey = order.statusName?.toLowerCase() as string;
+                          const st = STATUS_MAP[skey] ?? {
+                            label: order.statusName,
+                            color: "text-gray-500",
+                            bg: "bg-gray-50 border-gray-200",
+                            icon: Package,
+                          };
+                          const Icon = st.icon;
+                          const canCancel = skey === "pending";
+                          const canRefund = skey === "completed" && order.refundStatus === "None";
+                          const hasRefundRequest =
+                            order.refundStatus !== "None" &&
+                            order.refundStatus !== "" &&
+                            skey === "completed";
+                          return (
+                            <div
+                              key={order.orderId}
+                              onClick={() => setSelectedOrder(order)}
+                              className="px-5 py-4 cursor-pointer hover:bg-gray-50/50 transition-colors"
+                            >
+                              {/* order meta */}
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Package size={13} className="text-orange-400" />
+                                  <span className="text-xs font-medium text-gray-600">
+                                    #{order.orderCode}
                                   </span>
-                                )}
-                                <span className="text-xs text-gray-400">Xem chi tiết →</span>
+                                  {order.orderDate && (
+                                    <span className="text-xs text-gray-400">
+                                      {fmtDate(order.orderDate)}
+                                    </span>
+                                  )}
+                                </div>
+                                <div
+                                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border ${st.bg} ${st.color}`}
+                                >
+                                  <Icon size={11} />
+                                  {st.label}
+                                </div>
                               </div>
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-xs text-gray-500">Tổng:</span>
-                                <span className="text-sm font-bold text-orange-500">
-                                  {fmtVND(order.totalAmount)}
-                                </span>
+                              {/* items */}
+                              <div className="space-y-2">
+                                {order.orderDetails?.slice(0, 2).map((item) => (
+                                  <div key={item.orderDetailId} className="flex items-center gap-3">
+                                    <div className="w-12 h-12 rounded border border-gray-100 overflow-hidden flex-shrink-0 bg-gray-50">
+                                      {item.productImage ? (
+                                        <img
+                                          src={imgUrl(item.productImage)!}
+                                          alt={item.productName}
+                                          className="w-full h-full object-cover"
+                                        />
+                                      ) : (
+                                        <div className="w-full h-full flex items-center justify-center">
+                                          <Package size={14} className="text-gray-300" />
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-sm text-gray-700 truncate">
+                                        {item.productName}
+                                      </p>
+                                      <p className="text-xs text-gray-400">x{item.quantity}</p>
+                                    </div>
+                                    <p className="text-sm font-semibold text-orange-500 flex-shrink-0">
+                                      {fmtVND(item.total)}
+                                    </p>
+                                  </div>
+                                ))}
+                                {(order.orderDetails?.length ?? 0) > 2 && (
+                                  <p className="text-xs text-gray-400 italic pl-15">
+                                    +{order.orderDetails.length - 2} sản phẩm khác
+                                  </p>
+                                )}
+                              </div>
+                              {/* footer */}
+                              <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                                <div className="flex items-center gap-2">
+                                  {canCancel && (
+                                    <button
+                                      onClick={(e) => handleCancelOrder(order.orderId, e)}
+                                      disabled={cancelling === order.orderId}
+                                      className="px-3 py-1 border border-gray-200 text-gray-500 text-xs rounded hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+                                    >
+                                      {cancelling === order.orderId ? "Đang huỷ..." : "Huỷ đơn"}
+                                    </button>
+                                  )}
+                                  {canRefund && (
+                                    <button
+                                      onClick={(e) => handleOpenRefundModal(order, e)}
+                                      className="flex items-center gap-1 px-3 py-1 border border-orange-200 text-orange-600 text-xs rounded hover:bg-orange-50 hover:border-orange-400 transition-colors"
+                                    >
+                                      <ArrowDownCircle size={11} />
+                                      Yêu cầu hoàn tiền
+                                    </button>
+                                  )}
+                                  {hasRefundRequest && (
+                                    <span className="flex items-center gap-1 px-2.5 py-1 bg-indigo-50 text-indigo-600 text-xs rounded-full border border-indigo-100">
+                                      <RefreshCw size={10} />
+                                      Đã gửi YC hoàn tiền
+                                    </span>
+                                  )}
+                                  <span className="text-xs text-gray-400">Xem chi tiết →</span>
+                                </div>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="text-xs text-gray-500">Tổng:</span>
+                                  <span className="text-sm font-bold text-orange-500">
+                                    {fmtVND(order.totalAmount)}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })
+                          );
+                        })
+                      )}
+                    </div>
+
+                    {/* pagination */}
+                    {totalOrderPages > 1 && (
+                      <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+                        <span className="text-xs text-gray-400">
+                          Trang {orderPage}/{totalOrderPages} · {orderTotalCount} đơn
+                        </span>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleOrderPage(orderPage - 1)}
+                            disabled={orderPage === 1}
+                            className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            ‹
+                          </button>
+                          {Array.from({ length: totalOrderPages }, (_, i) => i + 1)
+                            .filter(
+                              (p) =>
+                                p === 1 || p === totalOrderPages || Math.abs(p - orderPage) <= 1,
+                            )
+                            .reduce<(number | "...")[]>((acc, p, idx, arr) => {
+                              if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1)
+                                acc.push("...");
+                              acc.push(p);
+                              return acc;
+                            }, [])
+                            .map((p, i) =>
+                              p === "..." ? (
+                                <span key={`e${i}`} className="px-1.5 text-xs text-gray-400">
+                                  …
+                                </span>
+                              ) : (
+                                <button
+                                  key={p}
+                                  onClick={() => handleOrderPage(p as number)}
+                                  className={`px-2.5 py-1 text-xs rounded border transition-colors ${
+                                    p === orderPage
+                                      ? "bg-orange-500 border-orange-500 text-white"
+                                      : "border-gray-200 text-gray-500 hover:bg-gray-50"
+                                  }`}
+                                >
+                                  {p}
+                                </button>
+                              ),
+                            )}
+                          <button
+                            onClick={() => handleOrderPage(orderPage + 1)}
+                            disabled={orderPage === totalOrderPages}
+                            className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            ›
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
 
-                  {/* pagination */}
-                  {totalOrderPages > 1 && (
-                    <div className="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
-                      <span className="text-xs text-gray-400">
-                        Trang {orderPage}/{totalOrderPages} · {orderTotalCount} đơn
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <button
-                          onClick={() => handleOrderPage(orderPage - 1)}
-                          disabled={orderPage === 1}
-                          className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >‹</button>
-                        {Array.from({ length: totalOrderPages }, (_, i) => i + 1)
-                          .filter(p => p === 1 || p === totalOrderPages || Math.abs(p - orderPage) <= 1)
-                          .reduce<(number | "...")[]>((acc, p, idx, arr) => {
-                            if (idx > 0 && (p as number) - (arr[idx - 1] as number) > 1) acc.push("...");
-                            acc.push(p);
-                            return acc;
-                          }, [])
-                          .map((p, i) =>
-                            p === "..." ? (
-                              <span key={`e${i}`} className="px-1.5 text-xs text-gray-400">…</span>
-                            ) : (
-                              <button
-                                key={p}
-                                onClick={() => handleOrderPage(p as number)}
-                                className={`px-2.5 py-1 text-xs rounded border transition-colors ${
-                                  p === orderPage
-                                    ? "bg-orange-500 border-orange-500 text-white"
-                                    : "border-gray-200 text-gray-500 hover:bg-gray-50"
-                                }`}
-                              >{p}</button>
-                            )
-                          )}
-                        <button
-                          onClick={() => handleOrderPage(orderPage + 1)}
-                          disabled={orderPage === totalOrderPages}
-                          className="px-2 py-1 text-xs rounded border border-gray-200 text-gray-500 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                        >›</button>
-                      </div>
+                  {/* ─── Link xem trạng thái hoàn tiền ─── */}
+                  <div className="bg-white rounded-sm mt-3 px-5 py-3 flex items-center justify-between border border-dashed border-orange-200">
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">Đơn yêu cầu hoàn tiền</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        Xem trạng thái các yêu cầu hoàn tiền của bạn
+                      </p>
                     </div>
-                  )}
-                </div>
-
-                {/* ─── Link xem trạng thái hoàn tiền ─── */}
-                <div className="bg-white rounded-sm mt-3 px-5 py-3 flex items-center justify-between border border-dashed border-orange-200">
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Đơn yêu cầu hoàn tiền</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Xem trạng thái các yêu cầu hoàn tiền của bạn</p>
+                    <button
+                      onClick={() => {
+                        setShowRefundStatus(true);
+                        fetchMyRefunds();
+                      }}
+                      className="flex items-center gap-1.5 text-xs text-orange-500 font-medium border border-orange-200 rounded-lg px-3 py-1.5 hover:bg-orange-50 transition-colors"
+                    >
+                      <ArrowDownCircle size={13} />
+                      Xem lịch sử hoàn tiền
+                    </button>
                   </div>
-                  <button
-                    onClick={() => { setShowRefundStatus(true); fetchMyRefunds(); }}
-                    className="flex items-center gap-1.5 text-xs text-orange-500 font-medium border border-orange-200 rounded-lg px-3 py-1.5 hover:bg-orange-50 transition-colors"
-                  >
-                    <ArrowDownCircle size={13} />
-                    Xem lịch sử hoàn tiền
-                  </button>
-                </div>
                 </>
               )}
 
@@ -2088,7 +2231,11 @@ export default function CustomerProfilePage() {
                   {GATEWAY_OPTIONS.map((gw) => (
                     <label
                       key={gw.value}
-                      className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition ${selectedGateway === gw.value ? "border-orange-400 bg-orange-50/40" : "border-gray-200 hover:border-orange-300"}`}
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
+                        selectedGateway === gw.value
+                          ? "border-orange-400 bg-orange-50/50"
+                          : "border-gray-200 hover:border-orange-300"
+                      }`}
                     >
                       <input
                         type="radio"
@@ -2099,7 +2246,7 @@ export default function CustomerProfilePage() {
                         className="accent-orange-500"
                       />
                       <span className="text-xl">{gw.icon}</span>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">{gw.label}</p>
                         <p className="text-xs text-gray-400">{gw.description}</p>
                       </div>
@@ -2176,10 +2323,32 @@ export default function CustomerProfilePage() {
               {/* info grid */}
               <div className="px-6 mt-5 grid grid-cols-2 gap-4">
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
-                  <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">Khách hàng</h3>
-                  <div className="flex items-start gap-2"><User size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.shippingName || selectedOrder.accountName || "—"}</p></div>
-                  <div className="flex items-start gap-2"><Phone size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700">{selectedOrder.shippingPhone || "—"}</p></div>
-                  <div className="flex items-start gap-2"><MapPin size={13} className="text-gray-400 mt-0.5 flex-shrink-0" /><p className="text-sm text-gray-700 leading-relaxed">{[selectedOrder.shippingAddressLine, selectedOrder.shippingWard, selectedOrder.shippingDistrict, selectedOrder.shippingCity].filter(Boolean).join(", ") || "—"}</p></div>
+                  <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+                    Khách hàng
+                  </h3>
+                  <div className="flex items-start gap-2">
+                    <User size={13} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">
+                      {selectedOrder.shippingName || selectedOrder.accountName || "—"}
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Phone size={13} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">{selectedOrder.shippingPhone || "—"}</p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MapPin size={13} className="text-gray-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {[
+                        selectedOrder.shippingAddressLine,
+                        selectedOrder.shippingWard,
+                        selectedOrder.shippingDistrict,
+                        selectedOrder.shippingCity,
+                      ]
+                        .filter(Boolean)
+                        .join(", ") || "—"}
+                    </p>
+                  </div>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-4 space-y-2.5">
                   <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
@@ -2236,7 +2405,9 @@ export default function CustomerProfilePage() {
                           {fmtVND(item.unitPrice)} × {item.quantity}
                         </p>
                       </div>
-                      <p className="text-sm font-semibold text-orange-500 flex-shrink-0">{fmtVND(item.total)}</p>
+                      <p className="text-sm font-semibold text-orange-500 flex-shrink-0">
+                        {fmtVND(item.total)}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -2309,7 +2480,9 @@ export default function CustomerProfilePage() {
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Tổng giá trị</span>
-                  <span className="font-semibold text-orange-600">{fmtVND(refundTargetOrder.totalAmount)}</span>
+                  <span className="font-semibold text-orange-600">
+                    {fmtVND(refundTargetOrder.totalAmount)}
+                  </span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-gray-500">Phương thức hoàn tiền</span>
@@ -2356,8 +2529,8 @@ export default function CustomerProfilePage() {
               <div className="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 flex items-start gap-2">
                 <FileText size={14} className="text-blue-500 mt-0.5 flex-shrink-0" />
                 <p className="text-xs text-blue-600">
-                  Tiền sẽ được hoàn vào <strong>ví điện tử</strong> của bạn sau khi yêu cầu được
-                  xét duyệt. Thời gian xử lý thường từ 1-3 ngày làm việc.
+                  Tiền sẽ được hoàn vào <strong>ví điện tử</strong> của bạn sau khi yêu cầu được xét
+                  duyệt. Thời gian xử lý thường từ 1-3 ngày làm việc.
                 </p>
               </div>
             </div>
@@ -2425,14 +2598,45 @@ export default function CustomerProfilePage() {
               ) : (
                 <div className="space-y-3">
                   {myRefunds.map((refund) => {
-                    const refundStatusConfig: Record<string, { label: string; color: string; bg: string }> = {
-                      Requested: { label: "Chờ xét duyệt", color: "text-amber-600", bg: "bg-amber-50 border-amber-200" },
-                      Approved: { label: "Đã duyệt", color: "text-blue-600", bg: "bg-blue-50 border-blue-200" },
-                      Processing: { label: "Đang xử lý", color: "text-violet-600", bg: "bg-violet-50 border-violet-200" },
-                      Completed: { label: "Hoàn tất", color: "text-green-600", bg: "bg-green-50 border-green-200" },
-                      Rejected: { label: "Từ chối", color: "text-red-500", bg: "bg-red-50 border-red-200" },
-                      PartialRefund: { label: "Hoàn một phần", color: "text-orange-500", bg: "bg-orange-50 border-orange-200" },
-                      FullRefund: { label: "Hoàn toàn bộ", color: "text-emerald-600", bg: "bg-emerald-50 border-emerald-200" },
+                    const refundStatusConfig: Record<
+                      string,
+                      { label: string; color: string; bg: string }
+                    > = {
+                      Requested: {
+                        label: "Chờ xét duyệt",
+                        color: "text-amber-600",
+                        bg: "bg-amber-50 border-amber-200",
+                      },
+                      Approved: {
+                        label: "Đã duyệt",
+                        color: "text-blue-600",
+                        bg: "bg-blue-50 border-blue-200",
+                      },
+                      Processing: {
+                        label: "Đang xử lý",
+                        color: "text-violet-600",
+                        bg: "bg-violet-50 border-violet-200",
+                      },
+                      Completed: {
+                        label: "Hoàn tất",
+                        color: "text-green-600",
+                        bg: "bg-green-50 border-green-200",
+                      },
+                      Rejected: {
+                        label: "Từ chối",
+                        color: "text-red-500",
+                        bg: "bg-red-50 border-red-200",
+                      },
+                      PartialRefund: {
+                        label: "Hoàn một phần",
+                        color: "text-orange-500",
+                        bg: "bg-orange-50 border-orange-200",
+                      },
+                      FullRefund: {
+                        label: "Hoàn toàn bộ",
+                        color: "text-emerald-600",
+                        bg: "bg-emerald-50 border-emerald-200",
+                      },
                     };
                     const sc = refundStatusConfig[refund.refundStatus] ?? {
                       label: refund.refundStatus,
@@ -2463,7 +2667,9 @@ export default function CustomerProfilePage() {
                         <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                           <div>
                             <span className="text-gray-400">Số tiền YC:</span>{" "}
-                            <span className="font-medium text-orange-600">{fmtVND(refund.refundAmount)}</span>
+                            <span className="font-medium text-orange-600">
+                              {fmtVND(refund.refundAmount)}
+                            </span>
                           </div>
                           <div>
                             <span className="text-gray-400">Phương thức:</span>{" "}

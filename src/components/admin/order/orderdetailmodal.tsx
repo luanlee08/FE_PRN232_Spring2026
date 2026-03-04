@@ -57,9 +57,6 @@ export default function OrderDetailModal({ orderId, isOpen, onClose, onStatusUpd
             <h3 className="text-lg font-semibold">Chi tiết đơn hàng</h3>
             {detail && <p className="text-sm text-gray-500 font-mono">{detail.orderCode}</p>}
           </div>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-            ✕
-          </button>
         </div>
 
         {/* BODY */}

@@ -5,20 +5,16 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useSidebar } from "@/lib/context/SidebarContext";
 import {
-  BoxCubeIcon,
-  CalenderIcon,
   ChevronDownIcon,
   GridIcon,
   HorizontaLDots,
   ListIcon,
   PageIcon,
-  PieChartIcon,
   PlugInIcon,
-  TableIcon,
   UserCircleIcon,
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
-import { Package, Box, Receipt, TicketPercent, Bell, BarChart2 } from "lucide-react";
+import { Package, Receipt, TicketPercent, Bell, BarChart2 } from "lucide-react";
 type NavItem = {
   name: string;
   icon: React.ReactNode;

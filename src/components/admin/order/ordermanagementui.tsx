@@ -118,24 +118,26 @@ export default function OrderManagementUI() {
         note,
         autoCreateShipping: shouldCreateShipping,
         shippingServiceId: 53321,
-        shippingRequiredNote: 'KHONGCHOXEMHANG',
+        shippingRequiredNote: "KHONGCHOXEMHANG",
       });
       fetchData();
       // Surface GHN warning or success from backend response
-      if (res.message?.includes('⚠️')) {
+      if (res.message?.includes("⚠️")) {
         toast.error(res.message, { duration: 6000 });
       } else {
-        toast.success(res.message || 'Cập nhật trạng thái thành công');
+        toast.success(res.message || "Cập nhật trạng thái thành công");
       }
     } catch (err: any) {
       console.error("Update status error:", err);
-      toast.error(err?.response?.data?.message || 'Cập nhật thất bại');
+      toast.error(err?.response?.data?.message || "Cập nhật thất bại");
     } finally {
       setUpdating(false);
     }
   };
 
   const handleOpenEditModal = (item: AdminOrderListItem) => {
+    setOpenDetail(false);
+    setSelectedOrderId(null);
     setEditModal({
       isOpen: true,
       order: item,

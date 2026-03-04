@@ -26,7 +26,6 @@ const labelCls = "block text-sm font-medium text-gray-700 mb-1.5";
 
 const GATEWAY_OPTIONS = [
   { value: "VNPay" as const, label: "VNPay", icon: "🏦", description: "Thẻ ATM, Visa, MasterCard" },
-  { value: "MoMo" as const, label: "MoMo", icon: "📱", description: "Ví điện tử MoMo" },
   { value: "Sepay" as const, label: "Sepay", icon: "🏧", description: "Chuyển khoản ngân hàng" },
 ];
 
@@ -70,7 +69,7 @@ export default function WalletPage() {
   const [showModal, setShowModal] = useState(false);
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [topUpInput, setTopUpInput] = useState("");
-  const [gateway, setGateway] = useState<"VNPay" | "MoMo" | "Sepay">("VNPay");
+  const [gateway, setGateway] = useState<"VNPay" | "Sepay">("VNPay");
   const [submitting, setSubmitting] = useState(false);
 
   /* ── auth guard ── */
@@ -488,9 +487,9 @@ export default function WalletPage() {
                   {GATEWAY_OPTIONS.map((gw) => (
                     <label
                       key={gw.value}
-                      className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition ${
+                      className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition-all ${
                         gateway === gw.value
-                          ? "border-orange-400 bg-orange-50/40"
+                          ? "border-orange-400 bg-orange-50/50"
                           : "border-gray-200 hover:border-orange-300"
                       }`}
                     >
@@ -503,7 +502,7 @@ export default function WalletPage() {
                         className="accent-orange-500"
                       />
                       <span className="text-xl">{gw.icon}</span>
-                      <div>
+                      <div className="flex-1">
                         <p className="text-sm font-medium text-gray-800">{gw.label}</p>
                         <p className="text-xs text-gray-400">{gw.description}</p>
                       </div>
