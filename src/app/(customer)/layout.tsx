@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Header } from "@/components/customer/header";
 
 export default function CustomerLayout({
@@ -7,7 +8,9 @@ export default function CustomerLayout({
 }) {
   return (
     <>
-      <Header />
+      <Suspense fallback={null}>
+        <Header />
+      </Suspense>
       {children}
     </>
   );

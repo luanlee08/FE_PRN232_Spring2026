@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import toast from "react-hot-toast";
+import { CheckCircle, Clock, XCircle, Truck } from "lucide-react";
 import { Modal } from "../ui/modal";
 import { AdminOrderDetail, AdminOrderService } from "@/services/admin_services/admin.order.service";
 
@@ -27,26 +28,42 @@ function formatCurrency(value?: number) {
 export default function OrderDetailModal({ orderId, isOpen, onClose, onStatusUpdated }: Props) {
   const [detail, setDetail] = useState<AdminOrderDetail | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+  const [seeding, setSeeding] = useState(false);
+
+  const fetchDetail = async () => {
+    if (!orderId) return;
+    setLoadingDetail(true);
+    try {
+      const data = await AdminOrderService.getDetail(orderId);
+      setDetail(data);
+    } catch (err) {
+      // Error handled by loading state
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
 
   useEffect(() => {
     if (!isOpen || !orderId) {
       setDetail(null);
       return;
     }
-
-    const fetch = async () => {
-      setLoadingDetail(true);
-      try {
-        const data = await AdminOrderService.getDetail(orderId);
-        setDetail(data);
-      } catch (err) {
-        // Error handled by loading state
-      } finally {
-        setLoadingDetail(false);
-      }
-    };
-    fetch();
+    fetchDetail();
   }, [orderId, isOpen]);
+
+  const handleSeedGHN = async () => {
+    if (!orderId) return;
+    setSeeding(true);
+    try {
+      const res = await AdminOrderService.seedDemoShipping(orderId);
+      toast.success(`Tạo mã vận đơn demo thành công: ${res.data?.trackingNumber ?? ""}`);
+      await fetchDetail(); // reload to show new tracking number
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Không thể tạo mã vận đơn demo");
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} className="max-w-215 rounded-2xl bg-white shadow-2xl">
@@ -77,6 +94,51 @@ export default function OrderDetailModal({ orderId, isOpen, onClose, onStatusUpd
                   <InfoRow label="Địa chỉ" value={detail.shippingAddress} />
                   <InfoRow label="Phương thức" value={detail.shippingMethod ?? "—"} />
                   <InfoRow label="Phí ship" value={formatCurrency(detail.shippingFee)} />
+                  {detail.shippingInfo?.trackingNumber ? (
+                    <>
+                      <div className="flex justify-between py-1 text-sm">
+                        <span className="text-gray-500 flex items-center gap-1">
+                          <Truck size={12} /> Mã vận đơn GHN
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-blue-600 select-all">
+                            {detail.shippingInfo.trackingNumber}
+                          </span>
+                          <a
+                            href={`https://tracking.ghn.dev/?order_code=${detail.shippingInfo.trackingNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-[11px] text-blue-500 hover:underline"
+                          >
+                            Tra cứu
+                          </a>
+                        </div>
+                      </div>
+                      {detail.shippingInfo.status && (
+                        <div className="flex justify-between py-1 text-sm">
+                          <span className="text-gray-500">Trạng thái GHN</span>
+                          <span className="font-medium text-indigo-600">
+                            {detail.shippingInfo.status}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div className="pt-2">
+                      <button
+                        onClick={handleSeedGHN}
+                        disabled={seeding}
+                        className="w-full text-xs py-1.5 rounded-lg border border-dashed border-orange-300 text-orange-500 hover:bg-orange-50 transition-colors disabled:opacity-60 flex items-center justify-center gap-1.5"
+                      >
+                        {seeding ? (
+                          <span className="animate-spin inline-block w-3 h-3 border-2 border-orange-400 border-t-transparent rounded-full" />
+                        ) : (
+                          <Truck size={12} />
+                        )}
+                        {seeding ? "Đang tạo..." : "🚚 Tạo mã vận đơn GHN Demo"}
+                      </button>
+                    </div>
+                  )}
                 </Section>
               </div>
 

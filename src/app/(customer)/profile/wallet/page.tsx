@@ -12,7 +12,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CustomerWalletService } from "@/services/customer_services/customer.wallet.service";
@@ -50,7 +50,7 @@ const TYPE_COLOR: Record<string, string> = {
 
 const PAGE_SIZE = 10;
 
-export default function WalletPage() {
+function WalletPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
@@ -554,5 +554,13 @@ export default function WalletPage() {
         </div>
       )}
     </>
+  );
+}
+
+export default function WalletPage() {
+  return (
+    <Suspense fallback={null}>
+      <WalletPageContent />
+    </Suspense>
   );
 }

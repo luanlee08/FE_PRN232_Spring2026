@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
   ORDER_PAYMENT_METHODS: `${API_BASE}/api/COrder/payment-methods`,
   ORDER_MY_ORDERS: `${API_BASE}/api/COrder/my-orders`,
   ORDER_CANCEL: (id: number) => `${API_BASE}/api/COrder/${id}/cancel`,
+  ORDER_TRACKING: (id: number) => `${API_BASE}/api/COrder/${id}/tracking`,
 
   // ===== CUSTOMER SHIPPING =====
   SHIPPING_METHODS: `${API_BASE}/api/CShipping/methods`,

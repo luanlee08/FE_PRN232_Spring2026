@@ -13,9 +13,12 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import toast from "react-hot-toast";
 import { CustomerProductService } from "@/services/customer_services/customer.product.service";
+import { CustomerCartService } from "@/services/customer_services/customer.cart.service";
+import { useAuth } from "@/lib/auth/auth-context";
 import { ProductStorefront } from "@/types/products";
 import { API_BASE } from "@/configs/api-configs";
 
@@ -65,6 +68,11 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<ProductStorefront | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [buyingNow, setBuyingNow] = useState(false);
+
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -110,6 +118,66 @@ export default function ProductDetailPage() {
   if (!product) {
     return <div className="p-10 text-center">Không tìm thấy sản phẩm.</div>;
   }
+
+  const isOutOfStock =
+    product?.productStatus?.toLowerCase() === "outofstock" ||
+    product?.productStatus?.toLowerCase() === "discontinued" ||
+    Boolean(product?.isOutOfStock) ||
+    (typeof product?.stockQuantity === "number" && product.stockQuantity <= 0);
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      router.push("/login");
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      const res = await CustomerCartService.addToCart(Number(product!.id), quantity);
+      if (res.status === 200 || res.status === 201) {
+        toast.success("Đã thêm vào giỏ hàng!");
+        if (res.data) {
+          localStorage.setItem("cart_count", String(res.data.items.length));
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
+      } else {
+        toast.error(res.message || "Không thể thêm vào giỏ hàng");
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } finally {
+      setAddingToCart(false);
+    }
+  };
+
+  const handleBuyNow = async () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để mua hàng");
+      router.push("/login");
+      return;
+    }
+    setBuyingNow(true);
+    try {
+      const res = await CustomerCartService.addToCart(Number(product!.id), quantity);
+      if (res.status === 200 || res.status === 201) {
+        if (res.data) {
+          localStorage.setItem("cart_count", String(res.data.items.length));
+          const newItem = res.data.items.find((i) => i.productId === Number(product!.id));
+          if (newItem) {
+            localStorage.setItem("selected_cart_items", JSON.stringify([newItem.cartItemId]));
+          }
+          window.dispatchEvent(new Event("cartUpdated"));
+        }
+        router.push("/checkout");
+      } else {
+        toast.error(res.message || "Không thể thêm vào giỏ hàng");
+        setBuyingNow(false);
+      }
+    } catch {
+      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+      setBuyingNow(false);
+    }
+  };
 
   const activeImage = selectedImageUrl ?? galleryImages[0] ?? null;
   const activeImageUrl = resolveImageUrl(activeImage);
@@ -285,18 +353,22 @@ export default function ProductDetailPage() {
 
                     <button
                       type="button"
-                      className="sm:flex-1 py-3 px-4 bg-white border-2 border-[#FF6B35] text-[#FF6B35] rounded-xl font-semibold hover:bg-orange-50 transition flex items-center justify-center gap-2"
+                      disabled={isOutOfStock || addingToCart}
+                      onClick={handleAddToCart}
+                      className="sm:flex-1 py-3 px-4 bg-white border-2 border-[#FF6B35] text-[#FF6B35] rounded-xl font-semibold hover:bg-orange-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <ShoppingCart className="w-5 h-5" />
-                      Thêm vào giỏ
+                      {addingToCart ? "Đang thêm..." : "Thêm vào giỏ"}
                     </button>
 
                     <button
                       type="button"
-                      className="sm:flex-1 py-3 px-4 bg-[#FF6B35] hover:bg-[#E55A24] text-white rounded-xl font-semibold transition flex items-center justify-center gap-2"
+                      disabled={isOutOfStock || buyingNow}
+                      onClick={handleBuyNow}
+                      className="sm:flex-1 py-3 px-4 bg-[#FF6B35] hover:bg-[#E55A24] text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Sparkles className="w-5 h-5" />
-                      Mua ngay
+                      {buyingNow ? "Đang xử lý..." : "Mua ngay"}
                     </button>
                   </div>
                 </div>

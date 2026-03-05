@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CreditCard, CheckCircle, XCircle, Loader2, Wallet } from "lucide-react";
 import toast from "react-hot-toast";
@@ -8,7 +8,7 @@ import { API_BASE } from "@/configs/api-configs";
 
 type PaymentStatus = "pending" | "processing" | "success" | "failed";
 
-export default function SepayTestPaymentPage() {
+function SepayTestPaymentPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [countdown, setCountdown] = useState(3);
@@ -228,5 +228,13 @@ export default function SepayTestPaymentPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SepayTestPaymentPage() {
+  return (
+    <Suspense fallback={null}>
+      <SepayTestPaymentPageContent />
+    </Suspense>
   );
 }

@@ -39,6 +39,8 @@ export default function CartPage() {
         setCart(res.data);
         // Select all by default
         setSelectedItems(new Set(res.data.items.map((i) => i.cartItemId)));
+        localStorage.setItem("cart_count", String(res.data.items.length));
+        window.dispatchEvent(new Event("cartUpdated"));
       }
     } catch {
       console.error("Failed to fetch cart");
@@ -77,7 +79,11 @@ export default function CartPage() {
     setItemLoading(item.cartItemId, true);
     try {
       const res = await CustomerCartService.incrementItem(item.cartItemId);
-      if (res.status === 200 && res.data) setCart(res.data);
+      if (res.status === 200 && res.data) {
+        setCart(res.data);
+        localStorage.setItem("cart_count", String(res.data.items.length));
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
     } catch {
       toast.error("Không thể tăng số lượng");
     } finally {
@@ -90,7 +96,11 @@ export default function CartPage() {
     setItemLoading(item.cartItemId, true);
     try {
       const res = await CustomerCartService.decrementItem(item.cartItemId);
-      if (res.status === 200 && res.data) setCart(res.data);
+      if (res.status === 200 && res.data) {
+        setCart(res.data);
+        localStorage.setItem("cart_count", String(res.data.items.length));
+        window.dispatchEvent(new Event("cartUpdated"));
+      }
     } catch {
       toast.error("Không thể giảm số lượng");
     } finally {
@@ -119,6 +129,9 @@ export default function CartPage() {
           return next;
         });
         toast.success("Đã xóa sản phẩm");
+        const newCount = cart!.items.filter((i) => i.cartItemId !== cartItemId).length;
+        localStorage.setItem("cart_count", String(newCount));
+        window.dispatchEvent(new Event("cartUpdated"));
       }
     } catch {
       toast.error("Không thể xóa sản phẩm");
@@ -133,6 +146,8 @@ export default function CartPage() {
       if (res.status === 200) {
         setCart((prev) => (prev ? { ...prev, items: [], totalAmount: 0, totalItems: 0 } : prev));
         setSelectedItems(new Set());
+        localStorage.setItem("cart_count", "0");
+        window.dispatchEvent(new Event("cartUpdated"));
         toast.success("Đã xóa toàn bộ giỏ hàng");
       }
     } catch {
@@ -469,7 +484,10 @@ export default function CartPage() {
 
                 <button
                   disabled={selectedCount === 0}
-                  onClick={() => router.push("/checkout")}
+                  onClick={() => {
+                    localStorage.setItem("selected_cart_items", JSON.stringify([...selectedItems]));
+                    router.push("/checkout");
+                  }}
                   className="w-full py-3.5 bg-[#FF6B35] hover:bg-[#E55A24] disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold rounded-lg transition text-base"
                 >
                   Đặt Hàng ({selectedCount})

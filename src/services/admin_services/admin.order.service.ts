@@ -42,6 +42,13 @@ export interface AdminOrderDetail extends AdminOrderListItem {
   createdAt: string;
   updatedAt?: string;
   statusHistories: OrderStatusHistory[];
+  shippingInfo?: {
+    provider: string;
+    trackingNumber?: string;
+    status?: string;
+    estimatedDelivery?: string;
+    actualDelivery?: string;
+  };
 }
 
 export interface OrderStatusHistory {
@@ -93,6 +100,13 @@ export const AdminOrderService = {
       API_ENDPOINTS.ADMIN_ORDER_BY_ID(id),
     );
     return res.data.data;
+  },
+
+  async seedDemoShipping(orderId: number) {
+    const res = await axiosInstance.post<ApiResponse<{ trackingNumber: string; status: string }>>(
+      `/api/AOrderController/admin/demo/seed-shipping/${orderId}`,
+    );
+    return res.data;
   },
 
   async updateStatus(id: number, data: UpdateOrderStatusRequest) {

@@ -12,6 +12,25 @@ import {
     CreateRefundRequest,
 } from '@/types/order';
 
+export interface GHNTrackingLogItem {
+    status: string;
+    statusText: string;
+    updatedDate: string;
+}
+
+export interface GHNTrackingDetail {
+    orderCode: string;
+    status: string;
+    statusText: string;
+    toName?: string;
+    toPhone?: string;
+    toAddress?: string;
+    shippingFee: number;
+    expectedDeliveryTime?: string;
+    finishDate?: string;
+    log: GHNTrackingLogItem[];
+}
+
 /* ================= SERVICE ================= */
 
 export const CustomerOrderService = {
@@ -46,6 +65,12 @@ export const CustomerOrderService = {
     // Hủy đơn hàng
     async cancelOrder(id: number): Promise<ApiResponse<object>> {
         const res = await axiosInstance.post(API_ENDPOINTS.ORDER_CANCEL(id));
+        return res.data;
+    },
+
+    // Lấy tracking GHN (log trạng thái) cho đơn hàng
+    async getOrderTracking(id: number): Promise<ApiResponse<GHNTrackingDetail>> {
+        const res = await axiosInstance.get(API_ENDPOINTS.ORDER_TRACKING(id));
         return res.data;
     },
 

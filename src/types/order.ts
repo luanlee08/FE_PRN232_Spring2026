@@ -76,6 +76,7 @@ export interface CreateOrderRequest {
     
     note?: string;
     idempotencyKey?: string; // Prevent duplicate orders
+    cartItemIds?: number[]; // Selective checkout: only order these cart item IDs (undefined = order entire cart)
 }
 
 export interface CreateOrderResponse {
