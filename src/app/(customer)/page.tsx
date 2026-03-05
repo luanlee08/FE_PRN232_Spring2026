@@ -4,7 +4,7 @@ import { CarouselBanner } from "@/components/customer/carousel-banner";
 import { ProductCard } from "@/components/customer/product-card";
 import { LoadingScreen } from "@/components/customer/loading-screen";
 import { Footer } from "@/components/customer/footer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
@@ -12,7 +12,7 @@ import { CustomerProductService } from "@/services/customer_services/customer.pr
 import { API_BASE } from "@/configs/api-configs";
 import { ProductStorefront } from "@/types/products";
 
-export default function Home() {
+function HomeContent() {
   const [isLoading, setIsLoading] = useState(true);
   const [products, setProducts] = useState<ProductStorefront[]>([]);
   const [page, setPage] = useState(1);
@@ -125,5 +125,13 @@ export default function Home() {
 
       <Footer />
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

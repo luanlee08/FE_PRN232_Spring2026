@@ -47,6 +47,7 @@ export default function CheckoutPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [walletBalance, setWalletBalance] = useState<number | null>(null);
   const [loadingWallet, setLoadingWallet] = useState(false);
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState<number[] | null>(null);
 
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -80,8 +81,13 @@ export default function CheckoutPage() {
         }
 
         // Calculate total weight (estimate 500g per item)
-        const totalWeight = (cart?.items.reduce((sum, item) => sum + item.quantity, 0) || 1) * 500;
-        const orderValue = cart?.totalAmount || 0;
+        const shippingItems = cart
+          ? selectedCartItemIds
+            ? cart.items.filter((i) => selectedCartItemIds.includes(i.cartItemId))
+            : cart.items
+          : [];
+        const totalWeight = (shippingItems.reduce((sum, item) => sum + item.quantity, 0) || 1) * 500;
+        const orderValue = shippingItems.reduce((s, i) => s + i.subTotal, 0);
 
         // Use district directly from address object
         const district = selectedAddr.district || "";
@@ -140,7 +146,7 @@ export default function CheckoutPage() {
         setIsLoadingShipping(false);
       }
     },
-    [addresses, cart],
+    [addresses, cart, selectedCartItemIds],
   );
 
   // Fetch data
@@ -157,6 +163,15 @@ export default function CheckoutPage() {
           return;
         }
         setCart(cartRes.data);
+        const saved = localStorage.getItem("selected_cart_items");
+        if (saved) {
+          try {
+            setSelectedCartItemIds(JSON.parse(saved));
+          } catch {
+            // ignore malformed data
+          }
+          localStorage.removeItem("selected_cart_items");
+        }
       }
 
       // Fetch addresses
@@ -212,7 +227,12 @@ export default function CheckoutPage() {
   }, [selectedAddressId, addresses, cart, fetchShippingMethods]);
 
   // Calculations
-  const subtotal = cart?.totalAmount || 0;
+  const checkoutItems = cart
+    ? selectedCartItemIds
+      ? cart.items.filter((i) => selectedCartItemIds.includes(i.cartItemId))
+      : cart.items
+    : [];
+  const subtotal = checkoutItems.reduce((s, i) => s + i.subTotal, 0);
   const shippingFee = shippingMethods.find((s) => s.type === selectedShipping)?.fee || 0;
   const discountAmount = appliedVoucher?.discountAmount || 0;
   const selectedPayment = paymentMethods.find((p) => p.code === selectedPaymentMethod);
@@ -328,6 +348,7 @@ export default function CheckoutPage() {
         paidByExternalAmount:
           selectedPaymentMethod !== "Wallet" && selectedPaymentMethod !== "COD" ? totalAmount : 0,
         idempotencyKey: `${Date.now()}-${Math.random()}`,
+        cartItemIds: checkoutItems.map((i) => i.cartItemId),
         // Include shipping info from selected address
         shippingName: selectedAddress?.recipientName || user?.accountName || "",
         shippingPhone: selectedAddress?.phoneNumber || user?.phoneNumber || "",
@@ -414,14 +435,14 @@ export default function CheckoutPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-[#222] flex items-center gap-2">
                   <ShoppingBag size={20} />
-                  Sản phẩm ({cart.items.length})
+                  Sản phẩm ({checkoutItems.length})
                 </h2>
                 <Link href="/cart" className="text-[#FF6B35] text-sm hover:underline">
                   Chỉnh sửa
                 </Link>
               </div>
               <div className="space-y-3">
-                {cart.items.map((item) => (
+                {checkoutItems.map((item) => (
                   <div key={item.cartItemId} className="flex gap-3 pb-3 border-b last:border-b-0">
                     <img
                       src={getImageUrl(item.mainImageUrl)}

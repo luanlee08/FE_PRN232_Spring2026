@@ -22,12 +22,14 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/lib/auth/auth-context";
 import { CustomerNotificationService } from "@/services/customer_services/customer.notification.service";
 import { CustomerProductService } from "@/services/customer_services/customer.product.service";
+import { CustomerCartService } from "@/services/customer_services/customer.cart.service";
 import { API_BASE } from "@/configs/api-configs";
 
 export function Header() {
   const [openMenu, setOpenMenu] = useState(false);
   const [openUserMenu, setOpenUserMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [cartCount, setCartCount] = useState<number>(0);
   const [searchKeyword, setSearchKeyword] = useState("");
   const { user, isAuthenticated, logout } = useAuth();
   const router = useRouter();
@@ -79,6 +81,29 @@ export function Header() {
   useEffect(() => {
     setSearchKeyword(urlKeyword);
   }, [urlKeyword]);
+
+  useEffect(() => {
+    // Sync from localStorage after mount (avoids SSR/client hydration mismatch)
+    setCartCount(parseInt(localStorage.getItem("cart_count") ?? "0", 10) || 0);
+    const onCartUpdated = () => {
+      setCartCount(parseInt(localStorage.getItem("cart_count") ?? "0", 10) || 0);
+    };
+    window.addEventListener("cartUpdated", onCartUpdated);
+    return () => window.removeEventListener("cartUpdated", onCartUpdated);
+  }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) { setCartCount(0); return; }
+    CustomerCartService.getCart()
+      .then((res) => {
+        if (res.status === 200 && res.data) {
+          const count = res.data.items.length;
+          setCartCount(count);
+          localStorage.setItem("cart_count", String(count));
+        }
+      })
+      .catch(() => {});
+  }, [isAuthenticated]);
 
   const handleLogout = async () => {
     await logout();
@@ -162,7 +187,7 @@ export function Header() {
             <Link href="/cart" className="relative hover:opacity-80">
               <ShoppingCart size={20} className="cursor-pointer" />
               <span className="absolute -top-2 -right-2 flex h-4 w-4 items-center justify-center rounded-full bg-white text-xs font-bold text-[#FF6B35]">
-                0
+                {cartCount > 99 ? "99+" : cartCount}
               </span>
             </Link>
 
