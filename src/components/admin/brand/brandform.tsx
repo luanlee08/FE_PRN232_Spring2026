@@ -1,63 +1,116 @@
-"use client";
+﻿"use client";
 
-import { useState, useEffect } from "react";
-import { BrandAdmin, AdminBrandService }
-  from "@/services/admin_services/admin.brand.service";
+import { useEffect, useState } from "react";
+import { AxiosError } from "axios";
+import {
+  BrandAdmin,
+  AdminBrandService,
+} from "@/services/admin_services/admin.brand.service";
 
 interface Props {
   initialData?: BrandAdmin | null;
   onSuccess?: () => void;
 }
 
+type FormErrors = {
+  name?: string;
+  submit?: string;
+};
+
+const NAME_MAX_LENGTH = 255;
+
+const getApiErrorMessage = (
+  error: unknown,
+  fallback: string
+) => {
+  if (error instanceof AxiosError) {
+    const apiMessage = (
+      error.response?.data as { message?: string } | undefined
+    )?.message;
+    return apiMessage || fallback;
+  }
+
+  return fallback;
+};
+
 export default function BrandForm({
   initialData,
   onSuccess,
 }: Props) {
-  const [name, setName] = useState(
-    initialData?.brandName ?? ""
-  );
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
 
-  const [description, setDescription] = useState(
-    initialData?.description ?? ""
-  );
+  useEffect(() => {
+    setName(initialData?.brandName ?? "");
+    setDescription(initialData?.description ?? "");
+    setIsDeleted(initialData?.isDeleted ?? false);
+    setErrors({});
+  }, [initialData]);
 
-  const [categoryId, setCategoryId] = useState<number | "">(
-    initialData?.categoryId ?? ""
-  );
+  const validateForm = () => {
+    const nextErrors: FormErrors = {};
+    const trimmedName = name.trim();
 
-  const [isDeleted, setIsDeleted] = useState(
-    initialData?.isDeleted ?? false
-  );
+    if (!trimmedName) {
+      nextErrors.name = "Tên thương hiệu không được để trống";
+    } else if (trimmedName.length > NAME_MAX_LENGTH) {
+      nextErrors.name =
+        "Tên thương hiệu không được vượt quá 255 ký tự";
+    }
 
+    setErrors(nextErrors);
+    return Object.keys(nextErrors).length === 0;
+  };
 
   const handleSubmit = async (
     e: React.FormEvent
   ) => {
     e.preventDefault();
 
-    if (initialData) {
-      await AdminBrandService.update(
-        initialData.brandId,
-        {
-          brandName: name,
-          description,
-          isDeleted,
-        }
-      );
-    } else {
-      await AdminBrandService.create({
-        brandName: name,
-        description,
-        isDeleted,
-      });
+    if (!validateForm()) {
+      return;
     }
 
-    onSuccess?.();
+    setLoading(true);
+    setErrors((prev) => ({ ...prev, submit: undefined }));
+
+    try {
+      if (initialData) {
+        await AdminBrandService.update(
+          initialData.brandId,
+          {
+            brandName: name.trim(),
+            description: description.trim() || undefined,
+            isDeleted,
+          }
+        );
+      } else {
+        await AdminBrandService.create({
+          brandName: name.trim(),
+          description: description.trim() || undefined,
+          isDeleted,
+        });
+      }
+
+      onSuccess?.();
+    } catch (error) {
+      setErrors({
+        submit: getApiErrorMessage(
+          error,
+          "Không thể lưu thương hiệu, vui lòng thử lại"
+        ),
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="w-full p-6">
-      <h3 className="text-lg font-semibold mb-4">
+      <h3 className="mb-4 text-lg font-semibold">
         {initialData ? "Chỉnh sửa Brand" : "Thêm Brand"}
       </h3>
 
@@ -65,20 +118,38 @@ export default function BrandForm({
         onSubmit={handleSubmit}
         className="space-y-5"
       >
-        {/* Name */}
         <div>
-          <label className="block mb-1 font-medium">
+          <label className="mb-1 block font-medium">
             Tên Brand
           </label>
           <input
             value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full rounded-lg border px-3 py-2"
+            onChange={(e) => {
+              setName(e.target.value);
+              setErrors((prev) => ({
+                ...prev,
+                name: undefined,
+                submit: undefined,
+              }));
+            }}
+            className={`w-full rounded-lg border px-3 py-2 ${
+              errors.name ? "border-red-500" : "border-gray-300"
+            }`}
             placeholder="Nhập tên brand"
           />
+          {errors.name && (
+            <p className="mt-1 text-xs text-red-600">
+              {errors.name}
+            </p>
+          )}
         </div>
 
-        {/* Buttons */}
+        {errors.submit && (
+          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-600">
+            {errors.submit}
+          </p>
+        )}
+
         <div className="flex justify-end gap-3 border-t pt-4">
           <button
             type="button"
@@ -90,9 +161,10 @@ export default function BrandForm({
 
           <button
             type="submit"
-            className="rounded-lg bg-indigo-500 px-4 py-2 text-white"
+            disabled={loading}
+            className="rounded-lg bg-indigo-500 px-4 py-2 text-white disabled:opacity-50"
           >
-            Lưu
+            {loading ? "Đang lưu..." : "Lưu"}
           </button>
         </div>
       </form>

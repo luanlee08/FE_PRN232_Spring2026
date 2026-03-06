@@ -23,7 +23,9 @@ interface ProductAdminResponse {
   productName: string;
   price: number;
   stockQuantity: number;
+  quantity?: number;
   descriptionHtml?: string | null;
+  description?: string | null;
   productStatus: "Available" | "OutOfStock" | "Discontinued";
   createdAt: string;
   updatedAt: string | null;
@@ -82,12 +84,40 @@ interface PagedResponse<T> {
   };
 }
 
+const mapProductAdmin = (p: ProductAdminResponse): ProductAdmin => ({
+  id: p.id,
+  sku: p.sku,
+  name: p.productName,
+  price: p.price,
+  quantity: p.stockQuantity ?? p.quantity ?? 0,
+  description: p.descriptionHtml ?? p.description ?? undefined,
+  status: p.productStatus,
+  createdAt: p.createdAt,
+  updatedAt: p.updatedAt,
+  categoryName: p.categoryName,
+  brandName: p.brandName,
+  categoryId: p.categoryId,
+  brandId: p.brandId,
+  materialId: p.materialId,
+  originId: p.originId,
+  sexId: p.sexId,
+  ageId: p.ageId,
+  imageUrl: p.mainImageUrl
+    ? `${API_BASE}${p.mainImageUrl}`
+    : undefined,
+  secondaryImages: p.secondaryImageUrls?.map(
+    (url) => `${API_BASE}${url}`
+  ),
+});
+
 /* ================= SERVICE ================= */
 
 export const AdminProductService = {
   async getById(id: number) {
-    const res = await axiosInstance.get(`${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`);
-    return res.data.data;
+    const res = await axiosInstance.get<{ data: ProductAdminResponse }>(
+      `${API_ENDPOINTS.ADMIN_PRODUCTS}/${id}`
+    );
+    return mapProductAdmin(res.data.data);
   },
 
   async getAll(
@@ -104,31 +134,7 @@ export const AdminProductService = {
       ...json,
       data: {
         ...json.data,
-        items: json.data.items.map((p) => ({
-          id: p.id,
-          sku: p.sku,
-          name: p.productName,
-          price: p.price,
-          quantity: p.stockQuantity,       // thêm
-          description: p.descriptionHtml ?? undefined,
-          status: p.productStatus,
-          createdAt: p.createdAt,
-          updatedAt: p.updatedAt,
-          categoryName: p.categoryName,
-          brandName: p.brandName,
-          categoryId: p.categoryId,
-          brandId: p.brandId,
-          materialId: p.materialId,
-          originId: p.originId,
-          sexId: p.sexId,
-          ageId: p.ageId,
-          imageUrl: p.mainImageUrl
-            ? `${API_BASE}${p.mainImageUrl}`
-            : undefined,
-          secondaryImages: p.secondaryImageUrls?.map(
-            (url) => `${API_BASE}${url}`
-          ),
-        })),
+        items: json.data.items.map(mapProductAdmin),
       },
     };
   },
@@ -137,9 +143,9 @@ export const AdminProductService = {
     const formData = new FormData();
 
     formData.append("ProductName", form.name);
-    formData.append("Description", form.description ?? "");
+    formData.append("DescriptionHtml", form.description ?? "");
     formData.append("Price", form.price.toString());
-    formData.append("Quantity", form.quantity.toString());
+    formData.append("StockQuantity", form.quantity.toString());
     formData.append("ProductStatus", form.status);
 
     if (form.categoryId)
@@ -240,3 +246,4 @@ export const AdminProductService = {
     return res.data;
   },
 };
+
