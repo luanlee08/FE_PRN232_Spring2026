@@ -109,7 +109,7 @@ export const API_ENDPOINTS = {
   // ===== ADMIN BLOG =====
   ADMIN_BLOGS: `${API_BASE}/api/admin/blogs`,
   ADMIN_BLOG_SEARCH: `${API_BASE}/api/admin/blogs/search`,
-  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE} /api/admin/blogs/${id}`,
+  ADMIN_BLOG_BY_ID: (id: number) => `${API_BASE}/api/admin/blogs/${id}`,
 
   // ===== ADMIN BLOG CATEGORIES =====
   ADMIN_BLOG_CATEGORIES: `${API_BASE}/api/admin/blog-categories`,
