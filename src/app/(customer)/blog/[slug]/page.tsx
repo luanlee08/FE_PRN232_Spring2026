@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
@@ -42,6 +42,7 @@ export default function BlogDetailPage() {
   const [newReview, setNewReview] = useState("");
   const [rating, setRating] = useState(5);
   const [submitting, setSubmitting] = useState(false);
+  const [reviewError, setReviewError] = useState("");
 
   const loadReviews = async (blogId: number) => {
     try {
@@ -110,7 +111,7 @@ export default function BlogDetailPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        Đang tải...
+        Äang táº£i...
       </main>
     );
   }
@@ -118,43 +119,71 @@ export default function BlogDetailPage() {
   if (!blog) {
     return (
       <main className="min-h-screen flex items-center justify-center text-gray-600">
-        Không tìm thấy bài viết
+        KhÃ´ng tÃ¬m tháº¥y bÃ i viáº¿t
       </main>
     );
   }
 
   const handleCreateReview = async () => {
-    if (!newReview.trim()) return;
+    const trimmedReview = newReview.trim();
+
+    if (!trimmedReview) {
+      setReviewError("Vui lòng nhập nội dung đánh giá");
+      return;
+    }
+
+    if (trimmedReview.length < 10) {
+      setReviewError("Đánh giá phải có ít nhất 10 ký tự");
+      return;
+    }
+
+    if (trimmedReview.length > 500) {
+      setReviewError("Đánh giá không được vượt quá 500 ký tự");
+      return;
+    }
+
+    if (rating < 1 || rating > 5) {
+      setReviewError("Số sao đánh giá không hợp lệ");
+      return;
+    }
+
+    setReviewError("");
 
     try {
       setSubmitting(true);
 
       const res = await customerBlogReviewService.create(
         blog!.blogPostId,
-        newReview,
+        trimmedReview,
         rating
       );
 
       if (res.status !== 201) {
-        alert(res.message);
+        setReviewError(res.message || "Không thể gửi đánh giá");
         return;
       }
 
       setNewReview("");
       setRating(5);
+      setReviewError("");
 
       await loadReviews(blog!.blogPostId);
-
     } catch (err: unknown) {
       if (err instanceof AxiosError) {
         if (err.response?.status === 401) {
-          alert("Vui lòng đăng nhập để đánh giá");
+          setReviewError("Vui lòng đăng nhập để đánh giá");
           return;
         }
+
+        const apiMessage = (
+          err.response?.data as { message?: string } | undefined
+        )?.message;
+        setReviewError(apiMessage || "Có lỗi xảy ra");
+        return;
       }
 
       console.error("Create review error:", err);
-      alert("Có lỗi xảy ra");
+      setReviewError("Có lỗi xảy ra");
     } finally {
       setSubmitting(false);
     }
@@ -167,12 +196,12 @@ export default function BlogDetailPage() {
     try {
       await customerBlogReactionService.react(reviewBlogId, type);
 
-      // 🔥 reload lại reviews từ backend
+      // ðŸ”¥ reload láº¡i reviews tá»« backend
       await loadReviews(blog!.blogPostId);
 
     } catch (err) {
       console.error(err);
-      alert("Vui lòng đăng nhập để react");
+      alert("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ react");
     }
   };
 
@@ -182,7 +211,7 @@ export default function BlogDetailPage() {
       {/* ===== BREADCRUMB ===== */}
       <div className="max-w-7xl mx-auto px-4 py-6 text-sm text-gray-500">
         <Link href="/" className="hover:text-orange-500">
-          Trang chủ
+          Trang chá»§
         </Link>
         <span className="mx-2">/</span>
         <Link href="/blog" className="hover:text-orange-500">
@@ -211,9 +240,9 @@ export default function BlogDetailPage() {
               </h1>
 
               <div className="flex flex-wrap gap-6 text-sm text-gray-500 border-b pb-4">
-                <span>👤 {blog.authorEmail}</span>
+                <span>ðŸ‘¤ {blog.authorEmail}</span>
                 <span>
-                  📅{" "}
+                  ðŸ“…{" "}
                   {new Date(
                     blog.createdAt
                   ).toLocaleDateString("vi-VN")}
@@ -244,14 +273,14 @@ export default function BlogDetailPage() {
               {/* ===== REVIEWS FROM DATABASE ===== */}
               <div className="border-t pt-10 mt-10">
                 <h3 className="font-semibold mb-6 text-lg">
-                  Đánh giá từ khách hàng ({reviews.length})
+                  ÄÃ¡nh giÃ¡ tá»« khÃ¡ch hÃ ng ({reviews.length})
                 </h3>
 
                 {/* LIST REVIEW */}
                 <div className="space-y-4 mb-6">
                   {reviews.length === 0 && (
                     <p className="text-sm text-gray-500">
-                      Chưa có đánh giá nào.
+                      ChÆ°a cÃ³ Ä‘Ã¡nh giÃ¡ nÃ o.
                     </p>
                   )}
 
@@ -269,7 +298,7 @@ export default function BlogDetailPage() {
                         {/* ===== REVIEW HEADER ===== */}
                         <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
                           <span>
-                            {r.customerName} •{" "}
+                            {r.customerName} â€¢{" "}
                             {new Date(r.createdAt).toLocaleDateString("vi-VN")}
                           </span>
                         </div>
@@ -279,7 +308,7 @@ export default function BlogDetailPage() {
                           {r.comment}
                         </p>
 
-                        {/* ===== REACTION (NGAY DƯỚI REVIEW) ===== */}
+                        {/* ===== REACTION (NGAY DÆ¯á»šI REVIEW) ===== */}
                         <div className="flex gap-4 text-sm mb-3">
                           <button
                             onClick={() => handleReact(r.reviewBlogId, "Like")}
@@ -288,7 +317,7 @@ export default function BlogDetailPage() {
                                 : "text-gray-500 hover:text-blue-600"
                               }`}
                           >
-                            👍 {r.likeCount}
+                            ðŸ‘ {r.likeCount}
                           </button>
 
                           <button
@@ -298,7 +327,7 @@ export default function BlogDetailPage() {
                                 : "text-gray-500 hover:text-red-600"
                               }`}
                           >
-                            👎 {r.dislikeCount}
+                            ðŸ‘Ž {r.dislikeCount}
                           </button>
                         </div>
 
@@ -314,7 +343,7 @@ export default function BlogDetailPage() {
                                   <span className="font-semibold text-orange-600">
                                     {reply.accountName}
                                   </span>{" "}
-                                  •{" "}
+                                  â€¢{" "}
                                   {new Date(reply.createdAt).toLocaleDateString("vi-VN")}
                                 </div>
 
@@ -336,12 +365,20 @@ export default function BlogDetailPage() {
                   <textarea
                     placeholder="Viết đánh giá của bạn..."
                     value={newReview}
-                    onChange={(e) => setNewReview(e.target.value)}
-                    className="w-full border rounded-lg px-4 py-2 text-sm"
+                    onChange={(e) => {
+                      setNewReview(e.target.value);
+                      if (reviewError) setReviewError("");
+                    }}
+                    maxLength={500}
+                    className={`w-full border rounded-lg px-4 py-2 text-sm ${reviewError ? "border-red-500" : "border-gray-300"}`}
                   />
 
                   <div className="flex justify-between items-center">
-                    {/* <select
+                    {reviewError && (
+                    <p className="text-sm text-red-600">{reviewError}</p>
+                  )}
+
+                  {/* <select
                       value={rating}
                       onChange={(e) => setRating(Number(e.target.value))}
                       className="border rounded px-3 py-1 text-sm"
@@ -358,7 +395,7 @@ export default function BlogDetailPage() {
                       disabled={submitting}
                       className="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50"
                     >
-                      {submitting ? "Đang gửi..." : "Gửi đánh giá"}
+                      {submitting ? "Äang gá»­i..." : "Gá»­i Ä‘Ã¡nh giÃ¡"}
                     </button>
                   </div>
                 </div>
@@ -371,7 +408,7 @@ export default function BlogDetailPage() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm">
               <h4 className="font-bold mb-4 border-b pb-2">
-                ⭐ Bài viết nổi bật
+                â­ BÃ i viáº¿t ná»•i báº­t
               </h4>
 
               <ul className="space-y-4">
@@ -410,7 +447,7 @@ export default function BlogDetailPage() {
             </div>
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="font-semibold mb-4">
-                🕒 Bài viết gần đây
+                ðŸ•’ BÃ i viáº¿t gáº§n Ä‘Ã¢y
               </h3>
 
               <ul className="space-y-4">
@@ -440,3 +477,4 @@ export default function BlogDetailPage() {
     </main>
   );
 }
+

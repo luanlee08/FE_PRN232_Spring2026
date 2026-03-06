@@ -60,6 +60,25 @@ const getStatusMeta = (
   };
 };
 
+const parseApiErrorMessage = (error: unknown, fallback: string): string => {
+  if (typeof error === "object" && error !== null) {
+    const normalized = error as {
+      response?: { data?: { message?: string } };
+      message?: string;
+    };
+
+    if (normalized.response?.data?.message) {
+      return normalized.response.data.message;
+    }
+
+    if (normalized.message) {
+      return normalized.message;
+    }
+  }
+
+  return fallback;
+};
+
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
 
@@ -70,6 +89,7 @@ export default function ProductDetailPage() {
   const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
   const [buyingNow, setBuyingNow] = useState(false);
+  const [existingCartQuantity, setExistingCartQuantity] = useState(0);
 
   const { isAuthenticated } = useAuth();
   const router = useRouter();
@@ -111,6 +131,36 @@ export default function ProductDetailPage() {
     setSelectedImageUrl(galleryImages[0] ?? null);
   }, [galleryImages]);
 
+  useEffect(() => {
+    const loadCartQuantity = async () => {
+      if (!isAuthenticated || !product?.id) {
+        setExistingCartQuantity(0);
+        return;
+      }
+
+      try {
+        const cartResponse = await CustomerCartService.getCart();
+        const existingItem = cartResponse.data?.items?.find(
+          (item) => item.productId === Number(product.id)
+        );
+        setExistingCartQuantity(existingItem?.quantity ?? 0);
+      } catch {
+        setExistingCartQuantity(0);
+      }
+    };
+
+    loadCartQuantity();
+  }, [isAuthenticated, product?.id]);
+
+  useEffect(() => {
+    const stock = Math.max(0, product?.stockQuantity ?? 0);
+    const max = Math.max(0, stock - existingCartQuantity);
+    setQuantity((prev) => {
+      if (max <= 0) return 0;
+      return Math.min(Math.max(prev, 1), max);
+    });
+  }, [product?.stockQuantity, existingCartQuantity]);
+
   if (loading) {
     return <div className="p-10 text-center">Đang tải sản phẩm...</div>;
   }
@@ -124,27 +174,42 @@ export default function ProductDetailPage() {
     product?.productStatus?.toLowerCase() === "discontinued" ||
     Boolean(product?.isOutOfStock) ||
     (typeof product?.stockQuantity === "number" && product.stockQuantity <= 0);
+  const stockQuantity = Math.max(0, product.stockQuantity || 0);
+  const maxAddableQuantity = Math.max(0, stockQuantity - existingCartQuantity);
+  const maxQuantity = maxAddableQuantity;
+  const isCartLimitReached = maxAddableQuantity <= 0;
+  const isActionDisabled = isOutOfStock || isCartLimitReached;
 
   const handleAddToCart = async () => {
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để thêm vào giỏ hàng");
+      toast.error("Vui long dang nhap de them vao gio hang");
       router.push("/login");
       return;
     }
+
+    if (maxAddableQuantity <= 0) {
+      toast.error("Ban da chon toi da so luong co the mua");
+      return;
+    }
+
+    const clampedQuantity = Math.min(Math.max(quantity, 1), maxAddableQuantity);
+
     setAddingToCart(true);
     try {
-      const res = await CustomerCartService.addToCart(Number(product!.id), quantity);
+      const res = await CustomerCartService.addToCart(Number(product!.id), clampedQuantity);
       if (res.status === 200 || res.status === 201) {
-        toast.success("Đã thêm vào giỏ hàng!");
+        toast.success("Da them vao gio hang");
         if (res.data) {
           localStorage.setItem("cart_count", String(res.data.items.length));
+          const updatedItem = res.data.items.find((i) => i.productId === Number(product!.id));
+          setExistingCartQuantity(updatedItem?.quantity ?? 0);
           window.dispatchEvent(new Event("cartUpdated"));
         }
       } else {
-        toast.error(res.message || "Không thể thêm vào giỏ hàng");
+        toast.error(res.message || "Khong the them vao gio hang");
       }
-    } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } catch (error) {
+      toast.error(parseApiErrorMessage(error, "Co loi xay ra, vui long thu lai"));
     } finally {
       setAddingToCart(false);
     }
@@ -152,36 +217,44 @@ export default function ProductDetailPage() {
 
   const handleBuyNow = async () => {
     if (!isAuthenticated) {
-      toast.error("Vui lòng đăng nhập để mua hàng");
+      toast.error("Vui long dang nhap de mua hang");
       router.push("/login");
       return;
     }
+
+    if (maxAddableQuantity <= 0) {
+      toast.error("Ban da chon toi da so luong co the mua");
+      return;
+    }
+
+    const clampedQuantity = Math.min(Math.max(quantity, 1), maxAddableQuantity);
+
     setBuyingNow(true);
     try {
-      const res = await CustomerCartService.addToCart(Number(product!.id), quantity);
+      const res = await CustomerCartService.addToCart(Number(product!.id), clampedQuantity);
       if (res.status === 200 || res.status === 201) {
         if (res.data) {
           localStorage.setItem("cart_count", String(res.data.items.length));
           const newItem = res.data.items.find((i) => i.productId === Number(product!.id));
           if (newItem) {
+            setExistingCartQuantity(newItem.quantity);
             localStorage.setItem("selected_cart_items", JSON.stringify([newItem.cartItemId]));
           }
           window.dispatchEvent(new Event("cartUpdated"));
         }
         router.push("/checkout");
       } else {
-        toast.error(res.message || "Không thể thêm vào giỏ hàng");
+        toast.error(res.message || "Khong the them vao gio hang");
         setBuyingNow(false);
       }
-    } catch {
-      toast.error("Có lỗi xảy ra, vui lòng thử lại");
+    } catch (error) {
+      toast.error(parseApiErrorMessage(error, "Co loi xay ra, vui long thu lai"));
       setBuyingNow(false);
     }
   };
 
   const activeImage = selectedImageUrl ?? galleryImages[0] ?? null;
   const activeImageUrl = resolveImageUrl(activeImage);
-  const maxQuantity = Math.max(1, product.stockQuantity || 1);
   const statusMeta = getStatusMeta(
     product.productStatus,
     product.stockQuantity,
@@ -301,40 +374,58 @@ export default function ProductDetailPage() {
                   </div>
 
                   <div className="flex flex-wrap items-center gap-4 mb-6">
-                    <label className="text-sm font-medium text-gray-800">Số lượng:</label>
+                    <label className="text-sm font-medium text-gray-800">So luong:</label>
                     <div className="flex items-center border border-gray-200 rounded-lg">
                       <button
                         type="button"
-                        onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
-                        className="px-4 py-2 text-[#FF6B35] hover:bg-orange-50 transition"
+                        disabled={isCartLimitReached}
+                        onClick={() =>
+                          setQuantity((prev) => {
+                            if (maxQuantity <= 0) return 0;
+                            return Math.max(1, prev - 1);
+                          })
+                        }
+                        className="px-4 py-2 text-[#FF6B35] hover:bg-orange-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         -
                       </button>
                       <input
                         type="number"
-                        min={1}
-                        max={maxQuantity}
+                        min={maxQuantity > 0 ? 1 : 0}
+                        max={Math.max(0, maxQuantity)}
+                        disabled={isCartLimitReached}
                         value={quantity}
-                        onChange={(e) =>
-                          setQuantity(
-                            Math.min(
-                              maxQuantity,
-                              Math.max(1, parseInt(e.target.value, 10) || 1)
-                            )
-                          )
-                        }
-                        className="w-20 py-2 text-center border-0 outline-none"
+                        onChange={(e) => {
+                          const parsed = parseInt(e.target.value, 10);
+                          if (!Number.isFinite(parsed)) {
+                            setQuantity(maxQuantity > 0 ? 1 : 0);
+                            return;
+                          }
+                          if (maxQuantity <= 0) {
+                            setQuantity(0);
+                            return;
+                          }
+                          setQuantity(Math.min(maxQuantity, Math.max(1, parsed)));
+                        }}
+                        className="w-20 py-2 text-center border-0 outline-none disabled:bg-gray-50 disabled:text-gray-400"
                       />
                       <button
                         type="button"
+                        disabled={isCartLimitReached}
                         onClick={() =>
-                          setQuantity((prev) => Math.min(maxQuantity, prev + 1))
+                          setQuantity((prev) => {
+                            if (maxQuantity <= 0) return 0;
+                            return Math.min(maxQuantity, Math.max(1, prev + 1));
+                          })
                         }
-                        className="px-4 py-2 text-[#FF6B35] hover:bg-orange-50 transition"
+                        className="px-4 py-2 text-[#FF6B35] hover:bg-orange-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         +
                       </button>
                     </div>
+                    <span className="text-xs text-gray-500">
+                      Co the them toi da: {maxAddableQuantity}
+                    </span>
                   </div>
 
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -353,7 +444,7 @@ export default function ProductDetailPage() {
 
                     <button
                       type="button"
-                      disabled={isOutOfStock || addingToCart}
+                      disabled={isActionDisabled || addingToCart}
                       onClick={handleAddToCart}
                       className="sm:flex-1 py-3 px-4 bg-white border-2 border-[#FF6B35] text-[#FF6B35] rounded-xl font-semibold hover:bg-orange-50 transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -363,7 +454,7 @@ export default function ProductDetailPage() {
 
                     <button
                       type="button"
-                      disabled={isOutOfStock || buyingNow}
+                      disabled={isActionDisabled || buyingNow}
                       onClick={handleBuyNow}
                       className="sm:flex-1 py-3 px-4 bg-[#FF6B35] hover:bg-[#E55A24] text-white rounded-xl font-semibold transition flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
@@ -419,3 +510,5 @@ export default function ProductDetailPage() {
     </div>
   );
 }
+
+
