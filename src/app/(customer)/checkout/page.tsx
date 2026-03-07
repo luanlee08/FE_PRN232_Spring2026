@@ -26,7 +26,8 @@ import {
   CreateOrderRequest,
   ShippingMethodInfo,
 } from "@/types/order";
-import { API_BASE } from "@/configs/api-configs";
+import { API_BASE, API_ENDPOINTS } from "@/configs/api-configs";
+import axiosInstance from "@/lib/api/axios";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
@@ -41,6 +42,7 @@ export default function CheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>("");
   const [voucherCode, setVoucherCode] = useState("");
   const [appliedVoucher, setAppliedVoucher] = useState<any>(null);
+  const [applyingVoucher, setApplyingVoucher] = useState(false);
   const [orderNote, setOrderNote] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingShipping, setIsLoadingShipping] = useState(false);
@@ -86,7 +88,8 @@ export default function CheckoutPage() {
             ? cart.items.filter((i) => selectedCartItemIds.includes(i.cartItemId))
             : cart.items
           : [];
-        const totalWeight = (shippingItems.reduce((sum, item) => sum + item.quantity, 0) || 1) * 500;
+        const totalWeight =
+          (shippingItems.reduce((sum, item) => sum + item.quantity, 0) || 1) * 500;
         const orderValue = shippingItems.reduce((s, i) => s + i.subTotal, 0);
 
         // Use district directly from address object
@@ -269,11 +272,29 @@ export default function CheckoutPage() {
       toast.error("Vui lòng nhập mã voucher");
       return;
     }
-
-    // Note: Backend validates voucher during order creation
-    // For now, just show a placeholder. Real validation happens on submit
-    toast("Voucher sẽ được áp dụng khi đặt hàng");
-    setAppliedVoucher({ code: voucherCode, discountAmount: 0 });
+    try {
+      setApplyingVoucher(true);
+      const res = await axiosInstance.get(API_ENDPOINTS.CUSTOMER_VOUCHER_VALIDATE, {
+        params: { code: voucherCode.trim(), orderAmount: subtotal },
+      });
+      const data = res.data;
+      if (data.status === 200 && data.data) {
+        const v = data.data;
+        setAppliedVoucher({
+          voucherId: v.voucherId,
+          code: v.voucherCode,
+          discountAmount: v.discountAmount,
+        });
+        toast.success(`Áp dụng voucher thành công! Giảm ${formatCurrency(v.discountAmount)}`);
+      } else {
+        toast.error(data.message || "Mã voucher không hợp lệ");
+      }
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Mã voucher không hợp lệ";
+      toast.error(msg);
+    } finally {
+      setApplyingVoucher(false);
+    }
   };
 
   const handleRemoveVoucher = () => {
@@ -788,9 +809,10 @@ export default function CheckoutPage() {
                     />
                     <button
                       onClick={handleApplyVoucher}
-                      className="bg-[#FF6B35] hover:bg-[#E55A24] text-white px-6 py-2 rounded-lg transition-colors"
+                      disabled={applyingVoucher}
+                      className="bg-[#FF6B35] hover:bg-[#E55A24] disabled:opacity-60 text-white px-6 py-2 rounded-lg transition-colors"
                     >
-                      Áp dụng
+                      {applyingVoucher ? "..." : "Áp dụng"}
                     </button>
                   </div>
                 ) : (

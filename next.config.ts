@@ -37,6 +37,10 @@ const nextConfig: NextConfig = {
         hostname: "cdn.lorkingdom.vn",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+      },
     ],
     // Allow loading images from localhost
     dangerouslyAllowSVG: true,

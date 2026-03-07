@@ -12,7 +12,7 @@ import {
   ChevronRight,
   X,
 } from "lucide-react";
-import { useState, useEffect, useCallback, Suspense } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CustomerWalletService } from "@/services/customer_services/customer.wallet.service";
@@ -80,18 +80,23 @@ function WalletPageContent() {
     }
   }, [isAuthenticated, authLoading, router]);
 
+  const callbackHandledRef = useRef(false);
+
   /* ── gateway callback handling ── */
   useEffect(() => {
+    if (callbackHandledRef.current) return;
     const status = searchParams.get("topup");
     const amount = searchParams.get("amount");
     if (status === "success") {
+      callbackHandledRef.current = true;
       toast.success(
-        `Nạp tiền thành công${amount ? ` - ${Number(amount).toLocaleString("vi-VN")}₫` : ""}`,
+        `Nạp tiền thành công${amount ? ` +${Number(amount).toLocaleString("vi-VN")}₫` : ""}`,
       );
-      router.replace("/profile/wallet");
+      router.replace("/profile?tab=wallet");
     } else if (status === "failed") {
+      callbackHandledRef.current = true;
       toast.error("Nạp tiền thất bại. Vui lòng thử lại.");
-      router.replace("/profile/wallet");
+      router.replace("/profile?tab=wallet");
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -150,7 +155,7 @@ function WalletPageContent() {
       const r = await CustomerWalletService.initiateTopUp({
         amount: topUpAmount,
         gateway,
-        returnUrl: `${window.location.origin}/profile/wallet`,
+        returnUrl: `${window.location.origin}/profile?tab=wallet`,
       } as TopUpRequest);
       if (r.status === 200 && r.data?.paymentUrl) {
         toast.success("Đang chuyển đến trang thanh toán...");
@@ -357,14 +362,24 @@ function WalletPageContent() {
                         </div>
                         <div className="text-right flex-shrink-0">
                           <p
-                            className={`text-sm font-bold ${isIn ? "text-emerald-600" : "text-red-500"}`}
+                            className={`text-sm font-bold ${
+                              txn.status === "Failed"
+                                ? "text-gray-400"
+                                : isIn
+                                  ? "text-emerald-600"
+                                  : "text-red-500"
+                            }`}
                           >
-                            {isIn ? "+" : "-"}
-                            {txn.amount.toLocaleString("vi-VN")}₫
+                            {txn.status === "Failed"
+                              ? "0"
+                              : (isIn ? "+" : "-") + txn.amount.toLocaleString("vi-VN")}
+                            ₫
                           </p>
-                          <p className="text-[11px] text-gray-400">
-                            Số dư: {txn.balanceAfter.toLocaleString("vi-VN")}₫
-                          </p>
+                          {txn.status !== "Failed" && (
+                            <p className="text-[11px] text-gray-400">
+                              Số dư: {txn.balanceAfter.toLocaleString("vi-VN")}₫
+                            </p>
+                          )}
                           <p className="text-[10px] text-gray-300">
                             {new Date(txn.createdAt).toLocaleDateString("vi-VN", {
                               day: "2-digit",

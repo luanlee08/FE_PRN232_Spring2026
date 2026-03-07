@@ -28,14 +28,9 @@ const resolveImageUrl = (url?: string | null) => {
   return `${API_BASE}${url}`;
 };
 
-const toDisplayValue = (value?: string | null) =>
-  value && value.trim() ? value : "Đang cập nhật";
+const toDisplayValue = (value?: string | null) => (value && value.trim() ? value : "Đang cập nhật");
 
-const getStatusMeta = (
-  status?: string | null,
-  stockQuantity?: number,
-  isOutOfStock?: boolean
-) => {
+const getStatusMeta = (status?: string | null, stockQuantity?: number, isOutOfStock?: boolean) => {
   const normalized = status?.toLowerCase();
   const outOfStockByQuantity = typeof stockQuantity === "number" && stockQuantity <= 0;
   const isOut = Boolean(isOutOfStock) || normalized === "outofstock" || outOfStockByQuantity;
@@ -121,7 +116,7 @@ export default function ProductDetailPage() {
     if (!product) return [];
 
     const urls = [product.mainImageUrl, ...(product.secondaryImageUrls ?? [])].filter(
-      (url): url is string => Boolean(url && url.trim())
+      (url): url is string => Boolean(url && url.trim()),
     );
 
     return Array.from(new Set(urls));
@@ -141,7 +136,7 @@ export default function ProductDetailPage() {
       try {
         const cartResponse = await CustomerCartService.getCart();
         const existingItem = cartResponse.data?.items?.find(
-          (item) => item.productId === Number(product.id)
+          (item) => item.productId === Number(product.id),
         );
         setExistingCartQuantity(existingItem?.quantity ?? 0);
       } catch {
@@ -258,7 +253,7 @@ export default function ProductDetailPage() {
   const statusMeta = getStatusMeta(
     product.productStatus,
     product.stockQuantity,
-    product.isOutOfStock
+    product.isOutOfStock,
   );
 
   const attributes = [
@@ -282,9 +277,7 @@ export default function ProductDetailPage() {
                 Trang chủ
               </Link>
               <span>/</span>
-              <span className="text-gray-900 font-medium line-clamp-1">
-                {product.productName}
-              </span>
+              <span className="text-gray-900 font-medium line-clamp-1">{product.productName}</span>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-5 gap-6 mb-8">
@@ -301,8 +294,7 @@ export default function ProductDetailPage() {
                   {galleryImages.length > 1 && (
                     <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
                       {galleryImages.map((imageUrl, index) => {
-                        const isActive =
-                          (selectedImageUrl ?? galleryImages[0]) === imageUrl;
+                        const isActive = (selectedImageUrl ?? galleryImages[0]) === imageUrl;
 
                         return (
                           <button
@@ -357,7 +349,6 @@ export default function ProductDetailPage() {
                     </span>
                   </div>
 
-             
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
                     <div className="flex items-center gap-2 rounded-lg bg-orange-50 border border-orange-100 p-3">
                       <Truck className="w-5 h-5 text-[#FF6B35]" />
@@ -502,7 +493,7 @@ export default function ProductDetailPage() {
             </section>
 
             <div className="mt-8">
-              <ProductReviews />
+              <ProductReviews productId={Number(id)} />
             </div>
           </div>
         </div>
@@ -510,5 +501,3 @@ export default function ProductDetailPage() {
     </div>
   );
 }
-
-

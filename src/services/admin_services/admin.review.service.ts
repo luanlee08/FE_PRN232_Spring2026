@@ -38,7 +38,7 @@ export const AdminReviewService = {
 
   async reply(body: AddReplyRequest) {
     const res = await axiosInstance.post<ApiResponse<ReviewReply>>(
-      API_ENDPOINTS.ADMIN_REVIEW_BLOG_REPLIES,
+      API_ENDPOINTS.ADMIN_REVIEW_PRODUCT_REPLIES,
       body,
     );
     return res.data;
