@@ -57,3 +57,56 @@ export interface AddReplyRequest {
   reviewProductId: number;
   replyText: string;
 }
+
+// ── Customer-facing response types ────────────────────────────────────────────
+export interface ReviewReplyItem {
+  reviewProductReplyId: number;
+  reviewProductId: number;
+  accountId: number;
+  accountName: string;
+  accountImage?: string | null;
+  replyText: string;
+  createdAt: string;
+}
+
+export interface ReviewResponse {
+  reviewProductId: number;
+  accountId: number;
+  accountName: string;
+  accountImage?: string | null;
+  productId: number;
+  productName: string;
+  rating: number;
+  comment: string;
+  imageUrls: string[];
+  status: ReviewStatus;
+  visibility: ReviewVisibility;
+  moderationDetail?: string | null;
+  likeCount: number;
+  dislikeCount: number;
+  isLikedByCurrentUser: boolean;
+  editCount: number;
+  canEdit: boolean;
+  replies: ReviewReplyItem[];
+  createdAt: string;
+  updatedAt?: string | null;
+}
+
+export interface ReviewListQuery {
+  productId: number;
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  rating?: number;
+}
+
+export interface ReviewSummaryResponse {
+  averageRating: number;
+  totalReviews: number;
+  ratingDistribution: Record<string, number>;
+}
+
+export interface ReactionRequest {
+  reviewProductId: number;
+  reactionType: "Like" | "Dislike";
+}

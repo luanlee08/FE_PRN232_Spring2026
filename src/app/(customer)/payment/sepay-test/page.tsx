@@ -58,8 +58,8 @@ function SepayTestPaymentPageContent() {
     if (isTopUp) {
       const dest =
         status === "success"
-          ? `/profile/wallet?topup=success&amount=${amount}`
-          : `/profile/wallet?topup=failed`;
+          ? `/profile?tab=wallet&topup=success&amount=${amount}`
+          : `/profile?tab=wallet&topup=failed`;
       router.push(dest);
     } else {
       router.push(status === "success" ? "/profile?tab=orders" : "/cart");
@@ -97,19 +97,10 @@ function SepayTestPaymentPageContent() {
       redirectAfter("success");
       return;
     }
-    const t = setInterval(() => {
-      setCountdown((c) => {
-        if (c <= 1) {
-          clearInterval(t);
-          redirectAfter("success");
-          return 0;
-        }
-        return c - 1;
-      });
-    }, 1000);
-    return () => clearInterval(t);
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [paymentStatus]);
+  }, [paymentStatus, countdown]);
 
   const destLabel = isTopUp ? "trang ví" : "đơn hàng";
 

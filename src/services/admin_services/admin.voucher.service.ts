@@ -2,6 +2,11 @@ import axiosInstance from "@/lib/api/axios";
 import { API_ENDPOINTS } from "@/configs/api-configs";
 import { ApiResponse, PagedResult } from "@/types/common";
 
+export interface VoucherTypeOption {
+  voucherTypeId: number;
+  voucherTypeName: string;
+}
+
 export interface VoucherAdmin {
   voucherId: number;
   voucherTypeId: number;
@@ -89,5 +94,12 @@ export const AdminVoucherService = {
     });
 
     return res.data;
+  },
+
+  async getTypes() {
+    const res = await axiosInstance.get<ApiResponse<VoucherTypeOption[]>>(
+      API_ENDPOINTS.ADMIN_VOUCHER_TYPES,
+    );
+    return res.data.data ?? [];
   },
 };
