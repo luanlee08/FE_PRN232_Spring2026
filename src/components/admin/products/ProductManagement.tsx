@@ -147,8 +147,14 @@ export default function ProductManagementUI() {
       ) : (
         <ProductTable
           products={products}
-          onEdit={(product) => {
-            setSelectedProduct(mapAdminToFormData(product)); // ✅ ProductFormData
+          onEdit={async (product) => {
+            try {
+              const detail = await AdminProductService.getById(product.id);
+              setSelectedProduct(mapAdminToFormData(detail));
+            } catch (error) {
+              console.error(error);
+              setSelectedProduct(mapAdminToFormData(product));
+            }
             setOpenModal(true);
           }}
         />
@@ -222,6 +228,7 @@ export default function ProductManagementUI() {
     </div>
   );
 }
+
 
 
 
