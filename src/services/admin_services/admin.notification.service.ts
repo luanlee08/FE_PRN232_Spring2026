@@ -18,6 +18,7 @@ export interface SendNotificationRequest {
   payload?: string;                // Legacy JSON payload (backward compat)
   targetType: TargetType;
   targetUserIds?: number[];        // For TargetType = "User" (multi-select)
+  targetRoleId?: number;           // For TargetType = "Role" (1=Customer, 2=Staff, 3=Warehouse)
   scheduledFor?: string;           // ISO datetime string for scheduled delivery
 }
 
@@ -110,6 +111,7 @@ export const AdminNotificationService = {
       actionTarget: request.actionTarget || undefined,
       targetType: request.targetType,
       targetUserIds: request.targetType === 'User' ? request.targetUserIds : undefined,
+      targetRoleId: request.targetType === 'Role' ? request.targetRoleId : undefined,
       scheduledAt: request.scheduledFor || undefined,
     };
     const res = await axiosInstance.post(API_ENDPOINTS.ADMIN_NOTIFICATIONS, payload);

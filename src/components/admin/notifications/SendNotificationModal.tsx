@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { VariableChips } from "@/components/admin/shared/VariableChips";
 import ImageUploader from "@/components/admin/shared/ImageUploader";
 import ActionPicker, { ActionType } from "@/components/admin/shared/ActionPicker";
@@ -13,10 +13,17 @@ import {
   Calendar,
   Users,
   User,
+  ShieldCheck,
   ChevronDown,
   ChevronUp,
   Loader2,
 } from "lucide-react";
+
+const ROLE_OPTIONS = [
+  { value: 1, label: "Khách hàng (Customer)" },
+  { value: 2, label: "Nhân viên CSKH (Staff)" },
+  { value: 3, label: "Nhân viên kho (Warehouse)" },
+];
 import {
   AdminNotificationService,
   SendNotificationRequest,
@@ -63,6 +70,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
   const [actionType, setActionType] = useState<ActionType>("none");
   const [actionTarget, setActionTarget] = useState("");
   const [targetType, setTargetType] = useState<TargetType>("All");
+  const [targetRoleId, setTargetRoleId] = useState<number>(1);
   const [selectedUsers, setSelectedUsers] = useState<AccountSearchResultDto[]>([]);
   const [isScheduled, setIsScheduled] = useState(false);
   const [scheduledFor, setScheduledFor] = useState("");
@@ -75,6 +83,41 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showAdvanced, setShowAdvanced] = useState(false);
+
+  /* ── Template variable values ── */
+  const [templateVarValues, setTemplateVarValues] = useState<Record<string, string>>({});
+
+  /** Extract unique {{varName}} tokens from text */
+  const extractVars = (texts: string[]): string[] => {
+    const found: string[] = [];
+    const seen = new Set<string>();
+    texts.forEach((t) => {
+      const matches = t.matchAll(/\{\{([^}]+)\}\}/g);
+      for (const m of matches) {
+        if (!seen.has(m[1])) { seen.add(m[1]); found.push(m[1]); }
+      }
+    });
+    return found;
+  };
+
+  const templateVars = useMemo(() => extractVars([title, message]), [title, message]);
+
+  /** Title / message with {{variables}} replaced by admin-supplied values */
+  const effectiveTitle = useMemo(() => {
+    let t = title;
+    Object.entries(templateVarValues).forEach(([k, v]) => {
+      t = t.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), v);
+    });
+    return t;
+  }, [title, templateVarValues]);
+
+  const effectiveMessage = useMemo(() => {
+    let t = message;
+    Object.entries(templateVarValues).forEach(([k, v]) => {
+      t = t.replace(new RegExp(`\\{\\{${k}\\}\\}`, "g"), v);
+    });
+    return t;
+  }, [message, templateVarValues]);
 
   /* ── Variable insertion ── */
   const titleRef = useRef<HTMLInputElement>(null);
@@ -129,16 +172,19 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
     setActionType("none");
     setActionTarget("");
     setTargetType("All");
+    setTargetRoleId(1);
     setSelectedUsers([]);
     setIsScheduled(false);
     setScheduledFor("");
     setErrors({});
     setShowAdvanced(false);
+    setTemplateVarValues({});
   };
 
   /* ── Template auto-fill + notification type sync ── */
   const handleTemplateChange = (value: string) => {
     setTemplateCode(value);
+    setTemplateVarValues({}); // reset var values on template change
     if (!value) return;
     const tpl = templates.find((t) => t.templateCode === value);
     if (tpl) {
@@ -162,23 +208,33 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
   };
 
   /* ── Validation ── */
+  const hasUnfilledVars = (text: string) => /\{\{[^}]+\}\}/.test(text);
+
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!title.trim()) {
+    if (!effectiveTitle.trim()) {
       newErrors.title = "Vui lòng nhập tiêu đề";
-    } else if (title.length > 255) {
+    } else if (effectiveTitle.length > 255) {
       newErrors.title = "Tiêu đề không được vượt quá 255 ký tự";
+    } else if (hasUnfilledVars(effectiveTitle)) {
+      newErrors.title = "Vui lòng điền giá trị cho tất cả biến trong tiêu đề";
     }
 
-    if (!message.trim()) {
+    if (!effectiveMessage.trim()) {
       newErrors.message = "Vui lòng nhập nội dung";
-    } else if (message.length > 500) {
+    } else if (effectiveMessage.length > 500) {
       newErrors.message = "Nội dung không được vượt quá 500 ký tự";
+    } else if (hasUnfilledVars(effectiveMessage)) {
+      newErrors.message = "Vui lòng điền giá trị cho tất cả biến trong nội dung";
     }
 
     if (actionType !== "none" && !actionTarget.trim()) {
       newErrors.actionTarget = "Vui lòng nhập đích liên kết";
+    }
+
+    if (targetType === "Role" && !targetRoleId) {
+      newErrors.targetRole = "Vui lòng chọn vai trò";
     }
 
     if (targetType === "User" && selectedUsers.length === 0) {
@@ -204,13 +260,14 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
     try {
       const request: SendNotificationRequest = {
         templateCode: templateCode || undefined,
-        title: title.trim(),
-        message: message.trim(),
+        title: effectiveTitle.trim(),
+        message: effectiveMessage.trim(),
         imageUrl: imageUrl.trim() || undefined,
         actionType: actionType !== "none" ? actionType : undefined,
         actionTarget: actionType !== "none" ? actionTarget.trim() || undefined : undefined,
         targetType,
         targetUserIds: targetType === "User" ? selectedUsers.map((u) => u.accountId) : undefined,
+        targetRoleId: targetType === "Role" ? targetRoleId : undefined,
         // Convert local datetime string to ISO UTC so the BE Hangfire scheduler
         // receives the correct timezone regardless of where the server runs
         scheduledFor: isScheduled && scheduledFor
@@ -301,6 +358,31 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                     ✓ Đã điền sẵn nội dung từ template. Bạn có thể chỉnh bên dưới.
                   </p>
                 )}
+
+              {/* Template variable inputs */}
+              {templateCode && templateVars.length > 0 && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20 p-4 space-y-3">
+                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-400 flex items-center gap-1">
+                    ⚠️ Template có {templateVars.length} biến cần điền:
+                  </p>
+                  {templateVars.map((varName) => (
+                    <div key={varName}>
+                      <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+                        <code className="bg-amber-100 dark:bg-amber-900/40 px-1 rounded text-amber-700 dark:text-amber-300">{`{{${varName}}}`}</code>
+                      </label>
+                      <input
+                        type="text"
+                        value={templateVarValues[varName] ?? ""}
+                        onChange={(e) =>
+                          setTemplateVarValues((prev) => ({ ...prev, [varName]: e.target.value }))
+                        }
+                        placeholder={`Giá trị cho {{${varName}}}`}
+                        className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
               </div>
 
               {/* Loại thông báo */}
@@ -340,8 +422,8 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                   ) : (
                     <span />
                   )}
-                  <p className={`text-xs ml-auto ${title.length > 230 ? "text-orange-500" : "text-gray-400"}`}>
-                    {title.length}/255
+                  <p className={`text-xs ml-auto ${effectiveTitle.length > 230 ? "text-orange-500" : "text-gray-400"}`}>
+                    {effectiveTitle.length}/255
                   </p>
                 </div>
               </div>
@@ -375,8 +457,8 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                   ) : (
                     <span />
                   )}
-                  <p className={`text-xs ml-auto ${message.length > 450 ? "text-orange-500" : "text-gray-400"}`}>
-                    {message.length}/500
+                  <p className={`text-xs ml-auto ${effectiveMessage.length > 450 ? "text-orange-500" : "text-gray-400"}`}>
+                    {effectiveMessage.length}/500
                   </p>
                 </div>
               </div>
@@ -412,10 +494,10 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                 Đối tượng nhận
               </h3>
 
-              <div className="flex gap-3">
+              <div className="flex gap-2">
                 {/* All */}
                 <label
-                  className={`flex-1 flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition text-sm ${
+                  className={`flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition text-sm ${
                     targetType === "All"
                       ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-medium"
                       : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300"
@@ -429,12 +511,31 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                     className="sr-only"
                   />
                   <Users className="w-4 h-4 shrink-0" />
-                  Tất cả người dùng
+                  Tất cả
+                </label>
+
+                {/* Role */}
+                <label
+                  className={`flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition text-sm ${
+                    targetType === "Role"
+                      ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-medium"
+                      : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="targetType"
+                    checked={targetType === "Role"}
+                    onChange={() => { setTargetType("Role"); setSelectedUsers([]); }}
+                    className="sr-only"
+                  />
+                  <ShieldCheck className="w-4 h-4 shrink-0" />
+                  Theo vai trò
                 </label>
 
                 {/* Specific users */}
                 <label
-                  className={`flex-1 flex items-center gap-2.5 p-3 rounded-lg border cursor-pointer transition text-sm ${
+                  className={`flex-1 flex items-center gap-2 p-3 rounded-lg border cursor-pointer transition text-sm ${
                     targetType === "User"
                       ? "border-brand-500 bg-brand-50 dark:bg-brand-900/20 text-brand-700 dark:text-brand-300 font-medium"
                       : "border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:border-gray-300"
@@ -448,9 +549,27 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
                     className="sr-only"
                   />
                   <User className="w-4 h-4 shrink-0" />
-                  Chọn cụ thể
+                  Cụ thể
                 </label>
               </div>
+
+              {/* Role select dropdown */}
+              {targetType === "Role" && (
+                <div>
+                  <select
+                    value={targetRoleId}
+                    onChange={(e) => setTargetRoleId(Number(e.target.value))}
+                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white"
+                  >
+                    {ROLE_OPTIONS.map((r) => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                  {errors.targetRole && (
+                    <p className="text-xs text-red-500 mt-1">{errors.targetRole}</p>
+                  )}
+                </div>
+              )}
 
               {/* User search multi-select */}
               {targetType === "User" && (
@@ -529,8 +648,8 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
           {/* ─── Right Panel: Preview ─── */}
           <div className="lg:sticky lg:top-0 lg:self-start">
             <NotificationPreview
-              title={title}
-              message={message}
+              title={effectiveTitle}
+              message={effectiveMessage}
               imageUrl={imageUrl}
               notificationType={notificationType}
               actionType={actionType}

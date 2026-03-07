@@ -466,6 +466,23 @@ function CustomerProfilePageContent() {
     }
   }, []);
 
+  // Handle VNPay / MoMo / Sepay order payment callback
+  useEffect(() => {
+    const paymentStatus = searchParams.get("payment");
+    const orderId = searchParams.get("orderId");
+    if (paymentStatus === "success") {
+      toast.success("Thanh toán thành công! Đơn hàng đang được xử lý.");
+      setTab("orders");
+      router.replace("/profile?tab=orders");
+    } else if (paymentStatus === "failed") {
+      toast.error(
+        `Thanh toán thất bại${orderId ? ` - đơn hàng #${orderId} đã bị hủy` : ""}. Vui lòng đặt lại.`,
+      );
+      setTab("orders");
+      router.replace("/profile?tab=orders");
+    }
+  }, []);
+
   useEffect(() => {
     if (selProv) LocationService.getDistricts(selProv).then(setDistricts);
     else {

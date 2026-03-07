@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Bell, Save, Send, User, Users } from "lucide-react";
+import { ArrowLeft, Bell, Save, Send, Shield, User, Users } from "lucide-react";
 import { TemplatePreview, VariableChips } from "@/components/admin/shared/VariableChips";
 import ImageUploader from "@/components/admin/shared/ImageUploader";
 import ActionPicker, { ActionType } from "@/components/admin/shared/ActionPicker";
@@ -23,13 +23,20 @@ import { getActiveTemplates } from "@/services/admin_services/admin.template.ser
 type Mode = "create" | "edit";
 interface Props { mode: Mode; initial?: CampaignDto; }
 
-// Friendly audience options — hides CampaignTargetType from user
+const ROLE_OPTIONS = [
+  { value: 1, label: "Khách hàng (Customer)" },
+  { value: 2, label: "Nhân viên CSKH (Staff)" },
+  { value: 3, label: "Nhân viên kho (Warehouse)" },
+];
+
+// Friendly audience options
 const AUDIENCE_OPTIONS: {
   value: CampaignTargetType;
   icon: React.ReactNode;
   label: string;
   sub: string;
   showInput: boolean;
+  showRoleSelect?: boolean;
   inputPlaceholder?: string;
   inputLabel?: string;
 }[] = [
@@ -39,6 +46,14 @@ const AUDIENCE_OPTIONS: {
     label: "Tất cả khách hàng",
     sub: "Gửi đến toàn bộ tài khoản trên hệ thống",
     showInput: false,
+  },
+  {
+    value: "GROUP",
+    icon: <Shield size={20} />,
+    label: "Theo vai trò",
+    sub: "Gửi đến tất cả thành viên có cùng vai trò",
+    showInput: false,
+    showRoleSelect: true,
   },
   {
     value: "CUSTOM",
@@ -104,6 +119,11 @@ export default function CampaignForm({ mode, initial }: Props) {
   const [templateCode, setTemplateCode] = useState(initial?.templateCode ?? "");
   const [audience, setAudience]   = useState<CampaignTargetType>(initial?.targetType ?? "ALL");
   const [audienceInput, setAudienceInput] = useState(initial?.targetValues?.join(", ") ?? "");
+  const [campaignRoleId, setCampaignRoleId] = useState<number>(
+    initial?.targetType === "GROUP" && initial?.targetValues?.length
+      ? (parseInt(initial.targetValues[0]) || 1)
+      : 1
+  );
   const [imageUrl, setImageUrl]   = useState(initial?.imageUrl ?? "");
   const [linkType, setLinkType]   = useState<ActionType>((initial?.actionType as ActionType) ?? "none");
   const [linkTarget, setLinkTarget] = useState(initial?.actionTarget ?? "");
@@ -126,6 +146,7 @@ export default function CampaignForm({ mode, initial }: Props) {
 
   const parseTargetValues = (): string[] => {
     if (audience === "ALL") return [];
+    if (audience === "GROUP") return [String(campaignRoleId)];
     return audienceInput.split(",").map(v => v.trim()).filter(Boolean);
   };
 
@@ -288,6 +309,18 @@ export default function CampaignForm({ mode, initial }: Props) {
                   audience === opt.value ? "text-brand-700 dark:text-brand-300" : "text-gray-800 dark:text-white"
                 }`}>{opt.label}</p>
                 <p className="mt-0.5 text-xs text-gray-400">{opt.sub}</p>
+                {audience === opt.value && opt.showRoleSelect && (
+                  <select
+                    value={campaignRoleId}
+                    onChange={e => setCampaignRoleId(Number(e.target.value))}
+                    className="mt-3 w-full rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-brand-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    {ROLE_OPTIONS.map(r => (
+                      <option key={r.value} value={r.value}>{r.label}</option>
+                    ))}
+                  </select>
+                )}
                 {audience === opt.value && opt.showInput && (
                   <>
                     <input type="text" value={audienceInput}
