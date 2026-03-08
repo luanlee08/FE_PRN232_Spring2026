@@ -188,11 +188,15 @@ export default function NotificationPage() {
         return;
       }
       if (notif.actionType === "url") {
-        // Internal path → use router; external → window.open
-        if (notif.actionTarget.startsWith("/")) {
-          router.push(notif.actionTarget);
+        // Rewrite legacy /orders/<id> deep-links to the correct profile page route
+        const target = notif.actionTarget.replace(
+          /^\/orders\/(\d+)/,
+          (_: string, id: string) => `/profile?tab=orders&orderId=${id}`
+        );
+        if (target.startsWith("/")) {
+          router.push(target);
         } else {
-          window.open(notif.actionTarget, "_blank", "noopener,noreferrer");
+          window.open(target, "_blank", "noopener,noreferrer");
         }
         return;
       }
@@ -202,11 +206,17 @@ export default function NotificationPage() {
     if (notif.payload) {
       const payload = parseNotificationPayload(notif.payload);
       if (payload?.link) {
-        router.push(payload.link);
+        // Rewrite legacy /orders/<id> links
+        const link = payload.link.replace(
+          /^\/orders\/(\d+)/,
+          (_: string, id: string) => `/profile?tab=orders&orderId=${id}`
+        );
+        router.push(link);
       } else if (payload) {
         const category = getCategoryFromTemplate(notif.templateCode);
         if (category === NotificationCategory.ORDER && payload.type === "order") {
-          router.push(`/orders/${(payload as any).orderId}`);
+          const orderId = (payload as any).orderId;
+          router.push(orderId ? `/profile?tab=orders&orderId=${orderId}` : "/profile?tab=orders");
         } else if (
           category === NotificationCategory.PROMOTION &&
           payload.type === "promotion" &&
@@ -215,7 +225,7 @@ export default function NotificationPage() {
           router.push(`/vouchers/${(payload as any).voucherId}`);
         } else if (category === NotificationCategory.PAYMENT && payload.type === "payment") {
           const p = payload as any;
-          if (p.orderId) router.push(`/orders/${p.orderId}`);
+          if (p.orderId) router.push(`/profile?tab=orders&orderId=${p.orderId}`);
         }
       }
     }

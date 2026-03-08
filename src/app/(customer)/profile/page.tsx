@@ -349,6 +349,7 @@ function CustomerProfilePageContent() {
   const [orderSearch, setOrderSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<OrderDto | null>(null);
   const [cancelling, setCancelling] = useState<number | null>(null);
+  const [confirming, setConfirming] = useState<number | null>(null);
 
   /* ── review state ── */
   const [ordersViewMode, setOrdersViewMode] = useState<"orders" | "reviews">("orders");
@@ -440,6 +441,13 @@ function CustomerProfilePageContent() {
       setOrderTab("all");
       setOrderPage(1);
       fetchOrders("all", 1);
+      // Deep-link from notification: open specific order detail
+      const deeplinkOrderId = searchParams.get("orderId");
+      if (deeplinkOrderId) {
+        CustomerOrderService.getOrderById(parseInt(deeplinkOrderId))
+          .then((res) => { if (res.status === 200 && res.data) setSelectedOrder(res.data); })
+          .catch(() => {});
+      }
     }
   }, [tab]);
 
@@ -887,6 +895,24 @@ function CustomerProfilePageContent() {
       toast.error(err?.response?.data?.message || "Không thể huỷ đơn");
     } finally {
       setCancelling(null);
+    }
+  };
+
+  const handleConfirmDelivery = async (orderId: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("Đơn hàng sẽ chuyển sang trạng thái Hoàn thành. Xác nhận đã nhận hàng?")) return;
+    setConfirming(orderId);
+    try {
+      const res = await CustomerOrderService.confirmDelivery(orderId);
+      if (res.status === 200) {
+        toast.success("Đã xác nhận nhận hàng");
+        fetchOrders(orderTab, orderPage);
+        if (selectedOrder?.orderId === orderId) setSelectedOrder(null);
+      }
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Không thể xác nhận");
+    } finally {
+      setConfirming(null);
     }
   };
 
@@ -1538,6 +1564,7 @@ function CustomerProfilePageContent() {
                               };
                               const Icon = st.icon;
                               const canCancel = skey === "pending";
+                              const canConfirmDelivery = skey === "delivered";
                               const canRefund =
                                 skey === "completed" && order.refundStatus === "None";
                               const hasRefundRequest =
@@ -1619,6 +1646,15 @@ function CustomerProfilePageContent() {
                                           className="px-3 py-1 border border-gray-200 text-gray-500 text-xs rounded hover:border-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
                                         >
                                           {cancelling === order.orderId ? "Đang huỷ..." : "Huỷ đơn"}
+                                        </button>
+                                      )}
+                                      {canConfirmDelivery && (
+                                        <button
+                                          onClick={(e) => handleConfirmDelivery(order.orderId, e)}
+                                          disabled={confirming === order.orderId}
+                                          className="px-3 py-1 border border-green-300 text-green-600 text-xs rounded hover:bg-green-50 hover:border-green-500 transition-colors disabled:opacity-50"
+                                        >
+                                          {confirming === order.orderId ? "Đang xác nhận..." : "Đã nhận hàng"}
                                         </button>
                                       )}
                                       {canRefund && (
@@ -2754,6 +2790,22 @@ function CustomerProfilePageContent() {
                                 <>
                                   <XCircle size={15} /> Huỷ đơn hàng
                                 </>
+                              )}
+                            </button>
+                          )}
+                          {selectedOrder.statusName?.toLowerCase() === "delivered" && (
+                            <button
+                              onClick={(e) => handleConfirmDelivery(selectedOrder.orderId, e)}
+                              disabled={confirming === selectedOrder.orderId}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-500 hover:bg-green-600 text-white text-sm font-semibold rounded-xl transition-colors disabled:opacity-60"
+                            >
+                              {confirming === selectedOrder.orderId ? (
+                                <>
+                                  <span className="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full" />{" "}
+                                  Đang xác nhận...
+                                </>
+                              ) : (
+                                <>✓ Đã nhận hàng</>
                               )}
                             </button>
                           )}

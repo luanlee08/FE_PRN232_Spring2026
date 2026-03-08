@@ -68,6 +68,12 @@ export const CustomerOrderService = {
         return res.data;
     },
 
+    // Xác nhận đã nhận hàng (Delivered → Completed)
+    async confirmDelivery(id: number): Promise<ApiResponse<object>> {
+        const res = await axiosInstance.post(API_ENDPOINTS.ORDER_CONFIRM_DELIVERY(id));
+        return res.data;
+    },
+
     // Lấy tracking GHN (log trạng thái) cho đơn hàng
     async getOrderTracking(id: number): Promise<ApiResponse<GHNTrackingDetail>> {
         const res = await axiosInstance.get(API_ENDPOINTS.ORDER_TRACKING(id));

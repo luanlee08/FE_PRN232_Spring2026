@@ -115,3 +115,19 @@ export function useCancelOrder() {
     },
   });
 }
+
+/**
+ * Customer confirms delivery received — transitions Delivered → Completed.
+ * Invalidates my-orders list and the specific order detail on success.
+ */
+export function useConfirmDelivery() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (orderId: number) => CustomerOrderService.confirmDelivery(orderId),
+    onSuccess: (_data, orderId) => {
+      queryClient.invalidateQueries({ queryKey: orderKeys.all });
+      queryClient.invalidateQueries({ queryKey: orderKeys.detail(orderId) });
+    },
+  });
+}
