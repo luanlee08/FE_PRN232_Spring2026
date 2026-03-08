@@ -19,11 +19,9 @@ export const API_ENDPOINTS = {
   ADMIN_BRANDS_LIST: `${API_BASE}/api/admin/brands`,
   ADMIN_MATERIALS_LIST: `${API_BASE}/api/admin/materials`,
 
-  ADMIN_BRAND_BY_ID: (id: number) =>
-    `${API_BASE}/api/admin/brands/${id}`,
+  ADMIN_BRAND_BY_ID: (id: number) => `${API_BASE}/api/admin/brands/${id}`,
 
-  ADMIN_MATERIAL_BY_ID: (id: number) =>
-    `${API_BASE}/api/admin/materials/${id}`,
+  ADMIN_MATERIAL_BY_ID: (id: number) => `${API_BASE}/api/admin/materials/${id}`,
   // ===== ADMIN ACCOUNTS =====
   ADMIN_ACCOUNTS: `${API_BASE}/api/admin/accounts`,
   ADMIN_CUSTOMER_ACCOUNTS: `${API_BASE}/api/admin/customer-accounts`,
@@ -81,6 +79,7 @@ export const API_ENDPOINTS = {
   // ===== ADMIN VOUCHERS =====
   ADMIN_VOUCHERS: `${API_BASE}/api/admin/vouchers`,
   ADMIN_VOUCHER_BY_ID: (id: number) => `${API_BASE}/api/admin/vouchers/${id}`,
+  ADMIN_VOUCHER_TYPES: `${API_BASE}/api/admin/vouchers/types`,
 
   // ===== ADMIN NOTIFICATIONS =====
   ADMIN_NOTIFICATIONS: `${API_BASE}/api/admin/notifications`,
@@ -101,9 +100,16 @@ export const API_ENDPOINTS = {
   ADMIN_TEMPLATES_ACTIVE: `${API_BASE}/api/admin/templates/active`,
   ADMIN_TEMPLATE_TOGGLE: (id: number) => `${API_BASE}/api/admin/templates/${id}/toggle-status`,
 
+  // ===== CUSTOMER REVIEWS =====
+  CUSTOMER_REVIEWS: `${API_BASE}/api/reviews`,
+  CUSTOMER_REVIEW_SUMMARY: (productId: number) => `${API_BASE}/api/reviews/summary/${productId}`,
+  CUSTOMER_REVIEW_HISTORY: `${API_BASE}/api/reviews/history`,
+  CUSTOMER_REVIEW_REACTIONS: `${API_BASE}/api/reviews/reactions`,
+
   // ===== ADMIN REVIEWS =====
   ADMIN_REVIEWS: `${API_BASE}/api/admin/reviews`,
   ADMIN_REVIEW_BY_ID: (id: number) => `${API_BASE}/api/admin/reviews/${id}`,
+  ADMIN_REVIEW_PRODUCT_REPLIES: `${API_BASE}/api/admin/reviews/replies`,
   ADMIN_REVIEW_BLOG_REPLIES: `${API_BASE}/api/admin/review-replies`,
 
   // ===== ADMIN BLOG =====
@@ -116,6 +122,9 @@ export const API_ENDPOINTS = {
 
   // ===== CUSTOMER PRODUCTS =====
   PRODUCTS: `${API_BASE}/api/products`,
+
+  // ===== CUSTOMER VOUCHERS =====
+  CUSTOMER_VOUCHER_VALIDATE: `${API_BASE}/api/customer/vouchers/validate`,
 
   // ===== CUSTOMER WALLET =====
   WALLET_BALANCE: `${API_BASE}/api/CWallet/balance`,
@@ -145,6 +154,4 @@ export const API_ENDPOINTS = {
   BLOG_REVIEW_REACTIONS: `${API_BASE}/api/blog-review-reactions`,
   BLOG_REVIEW_REACTION_BY_ID: (reviewId: number) =>
     `${API_BASE}/api/blog-review-reactions/${reviewId}`,
-
-
 };

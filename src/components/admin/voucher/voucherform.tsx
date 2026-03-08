@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { AdminVoucherService, VoucherAdmin } from "@/services/admin_services/admin.voucher.service";
+import {
+  AdminVoucherService,
+  VoucherAdmin,
+  VoucherTypeOption,
+} from "@/services/admin_services/admin.voucher.service";
 
 interface Props {
   submitText?: string;
@@ -10,6 +14,8 @@ interface Props {
 }
 
 export default function VoucherForm({ submitText = "Lưu Voucher", initialData, onSuccess }: Props) {
+  const [voucherTypeId, setVoucherTypeId] = useState<number | "">(initialData?.voucherTypeId ?? "");
+  const [voucherTypes, setVoucherTypes] = useState<VoucherTypeOption[]>([]);
   const [voucherCode, setVoucherCode] = useState("");
   const [discountType, setDiscountType] = useState("Percentage");
   const [discountValue, setDiscountValue] = useState<number | "">("");
@@ -23,9 +29,15 @@ export default function VoucherForm({ submitText = "Lưu Voucher", initialData, 
   const [isDeleted, setIsDeleted] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // Fetch VoucherTypes on mount
+  useEffect(() => {
+    AdminVoucherService.getTypes().then(setVoucherTypes).catch(console.error);
+  }, []);
+
   // Bind edit data
   useEffect(() => {
     if (initialData) {
+      setVoucherTypeId(initialData.voucherTypeId);
       setVoucherCode(initialData.voucherCode);
       setDiscountType(initialData.discountType);
       setDiscountValue(initialData.discountValue);
@@ -38,6 +50,7 @@ export default function VoucherForm({ submitText = "Lưu Voucher", initialData, 
       setStatus(initialData.status);
       setIsDeleted(initialData.isDeleted);
     } else {
+      setVoucherTypeId("");
       setVoucherCode("");
       setDiscountType("Percentage");
       setDiscountValue("");
@@ -55,8 +68,14 @@ export default function VoucherForm({ submitText = "Lưu Voucher", initialData, 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!voucherCode.trim() || discountValue === "" || !startDate || !endDate) {
-      alert("Vui lòng nhập đầy đủ thông tin bắt buộc");
+    if (
+      !voucherCode.trim() ||
+      discountValue === "" ||
+      !startDate ||
+      !endDate ||
+      voucherTypeId === ""
+    ) {
+      alert("Vui lòng nhập đầy đủ thông tin bắt buộc (bao gồm loại voucher)");
       return;
     }
 
@@ -79,7 +98,7 @@ export default function VoucherForm({ submitText = "Lưu Voucher", initialData, 
         });
       } else {
         await AdminVoucherService.create({
-          voucherTypeId: 1,
+          voucherTypeId: Number(voucherTypeId),
           voucherCode: voucherCode.trim(),
           discountType,
           discountValue: Number(discountValue),
@@ -103,6 +122,26 @@ export default function VoucherForm({ submitText = "Lưu Voucher", initialData, 
 
   return (
     <form className="space-y-5 text-sm" onSubmit={handleSubmit}>
+      {/* Voucher Type */}
+      <div>
+        <label className="mb-1 block font-medium">
+          Loại voucher <span className="text-red-500">*</span>
+        </label>
+        <select
+          value={voucherTypeId}
+          onChange={(e) => setVoucherTypeId(e.target.value ? Number(e.target.value) : "")}
+          className="w-full rounded-lg border px-3 py-2"
+          required
+        >
+          <option value="">-- Chọn loại voucher --</option>
+          {voucherTypes.map((t) => (
+            <option key={t.voucherTypeId} value={t.voucherTypeId}>
+              {t.voucherTypeName}
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* Voucher Code */}
       <div>
         <label className="mb-1 block font-medium">
