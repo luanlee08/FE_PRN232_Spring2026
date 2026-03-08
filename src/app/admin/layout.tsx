@@ -11,7 +11,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import toast from "react-hot-toast";
 import React from "react";
-// import "flatpickr/dist/flatpickr.css";
+import { useAdminNotificationHub } from "@/hooks/useAdminNotificationHub";
 
 export default function AdminLayout({
   children,
@@ -32,6 +32,9 @@ function AdminLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, isAuthenticated, isLoading, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+
+  // Connect to notification hub so the badge updates in real-time
+  useAdminNotificationHub(1);
 
   // Bảo vệ admin routes - chỉ cho Staff/Warehouse/Admin vào
   useEffect(() => {

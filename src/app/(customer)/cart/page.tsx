@@ -466,10 +466,6 @@ export default function CartPage() {
                     <span className="text-gray-500">Tạm tính ({selectedCount} sản phẩm)</span>
                     <span className="font-medium text-[#222]">{formatPrice(selectedTotal)}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Phí vận chuyển</span>
-                    <span className="font-medium text-green-600">Miễn phí</span>
-                  </div>
                 </div>
 
                 <div className="border-t border-[#E8E8E8] pt-4 mb-6">
@@ -494,23 +490,7 @@ export default function CartPage() {
                 </button>
 
                 {/* Trust badges */}
-                <div className="mt-6 grid grid-cols-3 gap-2">
-                  {[
-                    { icon: "🚚", text: "Miễn phí ship" },
-                    { icon: "🔄", text: "Đổi trả 7 ngày" },
-                    { icon: "🛡️", text: "Bảo hành" },
-                  ].map((badge, idx) => (
-                    <div
-                      key={idx}
-                      className="flex flex-col items-center p-2 bg-[#F5F5F5] rounded-lg"
-                    >
-                      <span className="text-lg mb-1">{badge.icon}</span>
-                      <span className="text-[10px] text-center text-gray-500 leading-tight">
-                        {badge.text}
-                      </span>
-                    </div>
-                  ))}
-                </div>
+          
               </div>
             </div>
           </div>
