@@ -101,8 +101,18 @@ export default function OrderManagementUI() {
         sortBy: "OrderDate",
         sortDesc: true,
       });
-    } catch (err) {
-      toast.error("Xuất Excel thất bại");
+    } catch (err: any) {
+      // When responseType="blob", error body is a Blob — parse it to get the real message
+      let message = "Xuất Excel thất bại";
+      if (err?.response?.data instanceof Blob) {
+        try {
+          const text = await (err.response.data as Blob).text();
+          const json = JSON.parse(text);
+          message = json?.message || message;
+        } catch { /* blob was not JSON */ }
+      }
+      toast.error(message, { duration: 6000 });
+      console.error("Export error:", err);
     } finally {
       setExporting(false);
     }
@@ -111,8 +121,8 @@ export default function OrderManagementUI() {
   const handleUpdateStatus = async (orderId: number, newStatusId: number, note?: string) => {
     setUpdating(true);
     try {
-      // statusId 2 = Confirmed — backend requires autoCreateShipping=true to push to GHN
-      const shouldCreateShipping = newStatusId === 2;
+      // statusId 3 = Shipped — tell backend to auto-create GHN order when transitioning to Shipped
+      const shouldCreateShipping = newStatusId === 3;
       const res = await AdminOrderService.updateStatus(orderId, {
         statusId: newStatusId,
         note,

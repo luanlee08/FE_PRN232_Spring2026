@@ -33,8 +33,8 @@ export type PaymentMethodCode = (typeof PAYMENT_METHOD)[keyof typeof PAYMENT_MET
 // Useful for disabling buttons client-side before API call.
 // ------------------------------------------------------------------
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatusName, OrderStatusName[]> = {
-  Pending: ['Processing', 'Cancelled'],
-  Processing: ['Confirmed', 'Cancelled'],
+  Pending: ['Confirmed', 'Cancelled'],
+  Processing: [],
   Confirmed: ['Shipped', 'Cancelled'],
   Shipped: ['Delivered'],
   Delivered: ['Refunded'],
@@ -47,7 +47,7 @@ export function canTransition(from: OrderStatusName, to: OrderStatusName): boole
 }
 
 export function isCustomerCancellable(status: OrderStatusName): boolean {
-  return status === ORDER_STATUS.PENDING || status === ORDER_STATUS.PROCESSING;
+  return status === ORDER_STATUS.PENDING || status === ORDER_STATUS.CONFIRMED;
 }
 
 export interface CreateOrderRequest {
