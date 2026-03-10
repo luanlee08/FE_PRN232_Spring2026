@@ -196,12 +196,10 @@ export default function BlogDetailPage() {
     try {
       await customerBlogReactionService.react(reviewBlogId, type);
 
-      // ðŸ”¥ reload láº¡i reviews tá»« backend
       await loadReviews(blog!.blogPostId);
 
     } catch (err) {
       console.error(err);
-      alert("Vui lÃ²ng Ä‘Äƒng nháº­p Ä‘á»ƒ react");
     }
   };
 
@@ -211,7 +209,7 @@ export default function BlogDetailPage() {
       {/* ===== BREADCRUMB ===== */}
       <div className="max-w-7xl mx-auto px-4 py-6 text-sm text-gray-500">
         <Link href="/" className="hover:text-orange-500">
-          Trang chá»§
+          Trang chủ
         </Link>
         <span className="mx-2">/</span>
         <Link href="/blog" className="hover:text-orange-500">
@@ -240,9 +238,9 @@ export default function BlogDetailPage() {
               </h1>
 
               <div className="flex flex-wrap gap-6 text-sm text-gray-500 border-b pb-4">
-                <span>ðŸ‘¤ {blog.authorEmail}</span>
+                {/* <span>Tác giả {blog.authorEmail}</span> */}
                 <span>
-                  ðŸ“…{" "}
+                  {" "}
                   {new Date(
                     blog.createdAt
                   ).toLocaleDateString("vi-VN")}
@@ -273,14 +271,14 @@ export default function BlogDetailPage() {
               {/* ===== REVIEWS FROM DATABASE ===== */}
               <div className="border-t pt-10 mt-10">
                 <h3 className="font-semibold mb-6 text-lg">
-                  ÄÃ¡nh giÃ¡ tá»« khÃ¡ch hÃ ng ({reviews.length})
+                  Đánh giá của khách hàng ({reviews.length})
                 </h3>
 
                 {/* LIST REVIEW */}
                 <div className="space-y-4 mb-6">
                   {reviews.length === 0 && (
                     <p className="text-sm text-gray-500">
-                      ChÆ°a cÃ³ Ä‘Ã¡nh giÃ¡ nÃ o.
+                     Chưa có đánh giá.
                     </p>
                   )}
 
@@ -298,7 +296,7 @@ export default function BlogDetailPage() {
                         {/* ===== REVIEW HEADER ===== */}
                         <div className="flex justify-between items-center text-xs text-gray-500 mb-1">
                           <span>
-                            {r.customerName} â€¢{" "}
+                            {r.customerName}{" "}
                             {new Date(r.createdAt).toLocaleDateString("vi-VN")}
                           </span>
                         </div>
@@ -317,7 +315,7 @@ export default function BlogDetailPage() {
                                 : "text-gray-500 hover:text-blue-600"
                               }`}
                           >
-                            ðŸ‘ {r.likeCount}
+                            👍 {r.likeCount}
                           </button>
 
                           <button
@@ -327,7 +325,7 @@ export default function BlogDetailPage() {
                                 : "text-gray-500 hover:text-red-600"
                               }`}
                           >
-                            ðŸ‘Ž {r.dislikeCount}
+                            👎 {r.dislikeCount}
                           </button>
                         </div>
 
@@ -343,7 +341,7 @@ export default function BlogDetailPage() {
                                   <span className="font-semibold text-orange-600">
                                     {reply.accountName}
                                   </span>{" "}
-                                  â€¢{" "}
+                                  {" "}
                                   {new Date(reply.createdAt).toLocaleDateString("vi-VN")}
                                 </div>
 
@@ -395,7 +393,7 @@ export default function BlogDetailPage() {
                       disabled={submitting}
                       className="bg-orange-500 text-white px-6 py-2 rounded-lg text-sm hover:bg-orange-600 disabled:opacity-50"
                     >
-                      {submitting ? "Äang gá»­i..." : "Gá»­i Ä‘Ã¡nh giÃ¡"}
+                      {submitting ? "Gửi đánh giá" : "Gửi đánh giá"}
                     </button>
                   </div>
                 </div>
@@ -408,7 +406,7 @@ export default function BlogDetailPage() {
 
             <div className="bg-white p-6 rounded-xl shadow-sm">
               <h4 className="font-bold mb-4 border-b pb-2">
-                â­ BÃ i viáº¿t ná»•i báº­t
+                đánh giá
               </h4>
 
               <ul className="space-y-4">
@@ -447,7 +445,7 @@ export default function BlogDetailPage() {
             </div>
             <div className="bg-white rounded-xl shadow-sm p-6">
               <h3 className="font-semibold mb-4">
-                ðŸ•’ BÃ i viáº¿t gáº§n Ä‘Ã¢y
+              Đánh giá blog 
               </h3>
 
               <ul className="space-y-4">
