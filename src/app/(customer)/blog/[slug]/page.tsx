@@ -111,7 +111,7 @@ export default function BlogDetailPage() {
   if (loading) {
     return (
       <main className="min-h-screen flex items-center justify-center">
-        Äang táº£i...
+        Đang tải...
       </main>
     );
   }
@@ -119,7 +119,7 @@ export default function BlogDetailPage() {
   if (!blog) {
     return (
       <main className="min-h-screen flex items-center justify-center text-gray-600">
-        KhÃ´ng tÃ¬m tháº¥y bÃ i viáº¿t
+        Không tìm thấy bài viết
       </main>
     );
   }
@@ -132,10 +132,10 @@ export default function BlogDetailPage() {
       return;
     }
 
-    if (trimmedReview.length < 1) {
-      setReviewError("Đánh giá phải có ít nhất 1 ký tự");
-      return;
-    }
+    // if (trimmedReview.length < 1) {
+    //   setReviewError("Đánh giá phải có ít nhất 1 ký tự");
+    //   return;
+    // }
 
     if (trimmedReview.length > 500) {
       setReviewError("Đánh giá không được vượt quá 500 ký tự");
@@ -265,8 +265,6 @@ export default function BlogDetailPage() {
                   __html: blog.blogContent,
                 }}
               />
-
-
 
               {/* ===== REVIEWS FROM DATABASE ===== */}
               <div className="border-t pt-10 mt-10">
