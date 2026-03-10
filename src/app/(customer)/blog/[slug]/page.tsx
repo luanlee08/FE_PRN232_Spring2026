@@ -132,8 +132,8 @@ export default function BlogDetailPage() {
       return;
     }
 
-    if (trimmedReview.length < 10) {
-      setReviewError("Đánh giá phải có ít nhất 10 ký tự");
+    if (trimmedReview.length < 1) {
+      setReviewError("Đánh giá phải có ít nhất 1 ký tự");
       return;
     }
 
