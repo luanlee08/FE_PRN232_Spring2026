@@ -15,6 +15,7 @@ import {
 } from "@/icons/index";
 import SidebarWidget from "./SidebarWidget";
 import { Package, Receipt, TicketPercent, Bell, BarChart2 } from "lucide-react";
+import { useAuth } from "@/lib/auth/auth-context";
 type NavItem = {
   name: string;
   icon: React.ReactNode;
@@ -150,6 +151,9 @@ const othersItems: NavItem[] = [
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { user } = useAuth();
+  const isAdmin = user?.roleName === "Admin";
+  const filteredNavItems = navItems.filter((item) => item.name !== "Thống kê" || isAdmin);
 
   const renderMenuItems = (navItems: NavItem[], menuType: "main" | "others") => (
     <ul className="flex flex-col gap-4">
@@ -375,7 +379,7 @@ const AppSidebar: React.FC = () => {
               >
                 {isExpanded || isHovered || isMobileOpen ? "Menu" : <HorizontaLDots />}
               </h2>
-              {renderMenuItems(navItems, "main")}
+              {renderMenuItems(filteredNavItems, "main")}
             </div>
 
             <div className="">

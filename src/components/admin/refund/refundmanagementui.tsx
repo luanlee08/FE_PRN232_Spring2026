@@ -126,13 +126,15 @@ export default function RefundManagementUI() {
 
   const fmtVND = (v: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(v);
+  const toUtc = (s: string) => (/Z$|[+-]\d{2}:\d{2}$/.test(s) ? s : s + "Z");
   const fmtDate = (s: string) =>
-    new Date(s).toLocaleDateString("vi-VN", {
+    new Date(toUtc(s)).toLocaleString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
 
   return (
