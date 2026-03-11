@@ -69,14 +69,16 @@ export default function RefundDetailModal({ refundId, isOpen, onClose, onProcess
 
   const fmtVND = (v: number) =>
     new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(v);
+  const toUtc = (s: string) => (/Z$|[+-]\d{2}:\d{2}$/.test(s) ? s : s + "Z");
   const fmtDate = (s?: string) =>
     s
-      ? new Date(s).toLocaleDateString("vi-VN", {
+      ? new Date(toUtc(s)).toLocaleString("vi-VN", {
           day: "2-digit",
           month: "2-digit",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
+          hour12: false,
         })
       : "—";
 
@@ -86,8 +88,14 @@ export default function RefundDetailModal({ refundId, isOpen, onClose, onProcess
   return (
     <>
       {isOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="max-w-lg w-full rounded-2xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]">
+        <div
+          className="fixed inset-0 z-[9999] bg-black/50 flex items-center justify-center p-4"
+          onClick={onClose}
+        >
+          <div
+            className="max-w-lg w-full rounded-2xl bg-white shadow-2xl overflow-y-auto max-h-[90vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
       {/* Header */}
       <div className="flex items-center justify-between border-b border-gray-100 px-6 py-4">
         <h3 className="text-lg font-semibold text-gray-900">Chi tiết Yêu cầu Hoàn tiền</h3>

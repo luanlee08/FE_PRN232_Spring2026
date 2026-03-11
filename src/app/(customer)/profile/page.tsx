@@ -949,7 +949,15 @@ function CustomerProfilePageContent() {
           "Gửi yêu cầu hoàn tiền thành công! Chúng tôi sẽ xử lý trong 1–3 ngày làm việc.",
         );
         setShowRefundModal(false);
-        fetchOrders(orderTab, orderPage);
+        // Optimistic update: mark order locally without waiting for API refresh
+        setOrders((prev) =>
+          prev.map((o) =>
+            o.orderId === refundTargetOrder.orderId ? { ...o, refundStatus: "Requested" } : o,
+          ),
+        );
+        if (selectedOrder?.orderId === refundTargetOrder.orderId) {
+          setSelectedOrder((prev) => (prev ? { ...prev, refundStatus: "Requested" } : prev));
+        }
       } else {
         toast.error(res.message || "Có lỗi xảy ra");
       }
@@ -2808,6 +2816,24 @@ function CustomerProfilePageContent() {
                                 <>✓ Đã nhận hàng</>
                               )}
                             </button>
+                          )}
+                          {selectedOrder.statusName?.toLowerCase() === "completed" && selectedOrder.refundStatus === "None" && (
+                            <button
+                              onClick={(e) => handleOpenRefundModal(selectedOrder, e)}
+                              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 border border-orange-300 text-orange-600 text-sm font-semibold rounded-xl hover:bg-orange-50 transition-colors"
+                            >
+                              <ArrowDownCircle size={15} /> Yêu cầu hoàn tiền
+                            </button>
+                          )}
+                          {selectedOrder.statusName?.toLowerCase() === "completed" && selectedOrder.refundStatus === "Completed" && (
+                            <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 text-green-700 text-sm font-semibold rounded-xl">
+                              <CheckCircle size={15} /> Đã hoàn tiền
+                            </div>
+                          )}
+                          {selectedOrder.statusName?.toLowerCase() === "completed" && selectedOrder.refundStatus !== "None" && selectedOrder.refundStatus !== "" && selectedOrder.refundStatus !== "Completed" && (
+                            <div className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-50 border border-indigo-200 text-indigo-600 text-sm font-semibold rounded-xl">
+                              <RefreshCw size={15} /> Đã gửi yêu cầu hoàn tiền
+                            </div>
                           )}
                           <button
                             onClick={() => setSelectedOrder(null)}
