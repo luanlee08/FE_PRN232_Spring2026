@@ -160,17 +160,34 @@ export function Header() {
       <header className="sticky top-0 z-50 w-full bg-[#FF6B35] text-white shadow-md">
         <div className="mx-auto max-w-7xl px-4">
           <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center gap-3">
-              <button className="lg:hidden" onClick={() => setOpenMenu(true)}>
-                <Menu size={22} />
-              </button>
+            <div className="flex items-center gap-8">
+              <div className="flex items-center gap-3">
+                <button className="lg:hidden" onClick={() => setOpenMenu(true)}>
+                  <Menu size={22} />
+                </button>
 
-              <Link href="/" className="flex items-center gap-2">
-                <div className="flex h-9 w-9 items-center justify-center rounded bg-white">
-                  <span className="text-lg font-bold text-[#FF6B35]">👑</span>
-                </div>
-                <span className="text-lg font-bold tracking-wide">LorKingdom</span>
-              </Link>
+                <Link href="/" className="flex items-center gap-2">
+                  <div className="flex h-9 w-9 items-center justify-center rounded bg-white">
+                    <span className="text-lg font-bold text-[#FF6B35]">👑</span>
+                  </div>
+                  <span className="text-lg font-bold tracking-wide">LorKingdom</span>
+                </Link>
+              </div>
+
+              <div className="hidden lg:flex items-center gap-6">
+                <Link
+                  href="/products"
+                  className="text-sm font-semibold tracking-wide hover:text-white/80 transition-colors"
+                >
+                  Danh mục
+                </Link>
+                <Link
+                  href="/blog"
+                  className="text-sm font-semibold tracking-wide hover:text-white/80 transition-colors"
+                >
+                  Bài viết
+                </Link>
+              </div>
             </div>
 
             <div className="hidden lg:flex flex-1 justify-center px-6">
